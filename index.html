@@ -9,35 +9,178 @@
 
     <style>
         * {
-            font-family: Helvetica, Arial, SansSerif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             box-sizing: border-box;
         }
 
         body {
-            margin-left: 10px;
-            margin-right: 10px;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0066cc 0%, #004499 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-left: 4px solid #0066cc;
+        }
+
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card .value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+        }
+
+        .controls {
+            padding: 30px;
+            background: white;
+            border-bottom: 1px solid #eee;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        input, select {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 0 3px rgba(0,102,204,0.1);
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-group label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
         }
 
         #tableContainer {
-            border: 1px solid #e7eaf3;
-            border-radius: 12px;
-            box-shadow: 0 .5rem 1.2rem rgba(189, 197, 209, .3);
-            font-size: 14px;
-            width: fit-content;
-            overflow-x: hidden;
-        }
-
-        .panel {
-            line-height: 160%;
+            overflow-x: auto;
+            margin: 0;
+            box-shadow: none;
+            border: none;
         }
 
         table {
+            width: 100%;
             border-collapse: collapse;
-            text-align: left;
+            font-size: 13px;
+            background: white;
         }
 
-        tr {
-            height: 37px;
+        thead {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            white-space: nowrap;
+        }
+
+        th:hover {
+            background: #e9ecef;
+        }
+
+        th.sortable::after {
+            content: ' ⇅';
+            color: #ccc;
+        }
+
+        th.sort-asc::after {
+            content: ' ↑';
+            color: #0066cc;
+        }
+
+        th.sort-desc::after {
+            content: ' ↓';
+            color: #0066cc;
+        }
+
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #f1f3f4;
+            white-space: nowrap;
         }
 
         tr:hover {
@@ -45,112 +188,215 @@
         }
 
         .green {
-            color: #02977e;
+            color: #28a745;
+            font-weight: 600;
         }
 
         .red {
-            color: #f74b4c;
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .yellow {
+            color: #ffc107;
+        }
+
+        .grey {
+            color: #6c757d;
+        }
+
+        .tr-red {
+            background-color: #fff5f5;
+        }
+
+        .tr-red:hover {
+            background-color: #ffebee;
+        }
+
+        .tr-green {
+            background-color: #f0fff4;
+        }
+
+        .tr-green:hover {
+            background-color: #e8f5e8;
+        }
+
+        .mono, .mono a {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 11px;
+        }
+
+        a, a:focus, a:active {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
         }
 
         .start {
             cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s ease;
         }
 
-        .grey {
-            color: #ccc;
+        .start:hover {
+            transform: scale(1.2);
         }
 
-        .yellow {
-            color: orange;
-        }
-
-        .tr-red {
-            background-color: #fdd2d2;
-        }
-
-        .tr-red:hover {
-            background-color: #fdc7c7;
-        }
-
-        th, td {
-            padding-left: 10px;
-            padding-right: 10px;
-            white-space: nowrap;
-        }
-
-        thead {
-            background-color: #f8f9fa;
-            border: none;
-            color: #6c757e;
-            font-weight: 500;
-        }
-
-        .mono, .mono a {
-            font-family: monospace;
-        }
-
-        a, a:focus, a:active {
-            color: #0069ff;
-            text-decoration: none;
-        }
-
-        input {
-            background: rgba(155, 162, 176, .14);
-            border: 2px solid transparent;
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
             border-radius: 12px;
-            color: #24292f;
-            transition: min-width .12s ease, border-color .12s ease;
-            padding: 9px 0 9px 16px;
-            width: 100%;
-            max-width: 600px;
-            margin-bottom: 8px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
         }
 
-        .rect {
-            position: absolute;
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
         }
 
-        .rect-election {
-            background-color: #1d98dc;
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
         }
 
-        .rect-validation {
-            background-color: green;
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
         }
 
-        .rect-holding {
-            background-color: red;
+        .badge-info {
+            background: #d1ecf1;
+            color: #0c5460;
         }
 
-        .chart-label {
-            position: absolute;
-            color: grey;
+        .complaints-indicator {
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .efficiency-bar {
+            width: 60px;
+            height: 8px;
+            background: #f1f3f4;
+            border-radius: 4px;
+            overflow: hidden;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+
+        .efficiency-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .country-flag {
+            font-size: 16px;
+            margin-right: 5px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+            
+            .controls {
+                padding: 20px;
+            }
+            
+            .search-container, .filter-row {
+                flex-direction: column;
+            }
+            
+            input, select {
+                min-width: 100%;
+            }
+            
+            th, td {
+                padding: 8px 5px;
+                font-size: 12px;
+            }
         }
     </style>
 </head>
 <body>
 
-<h1>TON Validators</h1>
+<div class="container">
+    <div class="header">
+        <h1>TON Validators Dashboard</h1>
+    </div>
 
-<!--<div id="chartContainer" style="width: 100%; height: 300px" >-->
+    <div id="statsContainer" class="stats-grid">
+    </div>
 
-<!--</div>-->
+    <div class="controls">
+        <div class="search-container">
+            <input id="searchInput" placeholder="搜尋 ADNL、錢包地址、公鑰或標籤...">
+        </div>
+        
+        <div class="filter-row">
+            <div class="filter-group">
+                <label>效率過濾</label>
+                <select id="efficiencyFilter">
+                    <option value="">所有效率</option>
+                    <option value="high">高效率 (≥95%)</option>
+                    <option value="good">良好 (90-95%)</option>
+                    <option value="poor">需改善 (<90%)</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>驗證器類型</label>
+                <select id="typeFilter">
+                    <option value="">所有類型</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>地理位置</label>
+                <select id="geoFilter">
+                    <option value="">所有地區</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>顯示已收藏</label>
+                <select id="savedFilter">
+                    <option value="">全部</option>
+                    <option value="saved">僅收藏</option>
+                </select>
+            </div>
+        </div>
+    </div>
 
-<div id="headerContainer" class="panel">
-</div>
-
-<div id="blockchainConfigurationContainer" class="panel">
-</div>
-
-<h2>List of validators for the round</h2>
-
-<input id="searchInput" placeholder="Search for ADNL, wallet address, public key">
-
-<div id="tableContainer">
+    <div id="tableContainer">
+    </div>
 </div>
 
 <script>
-    // local time zone
+    // 本地時區
     const timestampToDate = (timestamp) => {
         const date = new Date(timestamp * 1000);
         return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
@@ -187,13 +433,13 @@
         const m = Math.floor(delta % 3600 / 60);
 
         let result = '';
-        if (h !== 0) result += h + ' hours ';
-        result += m + ' mins'
+        if (h !== 0) result += h + ' 小時 ';
+        result += m + ' 分鐘'
 
         if (isNegative) {
-            return `${result} ago`
+            return `${result}前`
         } else {
-            return `in ${result}`
+            return `${result}後`
         }
     }
 
@@ -216,12 +462,20 @@
             case 'bemo_nominator': return 'BEMO';
             case 'other': return 'Other';
         }
-
         return s;
     }
 
     const toPercent = (n) => {
         return (Number(n) * 100).toFixed(2) + '%';
+    }
+
+    const getCountryFlag = (countryCode) => {
+        if (!countryCode || countryCode === 'N/A') return '🌐';
+        try {
+            return String.fromCodePoint(...countryCode.toUpperCase().split('').map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
+        } catch {
+            return '🌐';
+        }
     }
 
     const wait = (millis) => {
@@ -236,7 +490,14 @@
     let cycleData;
     let qosData;
     let qosDataByCycleId;
-    let searchText;
+    let searchText = '';
+    let currentSort = { column: null, direction: 'asc' };
+    let currentFilters = {
+        efficiency: '',
+        type: '',
+        geo: '',
+        saved: ''
+    };
 
     const storage = localStorage.getItem('savedAdnl');
     let savedAdnl = storage ? storage.split(',') : [];
@@ -296,58 +557,6 @@
         } else {
             const response = await api("https://elections.toncenter.com/getValidationCycles?node_details=true&limit=2")
 
-            //     const chartContainer = document.getElementById('chartContainer');
-            //
-            //     const offsetX = 500;
-            //     const offsetY = 150;
-            //     const timeOffset = Math.floor(Date.now() / 1000);
-            //     const secToPx = 0.005;
-            //
-            //     const createRect = (clazz, startTime, row, endTime) => {
-            //         const x = offsetX + (startTime - timeOffset) * secToPx;
-            //         const width = (endTime - startTime) * secToPx;
-            //
-            //         const y = offsetY + row * 50;
-            //
-            //         const rect = document.createElement('div');
-            //         rect.classList.add('rect');
-            //         rect.classList.add(clazz);
-            //         rect.style.left = x + 'px';
-            //         rect.style.top = y + 'px';
-            //         rect.style.width = width + 'px';
-            //         rect.style.height = '20px';
-            //         return rect;
-            //     }
-            //
-            //     const createChartCycle = (data, row) => {
-            //         const cycleInfo = data.cycle_info;
-            //         const electionStart = cycleInfo.utime_since - data.config15.elections_start_before;
-            //         const electionEnd = cycleInfo.utime_since - data.config15.elections_end_before;
-            //         const validationStart = cycleInfo.utime_since;
-            //         const validationEnd = cycleInfo.utime_until;
-            //         const unfreezeEnd = cycleInfo.utime_until + data.config15.stake_held_for;
-            //
-            //         chartContainer.appendChild(createRect('rect-election', electionStart, row, electionEnd));
-            //         chartContainer.appendChild(createRect('rect-validation', validationStart, row, validationEnd));
-            //         chartContainer.appendChild(createRect('rect-holding', validationEnd, row, unfreezeEnd));
-            //     }
-            //
-            //     createChartCycle(response[0], 0);
-            //     createChartCycle(response[1], 1);
-            //
-            //     for (let i = 0; i < 24; i++) {
-            //         const x = (i * 100);
-            //         const timestamp = (x / secToPx) + timeOffset;
-            //
-            //         const label = document.createElement('div')
-            //         label.classList.add('chart-label');
-            //         label.innerText = new Date(timestamp * 1000).toLocaleTimeString();
-            //         label.style.left = x + 'px';
-            //         label.style.top = '80px';
-            //         chartContainer.appendChild(label);
-            //     }
-            //
-            //
             const now = Date.now() / 1000;
             if (response[0].cycle_info.utime_since < now) {
                 cycleData = response[0];
@@ -361,6 +570,7 @@
         await getQosCycleData(cycleData.cycle_info.utime_since, cycleData.cycle_info.utime_until);
         await wait(1000);
         await getQosCycleDataByCycleId(cycleData.cycle_id);
+        renderStats();
         renderTable();
     }
 
@@ -376,7 +586,136 @@
         renderTable();
     }
 
+    const sortValidators = (validators, column, direction) => {
+        return validators.sort((a, b) => {
+            let valueA, valueB;
+
+            // Handle saved validators first
+            const isSavedA = savedAdnl.indexOf(a.adnl_addr) > -1;
+            const isSavedB = savedAdnl.indexOf(b.adnl_addr) > -1;
+            
+            if (isSavedA && !isSavedB) return -1;
+            if (!isSavedA && isSavedB) return 1;
+
+            switch (column) {
+                case 'index':
+                    valueA = a.index;
+                    valueB = b.index;
+                    break;
+                case 'efficiency':
+                    valueA = getEfficiencyForValidator(a);
+                    valueB = getEfficiencyForValidator(b);
+                    if (valueA === 'N/A') valueA = -1;
+                    if (valueB === 'N/A') valueB = -1;
+                    break;
+                case 'stake':
+                    valueA = Number(a.stake);
+                    valueB = Number(b.stake);
+                    break;
+                case 'weight':
+                    valueA = Number(a.weight);
+                    valueB = Number(b.weight);
+                    break;
+                default:
+                    return 0;
+            }
+
+            if (direction === 'asc') {
+                return valueA > valueB ? 1 : -1;
+            } else {
+                return valueA < valueB ? 1 : -1;
+            }
+        });
+    }
+
+    const getEfficiencyForValidator = (validator) => {
+        if (!qosData) return 'N/A';
+        for (let q of qosData) {
+            if (q.validator_adnl === validator.adnl_addr) {
+                return Number(q.efficiency);
+            }
+        }
+        return 'N/A';
+    }
+
+    const renderStats = () => {
+        if (!cycleData) return;
+
+        const cycleInfo = cycleData.cycle_info;
+        const totalStake = cycleInfo.total_stake;
+        const stakesUnfreezeAt = cycleInfo.utime_until + cycleData.config15.stake_held_for;
+
+        let labeledTotalStake = BigInt(0);
+        let efficiencyStats = { high: 0, good: 0, poor: 0, na: 0 };
+        let complaintsCount = 0;
+
+        for (const v of cycleInfo.validators) {
+            const label = labels[v.adnl_addr] || labels[v.wallet_address] || '';
+            if (label) {
+                labeledTotalStake += BigInt(v.stake);
+            }
+
+            // Count complaints
+            if (v.complaints && v.complaints.length > 0) {
+                complaintsCount += v.complaints.length;
+            }
+
+            // Efficiency stats
+            const efficiency = getEfficiencyForValidator(v);
+            if (efficiency === 'N/A') {
+                efficiencyStats.na++;
+            } else if (efficiency >= 95) {
+                efficiencyStats.high++;
+            } else if (efficiency >= 90) {
+                efficiencyStats.good++;
+            } else {
+                efficiencyStats.poor++;
+            }
+        }
+
+        document.getElementById('statsContainer').innerHTML = `
+            <div class="stat-card">
+                <h3>驗證週期</h3>
+                <p class="value">#${cycleData.cycle_id}</p>
+            </div>
+            <div class="stat-card">
+                <h3>驗證器數量</h3>
+                <p class="value">${cycleInfo.validators.length} / ${cycleData.config16.max_validators}</p>
+            </div>
+            <div class="stat-card">
+                <h3>總質押量</h3>
+                <p class="value">${toMillionsShort(fromNano(totalStake))} TON</p>
+            </div>
+            <div class="stat-card">
+                <h3>已知質押量</h3>
+                <p class="value">${labeledTotalStake > 0 ? toMillionsShort(fromNano(labeledTotalStake)) + ' TON' : 'N/A'}</p>
+            </div>
+            <div class="stat-card">
+                <h3>週期開始</h3>
+                <p class="value">${timeRange(cycleInfo.utime_since)}</p>
+            </div>
+            <div class="stat-card">
+                <h3>週期結束</h3>
+                <p class="value">${timeRange(cycleInfo.utime_until)}</p>
+            </div>
+            <div class="stat-card">
+                <h3>質押解凍</h3>
+                <p class="value">${timeRange(stakesUnfreezeAt)}</p>
+            </div>
+            <div class="stat-card">
+                <h3>高效率節點</h3>
+                <p class="value">${efficiencyStats.high}</p>
+            </div>
+            <div class="stat-card">
+                <h3>投訴總數</h3>
+                <p class="value">${complaintsCount}</p>
+            </div>
+        `;
+    }
+
     const renderTable = () => {
+        if (!cycleData) return;
+
         const data = cycleData;
         const cycleInfo = data.cycle_info;
         const totalStake = cycleInfo.total_stake;
@@ -387,149 +726,254 @@
         const isEfficiencyReady = secondsSinceCycleStart > 60 * 60; // 60 min
 
         // validators table
-
         let s = '<table>' +
             '<thead>' +
             '<tr>' +
             '<th></th>' +
-            '<th>Index</th>' +
-            '<th></th>' +
-            '<th>Efficiency</th>' +
-            '<th>Weight</th>' +
-            '<th>Stake</th>' +
-            '<th>Geo</th>' +
-            '<th>Node Ver</th>' +
-            '<th>MyTonCtrl Ver</th>' +
-            '<th>Type</th>' +
-            '<th>ADNL Address</th>' +
-            '<th>Wallet Address</th>' +
-            '<th>Public Key</th>' +
+            '<th class="sortable" onclick="sortTable(\'index\')">索引</th>' +
+            '<th>標籤</th>' +
+            '<th class="sortable" onclick="sortTable(\'efficiency\')">效率</th>' +
+            '<th class="sortable" onclick="sortTable(\'weight\')">權重</th>' +
+            '<th class="sortable" onclick="sortTable(\'stake\')">質押</th>' +
+            '<th>地理</th>' +
+            '<th>節點版本</th>' +
+            '<th>MyTonCtrl版本</th>' +
+            '<th>類型</th>' +
+            '<th>投訴</th>' +
+            '<th>最大因子</th>' +
+            '<th>ADNL地址</th>' +
+            '<th>錢包地址</th>' +
+            '<th>公鑰</th>' +
             '</tr>' +
             '</thead>';
 
-        const validators = cycleInfo.validators.concat();
+        let validators = cycleInfo.validators.concat();
 
-        validators.sort((a, b) => {
-            const isSavedA = savedAdnl.indexOf(a.adnl_addr) > -1;
-            const isSavedB = savedAdnl.indexOf(b.adnl_addr) > -1;
-            if (isSavedA && isSavedB) {
-                if (a.index > b.index) {
-                    return 1;
-                } else {
+        // Apply sorting
+        if (currentSort.column) {
+            validators = sortValidators(validators, currentSort.column, currentSort.direction);
+        } else {
+            // Default sorting by saved and index
+            validators.sort((a, b) => {
+                const isSavedA = savedAdnl.indexOf(a.adnl_addr) > -1;
+                const isSavedB = savedAdnl.indexOf(b.adnl_addr) > -1;
+                if (isSavedA && isSavedB) {
+                    return a.index > b.index ? 1 : -1;
+                } else if (isSavedA && !isSavedB) {
                     return -1;
+                } else {
+                    return 1;
                 }
-            } else if (isSavedA && !isSavedB) {
-                return -1;
-            } else {
-                return 1;
-            }
-        })
-
-        let labeledTotalStake = BigInt(0);
-        for (const v of validators) {
-            const label = labels[v.adnl_addr] || labels[v.wallet_address] || '';
-            if (label) {
-                labeledTotalStake += BigInt(v.stake);
-            }
+            });
         }
+
+        // Collect unique values for filters
+        const types = new Set();
+        const geos = new Set();
 
         for (const v of validators) {
             const label = labels[v.adnl_addr] || labels[v.wallet_address] || '';
+            let walletVersion = 'N/A';
+            let geolocation = 'N/A';
 
-            if (!searchText || v.index == searchText || v.adnl_addr.indexOf(searchText) > -1 || v.wallet_address.indexOf(searchText) > -1 || v.pubkey.indexOf(searchText) > -1 || label.indexOf(searchText) > -1) {
-
-                let efficiency = 'N/A';
-                let efficiencyClass = '';
-                let validatorVersion = 'N/A';
-                let mytonctrlVersion = 'N/A';
-                let walletVersion = 'N/A';
-                let geolocation = 'N/A';
-
-                if (qosData) {
-                    for (let q of qosData) {
-                        if (q.validator_adnl == v.adnl_addr) {
-                            if ((v.index < 100 && isTop100EfficiencyReady) || isEfficiencyReady) {
-                                const n = Number(q.efficiency)
-                                efficiency = n.toFixed(2) + '%';
-                                efficiencyClass = n < 90 ? 'red' : 'green';
-                            }
-                            validatorVersion = formatCommit(q.version_ton_commit);
-                            mytonctrlVersion = formatCommit(q.version_mytonctrl_commit);
-                            geolocation = q.geoip_country_iso;
-                            walletVersion = q.wallet_version;
-                            break;
-                        }
+            if (qosData) {
+                for (let q of qosData) {
+                    if (q.validator_adnl === v.adnl_addr) {
+                        geolocation = q.geoip_country_iso;
+                        walletVersion = q.wallet_version;
+                        break;
                     }
                 }
+            }
 
-                if (qosDataByCycleId) {
-                    for (let q of qosDataByCycleId) {
-                        if (q.adnl_addr == v.adnl_addr) {
-                            walletVersion = q.wallet_version;
-                            break;
-                        }
+            if (qosDataByCycleId) {
+                for (let q of qosDataByCycleId) {
+                    if (q.adnl_addr === v.adnl_addr) {
+                        walletVersion = q.wallet_version;
+                        break;
                     }
                 }
+            }
 
-                let starClass = savedAdnl.indexOf(v.adnl_addr) > -1 ? 'yellow' : 'grey';
+            types.add(formatType(walletVersion));
+            geos.add(geolocation);
+        }
 
+        // Update filter options
+        updateFilterOptions(types, geos);
 
-                s += `<tr class="tr-${efficiencyClass}">`
-                s += `<td class="start ${starClass}" onclick="saveAdnl('${v.adnl_addr}')">★</td>`
-                s += `<td>${v.index}</td>`
-                s += `<td>${label}</td>`
-                s += `<td class="${efficiencyClass}">${efficiency}</td>`
-                s += `<td>${toPercent(v.stake / totalStake)}</td>`
-                s += `<td>${toMillions(fromNano(v.stake))}&nbsp;TON</td>`
-                s += `<td>${geolocation}</td>`
-                s += `<td class="mono">${validatorVersion}</td>`
-                s += `<td class="mono">${mytonctrlVersion}</td>`
-                s += `<td>${formatType(walletVersion)}</td>`
-                s += `<td class="mono">${v.adnl_addr}</td>`
-                s += `<td class="mono">${makeAddressUrl(v.wallet_address)}</td>`
-                s += `<td class="mono">${v.pubkey}</td>`
-                s += '</td>'
+        for (const v of validators) {
+            const label = labels[v.adnl_addr] || labels[v.wallet_address] || '';
 
-                if (v.complaints.length > 0) {
-                    console.log('COMPLAINTS', v.complaints);
+            // Apply filters
+            if (searchText && !(
+                v.index == searchText || 
+                v.adnl_addr.toLowerCase().indexOf(searchText.toLowerCase()) > -1 || 
+                v.wallet_address.toLowerCase().indexOf(searchText.toLowerCase()) > -1 || 
+                v.pubkey.toLowerCase().indexOf(searchText.toLowerCase()) > -1 || 
+                label.toLowerCase().indexOf(searchText.toLowerCase()) > -1
+            )) continue;
+
+            let efficiency = 'N/A';
+            let efficiencyValue = 0;
+            let efficiencyClass = '';
+            let validatorVersion = 'N/A';
+            let mytonctrlVersion = 'N/A';
+            let walletVersion = 'N/A';
+            let geolocation = 'N/A';
+
+            if (qosData) {
+                for (let q of qosData) {
+                    if (q.validator_adnl === v.adnl_addr) {
+                        if ((v.index < 100 && isTop100EfficiencyReady) || isEfficiencyReady) {
+                            const n = Number(q.efficiency);
+                            efficiencyValue = n;
+                            efficiency = n.toFixed(2) + '%';
+                            if (n >= 95) efficiencyClass = 'green';
+                            else if (n >= 90) efficiencyClass = 'yellow';
+                            else efficiencyClass = 'red';
+                        }
+                        validatorVersion = formatCommit(q.version_ton_commit);
+                        mytonctrlVersion = formatCommit(q.version_mytonctrl_commit);
+                        geolocation = q.geoip_country_iso;
+                        walletVersion = q.wallet_version;
+                        break;
+                    }
                 }
+            }
 
-                // todo: complaints[]
-                // todo: max_factor
+            if (qosDataByCycleId) {
+                for (let q of qosDataByCycleId) {
+                    if (q.adnl_addr === v.adnl_addr) {
+                        walletVersion = q.wallet_version;
+                        break;
+                    }
+                }
+            }
 
+            // Apply efficiency filter
+            if (currentFilters.efficiency) {
+                if (currentFilters.efficiency === 'high' && efficiencyValue < 95) continue;
+                if (currentFilters.efficiency === 'good' && (efficiencyValue < 90 || efficiencyValue >= 95)) continue;
+                if (currentFilters.efficiency === 'poor' && efficiencyValue >= 90) continue;
+            }
+
+            // Apply type filter
+            if (currentFilters.type && formatType(walletVersion) !== currentFilters.type) continue;
+
+            // Apply geo filter
+            if (currentFilters.geo && geolocation !== currentFilters.geo) continue;
+
+            // Apply saved filter
+            if (currentFilters.saved === 'saved' && savedAdnl.indexOf(v.adnl_addr) === -1) continue;
+
+            let starClass = savedAdnl.indexOf(v.adnl_addr) > -1 ? 'yellow' : 'grey';
+            let rowClass = '';
+            if (efficiencyClass === 'red') rowClass = 'tr-red';
+            else if (efficiencyClass === 'green') rowClass = 'tr-green';
+
+            const complaintsCount = v.complaints ? v.complaints.length : 0;
+            const complaintsDisplay = complaintsCount > 0 ? 
+                `<span class="complaints-indicator">${complaintsCount}</span>` : '';
+
+            const efficiencyBar = efficiency !== 'N/A' ? 
+                `<div class="efficiency-bar"><div class="efficiency-fill ${efficiencyClass}" style="width: ${efficiencyValue}%"></div></div>` : '';
+
+            const countryFlag = getCountryFlag(geolocation);
+
+            s += `<tr class="${rowClass}">`;
+            s += `<td class="start ${starClass}" onclick="saveAdnl('${v.adnl_addr}')">★</td>`;
+            s += `<td>${v.index}</td>`;
+            s += `<td><strong>${label}</strong></td>`;
+            s += `<td class="${efficiencyClass}">${efficiencyBar}${efficiency}</td>`;
+            s += `<td>${toPercent(v.stake / totalStake)}</td>`;
+            s += `<td>${toMillions(fromNano(v.stake))}&nbsp;TON</td>`;
+            s += `<td><span class="country-flag">${countryFlag}</span>${geolocation}</td>`;
+            s += `<td class="mono">${validatorVersion}</td>`;
+            s += `<td class="mono">${mytonctrlVersion}</td>`;
+            s += `<td><span class="badge badge-info">${formatType(walletVersion)}</span></td>`;
+            s += `<td>${complaintsDisplay}</td>`;
+            s += `<td>${v.max_factor || 'N/A'}</td>`;
+            s += `<td class="mono">${v.adnl_addr}</td>`;
+            s += `<td class="mono">${makeAddressUrl(v.wallet_address)}</td>`;
+            s += `<td class="mono">${v.pubkey}</td>`;
+            s += '</tr>';
+
+            if (v.complaints && v.complaints.length > 0) {
+                console.log('COMPLAINTS', v.complaints);
             }
         }
 
-
-        s += '</table>'
+        s += '</table>';
 
         document.getElementById('tableContainer').innerHTML = s;
 
-        // validation cycle header
+        // Update sort indicators
+        updateSortIndicators();
+    }
 
-        const stakesUnfreezeAt = cycleInfo.utime_until + data.config15.stake_held_for;
+    const updateFilterOptions = (types, geos) => {
+        const typeFilter = document.getElementById('typeFilter');
+        const geoFilter = document.getElementById('geoFilter');
 
-        document.getElementById('headerContainer').innerHTML = `<h2>Validation Round ${data.cycle_id}</h2>` +
-            `Round Start: <b>${timestampToDate(cycleInfo.utime_since)}</b> — ${timeRange(cycleInfo.utime_since)}<br>` +
-            `Round End:  <b>${timestampToDate(cycleInfo.utime_until)}</b> — ${timeRange(cycleInfo.utime_until)}<br>` +
-            `Unfreezing stakes: <b>${timestampToDate(stakesUnfreezeAt)}</b> — ${timeRange(stakesUnfreezeAt)}<br>` +
-            `<i>Times in your timezone</i><br><br>` +
-            `Validators Count: <b>${cycleInfo.validators.length} / ${data.config16.max_validators}</b><br>` +
-            `Total Round Stake: <b>${toMillionsShort(fromNano(totalStake))}&nbsp;TON</b><br>` +
-            `Actual Max Stake: <b>${toMillionsShort(fromNano(cycleInfo.validators[0].stake))}&nbsp;TON</b><br>` +
-            `Actual Min Stake: <b>${toMillionsShort(fromNano(cycleInfo.validators[cycleInfo.validators.length - 1].stake))}&nbsp;TON</b><br>` +
-            (labeledTotalStake > 0 ? `Known Stake: <b>${toMillionsShort(fromNano(labeledTotalStake))}&nbsp;TON (${toPercent(Number(fromNano(labeledTotalStake)) / Number(fromNano(totalStake)))})</b>` : ``);
+        // Update type filter
+        const currentTypeValue = typeFilter.value;
+        typeFilter.innerHTML = '<option value="">所有類型</option>';
+        [...types].sort().forEach(type => {
+            if (type && type !== 'N/A') {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                typeFilter.appendChild(option);
+            }
+        });
+        typeFilter.value = currentTypeValue;
 
+        // Update geo filter
+        const currentGeoValue = geoFilter.value;
+        geoFilter.innerHTML = '<option value="">所有地區</option>';
+        [...geos].sort().forEach(geo => {
+            if (geo && geo !== 'N/A') {
+                const option = document.createElement('option');
+                option.value = geo;
+                option.textContent = `${getCountryFlag(geo)} ${geo}`;
+                geoFilter.appendChild(option);
+            }
+        });
+        geoFilter.value = currentGeoValue;
+    }
 
-        // network config
+    const sortTable = (column) => {
+        if (currentSort.column === column) {
+            currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+        } else {
+            currentSort.column = column;
+            currentSort.direction = 'asc';
+        }
+        renderTable();
+    }
 
-        document.getElementById('blockchainConfigurationContainer').innerHTML = '<h2>Network configuration</h2>' +
-            `Min Stake: <b>${toMillionsShort(fromNano(data.config17.min_stake))} TON</b><br>` +
-            `Max Stake: <b>${toMillionsShort(fromNano(data.config17.max_stake))} TON</b><br>` +
-            `Min Validators: <b>${data.config16.min_validators}</b><br>` +
-            `Max Validators: <b>${data.config16.max_validators}</b><br>` +
-            `Max Masterchain Validators: <b>${data.config16.max_main_validators}</b><br>`;
+    const updateSortIndicators = () => {
+        // Remove all sort classes
+        document.querySelectorAll('th').forEach(th => {
+            th.classList.remove('sort-asc', 'sort-desc');
+        });
 
+        // Add sort class to current column
+        if (currentSort.column) {
+            const headers = document.querySelectorAll('th');
+            const columnMap = {
+                'index': 1,
+                'efficiency': 3,
+                'weight': 4,
+                'stake': 5
+            };
+            
+            const columnIndex = columnMap[currentSort.column];
+            if (columnIndex && headers[columnIndex]) {
+                headers[columnIndex].classList.add(`sort-${currentSort.direction}`);
+            }
+        }
     }
 
     getCycleData();
@@ -547,13 +991,36 @@
     }
 
     const searchInput = document.getElementById('searchInput');
+    const efficiencyFilter = document.getElementById('efficiencyFilter');
+    const typeFilter = document.getElementById('typeFilter');
+    const geoFilter = document.getElementById('geoFilter');
+    const savedFilter = document.getElementById('savedFilter');
 
     onInput(searchInput, () => {
         searchText = searchInput.value;
         renderTable();
     });
+
+    efficiencyFilter.addEventListener('change', () => {
+        currentFilters.efficiency = efficiencyFilter.value;
+        renderTable();
+    });
+
+    typeFilter.addEventListener('change', () => {
+        currentFilters.type = typeFilter.value;
+        renderTable();
+    });
+
+    geoFilter.addEventListener('change', () => {
+        currentFilters.geo = geoFilter.value;
+        renderTable();
+    });
+
+    savedFilter.addEventListener('change', () => {
+        currentFilters.saved = savedFilter.value;
+        renderTable();
+    });
 </script>
 
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"rayId":"96bfbde34cba7cdf","serverTiming":{"name":{"cfExtPri":true,"cfEdge":true,"cfOrigin":true,"cfL4":true,"cfSpeedBrain":true,"cfCacheStatus":true}},"version":"2025.7.0","token":"ddef453c6d524bdbaa78a31e942c9e63"}' crossorigin="anonymous"></script>
 </body>
 </html>
