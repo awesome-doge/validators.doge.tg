@@ -15,18 +15,18 @@
 
         body {
             margin: 0;
-            padding: 20px;
+            padding: 0;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #333;
         }
 
         .container {
-            max-width: 1400px;
-            margin: 0 auto;
+            width: 100%;
+            margin: 0;
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border-radius: 0;
+            box-shadow: none;
             overflow: hidden;
         }
 
@@ -130,10 +130,12 @@
             margin: 0;
             box-shadow: none;
             border: none;
+            width: 100%;
         }
 
         table {
             width: 100%;
+            min-width: 1620px;
             border-collapse: collapse;
             font-size: 13px;
             background: white;
@@ -178,10 +180,27 @@
         }
 
         td {
-            padding: 12px 10px;
+            padding: 12px 8px;
             border-bottom: 1px solid #f1f3f4;
             white-space: nowrap;
         }
+
+        /* 優化列寬 */
+        th:nth-child(1), td:nth-child(1) { width: 40px; } /* 星號 */
+        th:nth-child(2), td:nth-child(2) { width: 60px; } /* 索引 */
+        th:nth-child(3), td:nth-child(3) { width: 120px; } /* 標籤 */
+        th:nth-child(4), td:nth-child(4) { width: 120px; } /* 效率 */
+        th:nth-child(5), td:nth-child(5) { width: 80px; } /* 權重 */
+        th:nth-child(6), td:nth-child(6) { width: 100px; } /* 質押 */
+        th:nth-child(7), td:nth-child(7) { width: 80px; } /* 地理 */
+        th:nth-child(8), td:nth-child(8) { width: 80px; } /* 節點版本 */
+        th:nth-child(9), td:nth-child(9) { width: 100px; } /* MyTonCtrl版本 */
+        th:nth-child(10), td:nth-child(10) { width: 120px; } /* 類型 */
+        th:nth-child(11), td:nth-child(11) { width: 60px; } /* 投訴 */
+        th:nth-child(12), td:nth-child(12) { width: 80px; } /* 最大因子 */
+        th:nth-child(13), td:nth-child(13) { width: 200px; } /* ADNL地址 */
+        th:nth-child(14), td:nth-child(14) { width: 200px; } /* 錢包地址 */
+        th:nth-child(15), td:nth-child(15) { width: 200px; } /* 公鑰 */
 
         tr:hover {
             background-color: #f8f9fa;
@@ -310,7 +329,7 @@
 
         @media (max-width: 768px) {
             body {
-                padding: 10px;
+                padding: 0;
             }
             
             .header h1 {
@@ -319,11 +338,11 @@
             
             .stats-grid {
                 grid-template-columns: 1fr;
-                padding: 20px;
+                padding: 15px;
             }
             
             .controls {
-                padding: 20px;
+                padding: 15px;
             }
             
             .search-container, .filter-row {
@@ -336,7 +355,11 @@
             
             th, td {
                 padding: 8px 5px;
-                font-size: 12px;
+                font-size: 11px;
+            }
+            
+            table {
+                min-width: 1620px;
             }
         }
     </style>
