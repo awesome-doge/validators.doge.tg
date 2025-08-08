@@ -327,6 +327,39 @@
             margin-right: 5px;
         }
 
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #0066cc;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .cycle-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
         @media (max-width: 768px) {
             body {
                 padding: 0;
@@ -381,6 +414,14 @@
         
         <div class="filter-row">
             <div class="filter-group">
+                <label>驗證週期</label>
+                <select id="cycleSelector">
+                    <option value="">載入中...</option>
+                </select>
+                <div id="cycleInfo" class="cycle-info"></div>
+            </div>
+            
+            <div class="filter-group">
                 <label>效率過濾</label>
                 <select id="efficiencyFilter">
                     <option value="">所有效率</option>
@@ -416,6 +457,10 @@
 
     <div id="tableContainer">
     </div>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
 </div>
 
 <script>
@@ -507,12 +552,22 @@
         })
     }
 
+    const showLoading = () => {
+        document.getElementById('loadingOverlay').style.display = 'flex';
+    }
+
+    const hideLoading = () => {
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }
+
     const urlParams = new URLSearchParams(document.location.search);
     const cycleIdFromUrl = urlParams.get("cycle_id");
 
     let cycleData;
     let qosData;
     let qosDataByCycleId;
+    let availableCycles = [];
+    let currentCycleId = null;
     let searchText = '';
     let currentSort = { column: null, direction: 'asc' };
     let currentFilters = {
@@ -573,28 +628,142 @@
         return await response.json();
     }
 
-    async function getCycleData() {
-        if (cycleIdFromUrl) {
-            const response = await api(`https://elections.toncenter.com/getValidationCycles?cycle_id=${cycleIdFromUrl}`)
-            cycleData = response[0];
-        } else {
-            const response = await api("https://elections.toncenter.com/getValidationCycles?node_details=true&limit=2")
+    async function loadAvailableCycles() {
+        try {
+            const response = await api("https://elections.toncenter.com/getValidationCycles?limit=50");
+            availableCycles = response;
+            renderCycleSelector();
+        } catch (error) {
+            console.error('無法載入驗證週期列表:', error);
+        }
+    }
 
-            const now = Date.now() / 1000;
-            if (response[0].cycle_info.utime_since < now) {
-                cycleData = response[0];
-            } else {
-                cycleData = response[1];
+    function renderCycleSelector() {
+        const cycleSelector = document.getElementById('cycleSelector');
+        cycleSelector.innerHTML = '';
+
+        // 添加當前週期選項
+        const currentOption = document.createElement('option');
+        currentOption.value = '';
+        currentOption.textContent = '當前週期 (自動)';
+        cycleSelector.appendChild(currentOption);
+
+        // 添加所有可用週期
+        availableCycles.forEach(cycle => {
+            const option = document.createElement('option');
+            option.value = cycle.cycle_id;
+            const cycleInfo = cycle.cycle_info;
+            const startDate = new Date(cycleInfo.utime_since * 1000).toLocaleDateString();
+            const endDate = new Date(cycleInfo.utime_until * 1000).toLocaleDateString();
+            const status = cycleInfo.utime_until < Date.now() / 1000 ? '已完成' : 
+                          cycleInfo.utime_since > Date.now() / 1000 ? '未開始' : '進行中';
+            
+            option.textContent = `週期 #${cycle.cycle_id} (${startDate} - ${endDate}) [${status}]`;
+            cycleSelector.appendChild(option);
+        });
+
+        // 設定當前選中的週期
+        if (currentCycleId) {
+            cycleSelector.value = currentCycleId;
+        } else {
+            cycleSelector.value = '';
+        }
+    }
+
+    async function getCycleData(selectedCycleId = null) {
+        showLoading();
+        try {
+            // 如果有指定週期ID，使用指定的週期
+            if (selectedCycleId) {
+                const response = await api(`https://elections.toncenter.com/getValidationCycles?cycle_id=${selectedCycleId}`);
+                if (response && response.length > 0) {
+                    cycleData = response[0];
+                    currentCycleId = selectedCycleId;
+                } else {
+                    throw new Error('找不到指定的驗證週期');
+                }
+            } 
+            // 如果URL有cycle_id參數，使用URL中的週期
+            else if (cycleIdFromUrl) {
+                const response = await api(`https://elections.toncenter.com/getValidationCycles?cycle_id=${cycleIdFromUrl}`);
+                if (response && response.length > 0) {
+                    cycleData = response[0];
+                    currentCycleId = cycleIdFromUrl;
+                } else {
+                    throw new Error('找不到URL指定的驗證週期');
+                }
+            } 
+            // 否則使用當前週期
+            else {
+                const response = await api("https://elections.toncenter.com/getValidationCycles?node_details=true&limit=2");
+                const now = Date.now() / 1000;
+                if (response[0].cycle_info.utime_since < now) {
+                    cycleData = response[0];
+                } else {
+                    cycleData = response[1];
+                }
+                currentCycleId = null; // 表示使用當前週期
             }
+
+            console.log('載入的週期數據:', cycleData);
+
+            // 更新URL
+            updateUrlParams();
+
+            // 載入QoS數據
+            await getQosCycleData(cycleData.cycle_info.utime_since, cycleData.cycle_info.utime_until);
+            await wait(1000);
+            await getQosCycleDataByCycleId(cycleData.cycle_id);
+            
+            // 渲染界面
+            renderStats();
+            renderTable();
+            updateCycleInfo();
+            
+        } catch (error) {
+            console.error('載入驗證週期數據失敗:', error);
+            alert(`載入驗證週期數據失敗: ${error.message}`);
+        } finally {
+            hideLoading();
+        }
+    }
+
+    function updateUrlParams() {
+        const url = new URL(window.location);
+        if (currentCycleId) {
+            url.searchParams.set('cycle_id', currentCycleId);
+        } else {
+            url.searchParams.delete('cycle_id');
+        }
+        window.history.replaceState({}, '', url);
+    }
+
+    function updateCycleInfo() {
+        const cycleInfoDiv = document.getElementById('cycleInfo');
+        if (!cycleData) {
+            cycleInfoDiv.innerHTML = '';
+            return;
         }
 
-        console.log(cycleData);
+        const cycleInfo = cycleData.cycle_info;
+        const now = Date.now() / 1000;
+        let status;
+        
+        if (cycleInfo.utime_until < now) {
+            status = '<span style="color: #6c757d;">已完成</span>';
+        } else if (cycleInfo.utime_since > now) {
+            status = '<span style="color: #ffc107;">未開始</span>';
+        } else {
+            status = '<span style="color: #28a745;">進行中</span>';
+        }
 
-        await getQosCycleData(cycleData.cycle_info.utime_since, cycleData.cycle_info.utime_until);
-        await wait(1000);
-        await getQosCycleDataByCycleId(cycleData.cycle_id);
-        renderStats();
-        renderTable();
+        const startDate = new Date(cycleInfo.utime_since * 1000).toLocaleString();
+        const endDate = new Date(cycleInfo.utime_until * 1000).toLocaleString();
+
+        cycleInfoDiv.innerHTML = `
+            ${status} | ${cycleInfo.validators.length} 個驗證器<br>
+            ${startDate} - ${endDate}
+        `;
     }
 
     async function getQosCycleData(fromTimestamp, toTimestamp) {
@@ -999,8 +1168,14 @@
         }
     }
 
-    getCycleData();
-    fetchCsv();
+    // 初始化應用
+    async function initializeApp() {
+        await loadAvailableCycles();
+        await getCycleData();
+        await fetchCsv();
+    }
+
+    initializeApp();
 
     /**
      * @param input {HTMLElement}
@@ -1014,6 +1189,7 @@
     }
 
     const searchInput = document.getElementById('searchInput');
+    const cycleSelector = document.getElementById('cycleSelector');
     const efficiencyFilter = document.getElementById('efficiencyFilter');
     const typeFilter = document.getElementById('typeFilter');
     const geoFilter = document.getElementById('geoFilter');
@@ -1022,6 +1198,11 @@
     onInput(searchInput, () => {
         searchText = searchInput.value;
         renderTable();
+    });
+
+    cycleSelector.addEventListener('change', async () => {
+        const selectedCycleId = cycleSelector.value || null;
+        await getCycleData(selectedCycleId);
     });
 
     efficiencyFilter.addEventListener('change', () => {
