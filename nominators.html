@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
+    <title>Nominator Pool 1.0 資金提供者 - TON Dashboard</title>
+
+    <style>
+        * {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            width: 100%;
+            margin: 0;
+            background: white;
+            border-radius: 0;
+            box-shadow: none;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0066cc 0%, #004499 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header .subtitle {
+            margin: 10px 0 0 0;
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .nav-back {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: background 0.3s ease;
+        }
+
+        .nav-back:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-left: 4px solid #0066cc;
+        }
+
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card .value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+        }
+
+        .controls {
+            padding: 30px;
+            background: white;
+            border-bottom: 1px solid #eee;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        input, select {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 0 3px rgba(0,102,204,0.1);
+        }
+
+        #tableContainer {
+            overflow-x: auto;
+            margin: 0;
+            box-shadow: none;
+            border: none;
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            min-width: 1000px;
+            border-collapse: collapse;
+            font-size: 13px;
+            background: white;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            white-space: nowrap;
+        }
+
+        th:hover {
+            background: #e9ecef;
+        }
+
+        th.sortable::after {
+            content: ' ⇅';
+            color: #ccc;
+        }
+
+        th.sort-asc::after {
+            content: ' ↑';
+            color: #0066cc;
+        }
+
+        th.sort-desc::after {
+            content: ' ↓';
+            color: #0066cc;
+        }
+
+        td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #f1f3f4;
+            white-space: nowrap;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .mono {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 11px;
+        }
+
+        a, a:focus, a:active {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #0066cc;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .detail-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .stake-breakdown {
+            margin-top: 20px;
+        }
+
+        .stake-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #0066cc;
+        }
+
+        .address-link {
+            cursor: pointer;
+            color: #0066cc;
+            text-decoration: underline;
+        }
+
+        .address-link:hover {
+            color: #004499;
+        }
+
+        @media (max-width: 768px) {
+            .nav-back {
+                position: relative;
+                top: auto;
+                left: auto;
+                margin-bottom: 20px;
+                display: inline-block;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                padding: 15px;
+            }
+            
+            .controls {
+                padding: 15px;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
+            
+            input, select {
+                min-width: 100%;
+            }
+            
+            th, td {
+                padding: 8px 5px;
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <a href="index.html" class="nav-back">← 返回主頁</a>
+        <h1>Nominator Pool 1.0 資金提供者</h1>
+        <div class="subtitle">TON 網絡質押池資金提供者總覽</div>
+    </div>
+
+    <div id="statsContainer" class="stats-grid">
+    </div>
+
+    <div class="controls">
+        <div class="search-container">
+            <input id="searchInput" placeholder="搜尋地址或 ID...">
+            <select id="sortSelect">
+                <option value="total_stake_desc">按質押量排序 (高到低)</option>
+                <option value="total_stake_asc">按質押量排序 (低到高)</option>
+                <option value="address">按地址排序</option>
+                <option value="id">按 ID 排序</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="tableContainer">
+    </div>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+</div>
+
+<div class="detail-modal" id="detailModal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+        <div id="modalContent">
+        </div>
+    </div>
+</div>
+
+<script>
+    // 輔助函數
+    const fromNano = (nano) => {
+        return BigInt(nano) / BigInt(1e9);
+    }
+
+    const toMillions = (n) => {
+        return (Number(n) / 1e6).toFixed(3) + 'M';
+    }
+
+    const toMillionsShort = (n) => {
+        let s = (Number(n) / 1e6).toFixed(3);
+        for (let i = 0; i < 3; i++) {
+            if (s.endsWith('0')) s = s.substring(0, s.length - 1);
+        }
+        if (s.endsWith('.')) s = s.substring(0, s.length - 1);
+        return s + 'M';
+    }
+
+    const makeAddressUrl = (address) => {
+        return `<a href="https://tonscan.org/address/${address}" target="_blank">${address}</a>`;
+    }
+
+    const showLoading = () => {
+        document.getElementById('loadingOverlay').style.display = 'flex';
+    }
+
+    const hideLoading = () => {
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }
+
+    // 全局變量
+    let nominatorsData = [];
+    let filteredData = [];
+    let searchText = '';
+    let currentSort = 'total_stake_desc';
+
+    // API 請求
+    async function fetchNominators() {
+        try {
+            const response = await fetch('https://getaruai.com/api/v1/nominators');
+            if (!response.ok) {
+                throw new Error(`API 錯誤: ${response.status}`);
+            }
+            const data = await response.json();
+            return data.nominators || [];
+        } catch (error) {
+            console.error('載入 nominators 數據失敗:', error);
+            throw error;
+        }
+    }
+
+    async function fetchNominatorDetail(address) {
+        try {
+            const response = await fetch(`https://getaruai.com/api/v1/nominators/${address}`);
+            if (!response.ok) {
+                throw new Error(`API 錯誤: ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('載入 nominator 詳細信息失敗:', error);
+            throw error;
+        }
+    }
+
+    // 渲染統計信息
+    function renderStats() {
+        const totalNominators = nominatorsData.length;
+        const totalStake = nominatorsData.reduce((sum, nominator) => sum + BigInt(nominator.total_stake), BigInt(0));
+        const activeNominators = nominatorsData.filter(n => n.total_stake > 0).length;
+        const averageStake = totalNominators > 0 ? totalStake / BigInt(totalNominators) : BigInt(0);
+
+        const largestStake = nominatorsData.reduce((max, nominator) => 
+            BigInt(nominator.total_stake) > max ? BigInt(nominator.total_stake) : max, BigInt(0));
+
+        document.getElementById('statsContainer').innerHTML = `
+            <div class="stat-card">
+                <h3>總資金提供者數量</h3>
+                <p class="value">${totalNominators}</p>
+            </div>
+            <div class="stat-card">
+                <h3>活躍資金提供者</h3>
+                <p class="value">${activeNominators}</p>
+            </div>
+            <div class="stat-card">
+                <h3>總質押量</h3>
+                <p class="value">${toMillionsShort(fromNano(totalStake))} TON</p>
+            </div>
+            <div class="stat-card">
+                <h3>平均質押量</h3>
+                <p class="value">${toMillionsShort(fromNano(averageStake))} TON</p>
+            </div>
+            <div class="stat-card">
+                <h3>最大單筆質押</h3>
+                <p class="value">${toMillionsShort(fromNano(largestStake))} TON</p>
+            </div>
+        `;
+    }
+
+    // 排序函數
+    function sortNominators(data, sortType) {
+        const sorted = [...data];
+        
+        switch (sortType) {
+            case 'total_stake_desc':
+                return sorted.sort((a, b) => BigInt(b.total_stake) > BigInt(a.total_stake) ? 1 : -1);
+            case 'total_stake_asc':
+                return sorted.sort((a, b) => BigInt(a.total_stake) > BigInt(b.total_stake) ? 1 : -1);
+            case 'address':
+                return sorted.sort((a, b) => a.nominator_address.localeCompare(b.nominator_address));
+            case 'id':
+                return sorted.sort((a, b) => a.nominator_id - b.nominator_id);
+            default:
+                return sorted;
+        }
+    }
+
+    // 過濾函數
+    function filterNominators() {
+        let filtered = nominatorsData;
+
+        if (searchText) {
+            filtered = filtered.filter(nominator => 
+                nominator.nominator_address.toLowerCase().includes(searchText.toLowerCase()) ||
+                nominator.nominator_id.toString().includes(searchText)
+            );
+        }
+
+        filteredData = sortNominators(filtered, currentSort);
+        renderTable();
+    }
+
+    // 渲染表格
+    function renderTable() {
+        const container = document.getElementById('tableContainer');
+        
+        let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>地址</th>
+                        <th>質押量 (TON)</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        filteredData.forEach(nominator => {
+            const stakeAmount = fromNano(nominator.total_stake);
+            const stakeDisplay = Number(stakeAmount) === 0 ? '0' : toMillions(stakeAmount);
+            
+            html += `
+                <tr>
+                    <td>${nominator.nominator_id}</td>
+                    <td class="mono">${makeAddressUrl(nominator.nominator_address)}</td>
+                    <td>${stakeDisplay} TON</td>
+                    <td>
+                        <span class="address-link" onclick="showNominatorDetail('${nominator.nominator_address}')">
+                            查看詳細
+                        </span>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += `
+                </tbody>
+            </table>
+        `;
+
+        container.innerHTML = html;
+    }
+
+    // 顯示 nominator 詳細信息
+    async function showNominatorDetail(address) {
+        showLoading();
+        try {
+            const detail = await fetchNominatorDetail(address);
+            renderNominatorDetail(detail);
+        } catch (error) {
+            alert(`載入詳細信息失敗: ${error.message}`);
+        } finally {
+            hideLoading();
+        }
+    }
+
+    // 渲染 nominator 詳細信息
+    function renderNominatorDetail(detail) {
+        const modal = document.getElementById('detailModal');
+        const content = document.getElementById('modalContent');
+
+        // 計算總質押量和驗證器數量
+        const totalStake = detail.rewards ? detail.rewards.reduce((sum, reward) => sum + BigInt(reward.nom_stake), BigInt(0)) : BigInt(0);
+        const validatorCount = detail.rewards ? detail.rewards.length : 0;
+
+        let html = `
+            <h2>資金提供者詳細信息</h2>
+            <div class="stake-item">
+                <h3>基本信息</h3>
+                <p><strong>地址:</strong> ${makeAddressUrl(detail.nominator_address)}</p>
+                <p><strong>總質押量:</strong> ${toMillions(fromNano(totalStake))} TON</p>
+                <p><strong>分配到驗證器數量:</strong> ${validatorCount}</p>
+            </div>
+        `;
+
+        if (detail.rewards && detail.rewards.length > 0) {
+            html += `
+                <div class="stake-breakdown">
+                    <h3>質押分配詳情</h3>
+            `;
+
+            detail.rewards.forEach((reward, index) => {
+                const stakeAmount = fromNano(reward.nom_stake);
+                const cycleBonus = reward.cycle_bonuses;
+                
+                html += `
+                    <div class="stake-item">
+                        <h4>驗證器 #${index + 1}</h4>
+                        <p><strong>驗證器地址:</strong> ${makeAddressUrl(reward.val_account_address)}</p>
+                        <p><strong>質押量:</strong> ${toMillions(stakeAmount)} TON</p>
+                        <p><strong>週期 ID:</strong> ${reward.cycle_id}</p>
+                        ${cycleBonus ? `
+                            <p><strong>解凍時間:</strong> ${new Date(cycleBonus.unfreezes_at * 1000).toLocaleString()}</p>
+                            <p><strong>總池質押:</strong> ${toMillions(fromNano(cycleBonus.total_stake))} TON</p>
+                            <p><strong>池獎勵:</strong> ${toMillions(fromNano(cycleBonus.bonuses))} TON</p>
+                            <p><strong>投訴數量:</strong> ${cycleBonus.number_of_complaints}</p>
+                        ` : ''}
+                        ${reward.pending_deposit_amount > 0 ? `<p><strong>待存款:</strong> ${toMillions(fromNano(reward.pending_deposit_amount))} TON</p>` : ''}
+                        ${reward.withdraw_requested > 0 ? `<p><strong>提取請求:</strong> ${toMillions(fromNano(reward.withdraw_requested))} TON</p>` : ''}
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+        } else {
+            html += `<p>目前沒有質押分配信息。</p>`;
+        }
+
+        content.innerHTML = html;
+        modal.style.display = 'flex';
+    }
+
+    // 關閉詳細信息模態框
+    function closeDetailModal() {
+        document.getElementById('detailModal').style.display = 'none';
+    }
+
+    // 事件監聽器
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        searchText = e.target.value;
+        filterNominators();
+    });
+
+    document.getElementById('sortSelect').addEventListener('change', (e) => {
+        currentSort = e.target.value;
+        filterNominators();
+    });
+
+    // 點擊模態框外部關閉
+    document.getElementById('detailModal').addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) {
+            closeDetailModal();
+        }
+    });
+
+    // 初始化
+    async function init() {
+        showLoading();
+        try {
+            nominatorsData = await fetchNominators();
+            renderStats();
+            filterNominators();
+        } catch (error) {
+            alert(`載入數據失敗: ${error.message}`);
+        } finally {
+            hideLoading();
+        }
+    }
+
+    // 啟動應用
+    init();
+</script>
+
+</body>
+</html>
