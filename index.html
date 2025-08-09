@@ -619,17 +619,18 @@
         /* 優化列寬 */
         th:nth-child(1), td:nth-child(1) { width: 35px; } /* 星號 */
         th:nth-child(2), td:nth-child(2) { width: 50px; } /* 索引 */
-        th:nth-child(3), td:nth-child(3) { width: 80px; } /* 效率 */
-        th:nth-child(4), td:nth-child(4) { width: 70px; } /* 權重 */
-        th:nth-child(5), td:nth-child(5) { width: 90px; } /* 質押 */
-        th:nth-child(6), td:nth-child(6) { width: 70px; } /* 地理 */
-        th:nth-child(7), td:nth-child(7) { width: 70px; } /* 節點版本 */
-        th:nth-child(8), td:nth-child(8) { width: 80px; } /* MyTonCtrl版本 */
-        th:nth-child(9), td:nth-child(9) { width: 100px; } /* 類型 */
-        th:nth-child(10), td:nth-child(10) { width: 50px; } /* 投訴 */
-        th:nth-child(11), td:nth-child(11) { width: 150px; } /* ADNL地址 */
-        th:nth-child(12), td:nth-child(12) { width: 150px; } /* 錢包地址 */
-        th:nth-child(13), td:nth-child(13) { width: 80px; } /* 詳細信息 */
+        th:nth-child(3), td:nth-child(3) { width: 120px; } /* 標籤 */
+        th:nth-child(4), td:nth-child(4) { width: 80px; } /* 效率 */
+        th:nth-child(5), td:nth-child(5) { width: 70px; } /* 權重 */
+        th:nth-child(6), td:nth-child(6) { width: 90px; } /* 質押 */
+        th:nth-child(7), td:nth-child(7) { width: 70px; } /* 地理 */
+        th:nth-child(8), td:nth-child(8) { width: 70px; } /* 節點版本 */
+        th:nth-child(9), td:nth-child(9) { width: 80px; } /* MyTonCtrl版本 */
+        th:nth-child(10), td:nth-child(10) { width: 100px; } /* 類型 */
+        th:nth-child(11), td:nth-child(11) { width: 50px; } /* 投訴 */
+        th:nth-child(12), td:nth-child(12) { width: 150px; } /* ADNL地址 */
+        th:nth-child(13), td:nth-child(13) { width: 150px; } /* 錢包地址 */
+        th:nth-child(14), td:nth-child(14) { width: 80px; } /* 詳細信息 */
 
         .green {
             color: #34C759;
@@ -717,6 +718,13 @@
         .badge-info {
             background: rgba(0, 122, 255, 0.1);
             color: #007AFF;
+        }
+
+        .badge-label {
+            background: rgba(52, 199, 89, 0.1);
+            color: #34C759;
+            font-weight: 600;
+            font-size: 12px;
         }
 
         .complaints-indicator {
@@ -2264,6 +2272,7 @@
             '<tr>' +
             '<th></th>' +
             '<th class="sortable" onclick="sortTable(\'index\')">索引</th>' +
+            '<th>標籤</th>' +
             '<th class="sortable" onclick="sortTable(\'efficiency\')">效率</th>' +
             '<th class="sortable" onclick="sortTable(\'weight\')">權重</th>' +
             '<th class="sortable" onclick="sortTable(\'stake\')">質押</th>' +
@@ -2416,6 +2425,7 @@
             s += `<tr class="${rowClass}">`;
             s += `<td class="start ${starClass}" onclick="saveAdnl('${v.adnl_addr}')">★</td>`;
             s += `<td>${v.index}</td>`;
+            s += `<td><span class="badge badge-label">${label || '-'}</span></td>`;
             s += `<td class="${efficiencyClass}">${efficiency}</td>`;
             s += `<td>${toPercent(v.stake / totalStake)}</td>`;
             s += `<td>${toMillions(fromNano(v.stake))}&nbsp;TON</td>`;
@@ -2545,9 +2555,9 @@
             const headers = document.querySelectorAll('th');
             const columnMap = {
                 'index': 1,
-                'efficiency': 2,
-                'weight': 3,
-                'stake': 4
+                'efficiency': 3,
+                'weight': 4,
+                'stake': 5
             };
             
             const columnIndex = columnMap[currentSort.column];
