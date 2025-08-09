@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
     <title>TON 技術數據分析 - TON Tech Dashboard</title>
     
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
         * {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -131,6 +134,61 @@
             margin: 20px 0;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             overflow-x: auto;
+        }
+
+        /* 圖表樣式 */
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+            margin: 20px 0;
+        }
+
+        .chart-wrapper canvas {
+            max-height: 400px !important;
+        }
+
+        .chart-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .chart-controls button {
+            padding: 8px 16px;
+            border: 1px solid #0066cc;
+            background: white;
+            color: #0066cc;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .chart-controls button.active,
+        .chart-controls button:hover {
+            background: #0066cc;
+            color: white;
+        }
+
+        .chart-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #0066cc;
+        }
+
+        .chart-info h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .chart-info p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 14px;
         }
 
         .loading-overlay {
@@ -395,6 +453,15 @@
                 padding: 8px 10px;
                 width: 150px;
             }
+
+            .chart-wrapper {
+                height: 300px;
+            }
+
+            .chart-controls {
+                flex-direction: column;
+                align-items: center;
+            }
         }
     </style>
 </head>
@@ -422,6 +489,14 @@
         <div id="statusData">
             <p>正在載入狀態數據...</p>
         </div>
+        <div class="chart-wrapper">
+            <canvas id="statusChart"></canvas>
+        </div>
+        <div class="chart-controls">
+            <button class="active" onclick="changeChartType('status', 'line')">折線圖</button>
+            <button onclick="changeChartType('status', 'bar')">柱狀圖</button>
+            <button onclick="changeChartType('status', 'area')">面積圖</button>
+        </div>
     </div>
 
     <!-- 交易金額分析 -->
@@ -434,6 +509,14 @@
         </div>
         <div id="transactionAmountsData">
             <p>正在載入交易金額數據...</p>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="amountsChart"></canvas>
+        </div>
+        <div class="chart-controls">
+            <button class="active" onclick="changeChartType('amounts', 'line')">折線圖</button>
+            <button onclick="changeChartType('amounts', 'bar')">柱狀圖</button>
+            <button onclick="changeChartType('amounts', 'area')">面積圖</button>
         </div>
     </div>
 
@@ -448,6 +531,14 @@
         <div id="transactionCountData">
             <p>正在載入交易數量數據...</p>
         </div>
+        <div class="chart-wrapper">
+            <canvas id="countChart"></canvas>
+        </div>
+        <div class="chart-controls">
+            <button class="active" onclick="changeChartType('count', 'line')">折線圖</button>
+            <button onclick="changeChartType('count', 'bar')">柱狀圖</button>
+            <button onclick="changeChartType('count', 'area')">面積圖</button>
+        </div>
     </div>
 
     <!-- 質押收益分析 -->
@@ -461,6 +552,14 @@
         <div id="yieldData">
             <p>正在載入收益數據...</p>
         </div>
+        <div class="chart-wrapper">
+            <canvas id="yieldChart"></canvas>
+        </div>
+        <div class="chart-controls">
+            <button class="active" onclick="changeChartType('yield', 'line')">折線圖</button>
+            <button onclick="changeChartType('yield', 'bar')">柱狀圖</button>
+            <button onclick="changeChartType('yield', 'area')">面積圖</button>
+        </div>
     </div>
 
     <!-- 選舉數據 -->
@@ -473,6 +572,14 @@
         </div>
         <div id="electionData">
             <p>正在載入選舉數據...</p>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="electionsChart"></canvas>
+        </div>
+        <div class="chart-controls">
+            <button class="active" onclick="changeChartType('elections', 'line')">折線圖</button>
+            <button onclick="changeChartType('elections', 'bar')">柱狀圖</button>
+            <button onclick="changeChartType('elections', 'area')">面積圖</button>
         </div>
     </div>
 </div>
@@ -502,6 +609,24 @@
         count: 7,
         yield: 7,
         elections: 10
+    };
+
+    // 圖表實例
+    let charts = {
+        status: null,
+        amounts: null,
+        count: null,
+        yield: null,
+        elections: null
+    };
+
+    // 圖表類型
+    let chartTypes = {
+        status: 'line',
+        amounts: 'line',
+        count: 'line',
+        yield: 'line',
+        elections: 'line'
     };
 
     // API 端點配置
@@ -597,6 +722,198 @@
         };
         
         return `<span class="trend-indicator ${classes[trend]}">${symbols[trend]} ${value}</span>`;
+    };
+
+    // 圖表相關函數
+    const createChart = (canvasId, data, options) => {
+        const ctx = document.getElementById(canvasId);
+        if (!ctx) return null;
+        
+        // 銷毀現有圖表
+        const chartKey = canvasId.replace('Chart', '');
+        if (charts[chartKey]) {
+            charts[chartKey].destroy();
+        }
+        
+        // 檢查是否需要雙 Y 軸
+        const hasDualY = data.datasets.some(dataset => dataset.yAxisID === 'y1');
+        
+        // 處理面積圖 - 實際上是帶填充的折線圖
+        const chartType = options.type === 'area' ? 'line' : options.type || 'line';
+        
+        const chartConfig = {
+            type: chartType,
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    const value = context.parsed.y;
+                                    if (typeof value === 'number') {
+                                        if (value >= 1e9) {
+                                            label += (value / 1e9).toFixed(2) + 'B';
+                                        } else if (value >= 1e6) {
+                                            label += (value / 1e6).toFixed(2) + 'M';
+                                        } else if (value >= 1e3) {
+                                            label += (value / 1e3).toFixed(2) + 'K';
+                                        } else {
+                                            label += new Intl.NumberFormat('zh-TW').format(value);
+                                        }
+                                    } else {
+                                        label += value;
+                                    }
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: '日期'
+                        }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: options.yAxisLabel || '數值'
+                        },
+                        beginAtZero: true
+                    }
+                },
+                interaction: {
+                    mode: 'nearest',
+                    axis: 'x',
+                    intersect: false
+                }
+            }
+        };
+        
+        // 如果有雙 Y 軸，添加右側 Y 軸
+        if (hasDualY) {
+            chartConfig.options.scales.y1 = {
+                type: 'linear',
+                display: true,
+                position: 'right',
+                title: {
+                    display: true,
+                    text: options.y1AxisLabel || '數值'
+                },
+                beginAtZero: true,
+                grid: {
+                    drawOnChartArea: false,
+                },
+            };
+        }
+        
+        const chart = new Chart(ctx, chartConfig);
+        charts[chartKey] = chart;
+        
+        return chart;
+    };
+
+    const updateChart = (chartType, data, labels, datasets) => {
+        const chartId = chartType + 'Chart';
+        
+        // 處理面積圖的填充設置
+        const currentChartType = chartTypes[chartType];
+        if (currentChartType === 'area') {
+            datasets.forEach(dataset => {
+                dataset.fill = true;
+            });
+        } else {
+            datasets.forEach(dataset => {
+                dataset.fill = false;
+            });
+        }
+        
+        const chartData = {
+            labels: labels,
+            datasets: datasets
+        };
+        
+        const options = {
+            type: currentChartType,
+            yAxisLabel: getYAxisLabel(chartType),
+            y1AxisLabel: getY1AxisLabel(chartType)
+        };
+        
+        charts[chartType] = createChart(chartId, chartData, options);
+    };
+
+    const getY1AxisLabel = (chartType) => {
+        const labels = {
+            status: 'TON',
+            yield: 'TON',
+            amounts: null,
+            count: null,
+            elections: null
+        };
+        return labels[chartType] || null;
+    };
+
+    const getYAxisLabel = (chartType) => {
+        const labels = {
+            status: '數量',
+            amounts: 'TON',
+            count: '交易數',
+            yield: '收益率 (%)',
+            elections: '數值'
+        };
+        return labels[chartType] || '數值';
+    };
+
+    const changeChartType = (chartType, newType) => {
+        // 更新按鈕狀態
+        const buttons = document.querySelectorAll(`[onclick*="${chartType}"]`);
+        buttons.forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        // 更新圖表類型
+        chartTypes[chartType] = newType;
+        
+        // 重新渲染圖表
+        switch(chartType) {
+            case 'status':
+                renderStatusChart();
+                break;
+            case 'amounts':
+                renderAmountsChart();
+                break;
+            case 'count':
+                renderCountChart();
+                break;
+            case 'yield':
+                renderYieldChart();
+                break;
+            case 'elections':
+                renderElectionsChart();
+                break;
+        }
     };
 
     // API 請求函數
@@ -776,6 +1093,37 @@
         }
 
         container.innerHTML = html;
+        
+        // 渲染圖表
+        renderCountChart();
+    };
+
+    // 渲染交易數量圖表
+    const renderCountChart = () => {
+        if (!apiData.transactions_count || !Array.isArray(apiData.transactions_count)) return;
+        
+        const count = currentFilters.count;
+        const filteredData = apiData.transactions_count.slice(-count);
+        
+        const labels = filteredData.map(item => formatDate(item.date));
+        const datasets = [
+            {
+                label: '總交易數',
+                data: filteredData.map(item => item.transactions_count || 0),
+                borderColor: '#17a2b8',
+                backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                tension: 0.4
+            },
+            {
+                label: '用戶交易數',
+                data: filteredData.map(item => item.users_transactions_count || 0),
+                borderColor: '#6f42c1',
+                backgroundColor: 'rgba(111, 66, 193, 0.1)',
+                tension: 0.4
+            }
+        ];
+        
+        updateChart('count', null, labels, datasets);
     };
 
     // 渲染狀態數據
@@ -843,6 +1191,46 @@
         
         html += '</tbody></table></div>';
         container.innerHTML = html;
+        
+        // 渲染圖表
+        renderStatusChart();
+    };
+
+    // 渲染狀態圖表
+    const renderStatusChart = () => {
+        if (!apiData.status || !Array.isArray(apiData.status)) return;
+        
+        const days = currentFilters.status;
+        const filteredData = apiData.status.slice(-days);
+        
+        const labels = filteredData.map(item => formatDate(item.date));
+        const datasets = [
+            {
+                label: '總帳戶數',
+                data: filteredData.map(item => item.total_accounts),
+                borderColor: '#0066cc',
+                backgroundColor: 'rgba(0, 102, 204, 0.1)',
+                tension: 0.4
+            },
+            {
+                label: '總供應量 (TON)',
+                data: filteredData.map(item => parseFloat(item.total_supply) / 1e9),
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                tension: 0.4,
+                yAxisID: 'y1'
+            },
+            {
+                label: '流通供應量 (TON)',
+                data: filteredData.map(item => parseFloat(item.circulating_supply) / 1e9),
+                borderColor: '#ffc107',
+                backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                tension: 0.4,
+                yAxisID: 'y1'
+            }
+        ];
+        
+        updateChart('status', null, labels, datasets);
     };
 
     // 渲染交易金額數據
@@ -907,6 +1295,30 @@
         
         html += '</tbody></table></div>';
         container.innerHTML = html;
+        
+        // 渲染圖表
+        renderAmountsChart();
+    };
+
+    // 渲染交易金額圖表
+    const renderAmountsChart = () => {
+        if (!apiData.transactions_amounts || !Array.isArray(apiData.transactions_amounts)) return;
+        
+        const days = currentFilters.amounts;
+        const filteredData = apiData.transactions_amounts.slice(-days);
+        
+        const labels = filteredData.map(item => formatDate(item.date));
+        const datasets = [
+            {
+                label: '日交易總額 (TON)',
+                data: filteredData.map(item => parseFloat(item.sum_transactions_amounts) / 1e9),
+                borderColor: '#dc3545',
+                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                tension: 0.4
+            }
+        ];
+        
+        updateChart('amounts', null, labels, datasets);
     };
 
     // 渲染交易數量數據
@@ -1087,6 +1499,38 @@
         
         html += '</tbody></table></div>';
         container.innerHTML = html;
+        
+        // 渲染圖表
+        renderYieldChart();
+    };
+
+    // 渲染收益圖表
+    const renderYieldChart = () => {
+        if (!apiData.yield || !Array.isArray(apiData.yield)) return;
+        
+        const days = currentFilters.yield;
+        const filteredData = apiData.yield.slice(-days);
+        
+        const labels = filteredData.map(item => formatDateTime(item.date));
+        const datasets = [
+            {
+                label: '年化收益率 (%)',
+                data: filteredData.map(item => parseFloat(item.annual_percent_yld) * 100),
+                borderColor: '#fd7e14',
+                backgroundColor: 'rgba(253, 126, 20, 0.1)',
+                tension: 0.4
+            },
+            {
+                label: '質押量 (TON)',
+                data: filteredData.map(item => parseFloat(item.staked)),
+                borderColor: '#20c997',
+                backgroundColor: 'rgba(32, 201, 151, 0.1)',
+                tension: 0.4,
+                yAxisID: 'y1'
+            }
+        ];
+        
+        updateChart('yield', null, labels, datasets);
     };
 
     // 渲染選舉數據
@@ -1176,6 +1620,58 @@
         }
         
         container.innerHTML = html;
+        
+        // 渲染圖表
+        renderElectionsChart();
+    };
+
+    // 渲染選舉圖表
+    const renderElectionsChart = () => {
+        if (!apiData.elections || !Array.isArray(apiData.elections)) return;
+        
+        const count = currentFilters.elections;
+        const filteredData = apiData.elections.slice(-count);
+        
+        // 嘗試提取有用的數據
+        const labels = filteredData.map((item, index) => `選舉 #${index + 1}`);
+        
+        // 根據數據結構動態創建數據集
+        const datasets = [];
+        
+        // 嘗試提取驗證器數量
+        if (filteredData[0] && filteredData[0].validators !== undefined) {
+            datasets.push({
+                label: '驗證器數量',
+                data: filteredData.map(item => item.validators || 0),
+                borderColor: '#e83e8c',
+                backgroundColor: 'rgba(232, 62, 140, 0.1)',
+                tension: 0.4
+            });
+        }
+        
+        // 嘗試提取質押量
+        if (filteredData[0] && filteredData[0].total_stake !== undefined) {
+            datasets.push({
+                label: '總質押量',
+                data: filteredData.map(item => parseFloat(item.total_stake || 0) / 1e9),
+                borderColor: '#6c757d',
+                backgroundColor: 'rgba(108, 117, 125, 0.1)',
+                tension: 0.4
+            });
+        }
+        
+        // 如果沒有找到特定字段，使用索引作為數據
+        if (datasets.length === 0) {
+            datasets.push({
+                label: '選舉索引',
+                data: filteredData.map((item, index) => index + 1),
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                tension: 0.4
+            });
+        }
+        
+        updateChart('elections', null, labels, datasets);
     };
 
     // 過濾數據
