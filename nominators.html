@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" translate="no">
+<html lang="zh-TW" translate="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
@@ -20,6 +20,7 @@
             color: #1d1d1f;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            scroll-behavior: smooth;
         }
         
         /* macOS 風格滾動條 */
@@ -539,11 +540,18 @@
                 max-width: 1000px;
                 margin: 15px auto;
             }
+            
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+                padding: 25px;
+            }
         }
         
         @media (max-width: 768px) {
             body {
                 padding: 0;
+                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             }
             
             .container {
@@ -551,245 +559,375 @@
                 margin: 0;
                 border-radius: 0;
                 box-shadow: none;
+                background: rgba(255, 255, 255, 0.95);
             }
             
             .header {
-                padding: 25px 20px;
-                text-align: left;
+                padding: 20px 16px;
+                position: relative;
+                border-radius: 0;
             }
-
+            
             .header h1 {
-                font-size: 2em;
-                margin: 10px 0;
+                font-size: 1.8em;
+                margin-bottom: 8px;
+                line-height: 1.2;
             }
-
+            
             .header .subtitle {
                 font-size: 1em;
-                margin: 5px 0 0 0;
+                margin: 8px 0 0 0;
             }
             
             .nav-buttons {
                 flex-direction: column;
                 align-items: center;
-                gap: 12px;
+                gap: 10px;
+                margin-top: 20px;
             }
             
             .nav-button {
                 width: 100%;
-                max-width: 300px;
+                max-width: 280px;
                 text-align: center;
+                padding: 14px 16px;
+                font-size: 15px;
+                border-radius: 12px;
+                touch-action: manipulation;
             }
             
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
-                gap: 15px;
-                padding: 20px;
+                gap: 12px;
+                padding: 16px;
+                background: rgba(248, 249, 250, 0.3);
             }
-
+            
             .stat-card {
-                padding: 20px;
+                padding: 16px;
+                min-height: 100px;
+                border-radius: 12px;
             }
             
             .stat-card h3 {
-                font-size: 0.8em;
+                font-size: 0.75em;
+                margin-bottom: 8px;
             }
             
             .stat-card .value {
-                font-size: 1.6em;
+                font-size: 1.4em;
+                line-height: 1.1;
+            }
+            
+            .stat-card .value.long-number {
+                font-size: 1.2em;
             }
             
             .controls {
-                padding: 20px;
+                padding: 16px;
+                background: rgba(255, 255, 255, 0.95);
             }
             
-            .search-container {
+            .search-container, .filter-row {
                 flex-direction: column;
-                gap: 15px;
+                gap: 12px;
             }
             
-            .search-input, .filter-select {
+            .filter-group, .cycle-group {
+                margin-bottom: 8px;
                 min-width: 100%;
-                padding: 14px 16px;
-                font-size: 16px;
+                max-width: none;
             }
-
-            /* 移動端表格使用卡片布局 */
+            
+            .search-input, .filter-select, .cycle-selector {
+                min-width: 100%;
+                padding: 16px;
+                font-size: 16px;
+                border-radius: 12px;
+                touch-action: manipulation;
+            }
+            
+            .cycle-info {
+                font-size: 11px;
+                padding: 10px;
+                margin-top: 6px;
+            }
+            
+            /* 表格在手機上使用卡片布局 */
+            #tableContainer {
+                padding: 16px;
+                background: rgba(255, 255, 255, 0.95);
+            }
+            
             table {
                 display: none;
             }
-
-            .mobile-nominators {
+            
+            .mobile-table {
                 display: block;
             }
             
             /* 隱藏桌面版表格，顯示移動端卡片 */
-            .nominator-card {
+            .mobile-card {
                 display: block;
             }
         }
         
         /* 桌面端隱藏移動端卡片 */
         @media (min-width: 769px) {
-            .mobile-nominators {
+            .mobile-table {
                 display: none;
             }
             
-            .nominator-card {
+            .mobile-card {
                 display: none;
             }
         }
         
-        .nominator-card {
-            background: rgba(255, 255, 255, 0.9);
+        .mobile-card {
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
-            margin-bottom: 20px;
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            margin-bottom: 16px;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.3);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            touch-action: manipulation;
         }
-
-        .nominator-card:hover {
+            
+        .mobile-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
         }
-
-        .nominator-card-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-start;
-                margin-bottom: 15px;
-                padding-bottom: 15px;
-                border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-            }
-
-            .nominator-card-id {
-                background: linear-gradient(135deg, #007AFF, #5856D6);
-                color: white;
-                padding: 6px 12px;
-                border-radius: 8px;
-                font-size: 12px;
-                font-weight: 600;
-            }
-
-            .nominator-card-content {
-                font-size: 14px;
-                line-height: 1.5;
-            }
-
-            .nominator-card-row {
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-start;
-                margin-bottom: 10px;
-                flex-wrap: wrap;
-            }
-
-            .nominator-card-label {
-                color: #6e6e73;
-                font-weight: 500;
-                min-width: 60px;
-                font-size: 13px;
-            }
-
-            .nominator-card-value {
-                color: #1d1d1f;
-                text-align: right;
-                flex: 1;
-                margin-left: 15px;
-                word-break: break-all;
-                font-weight: 500;
-            }
-
-            .nominator-card-value.mono {
-                font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-                font-size: 11px;
-            }
-
-            .nominator-card-address {
-                width: 100%;
-                margin-top: 8px;
-                font-size: 11px;
-            }
-
-            .nominator-card-actions {
-                margin-top: 15px;
-                text-align: center;
-            }
-
-            .detail-button {
-                background: linear-gradient(135deg, #007AFF, #5856D6);
-                color: white;
-                padding: 12px 24px;
-                border: none;
-                border-radius: 12px;
-                font-size: 14px;
-                cursor: pointer;
-                text-decoration: none;
-                display: inline-block;
-                font-weight: 600;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-
-            .detail-button:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 8px 25px rgba(0, 122, 255, 0.3);
-            }
-
-            /* 模態框在移動端的優化 */
-            .modal-content {
-                padding: 20px;
-                margin: 10px;
-                max-height: 85vh;
-                border-radius: 12px;
-            }
-
-            .modal-content h2 {
-                font-size: 1.3em;
-                margin: 0 0 15px 0;
-            }
-
-            .stake-item {
-                padding: 15px;
-                margin: 10px 0;
-                font-size: 13px;
-            }
-
-            .stake-item h3, .stake-item h4 {
-                font-size: 1.1em;
-                margin: 0 0 10px 0;
-            }
-
-            .stake-item p {
-                margin: 6px 0;
-                line-height: 1.4;
-                word-break: break-word;
-            }
+            
+        .mobile-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
         }
-
+            
+        .mobile-card-title {
+            font-weight: 600;
+            color: #1d1d1f;
+            font-size: 15px;
+            flex: 1;
+        }
+            
+        .mobile-card-index {
+            background: linear-gradient(135deg, #007AFF, #5856D6);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+            
+        .mobile-card-content {
+            font-size: 13px;
+            line-height: 1.4;
+        }
+            
+        .mobile-card-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            align-items: center;
+            padding: 4px 0;
+        }
+            
+        .mobile-card-label {
+            color: #6e6e73;
+            font-weight: 500;
+            font-size: 12px;
+            min-width: 60px;
+        }
+            
+        .mobile-card-value {
+            color: #1d1d1f;
+            text-align: right;
+            flex: 1;
+            margin-left: 12px;
+            font-weight: 500;
+            font-size: 12px;
+        }
+            
+        .mobile-card-value.mono {
+            font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 10px;
+            word-break: break-all;
+        }
+        
         @media (max-width: 480px) {
             .stats-grid {
                 grid-template-columns: 1fr;
+                gap: 10px;
+                padding: 12px;
             }
-
+            
             .header h1 {
-                font-size: 1.8em;
+                font-size: 1.6em;
             }
+            
+            .header .subtitle {
+                font-size: 0.9em;
+            }
+            
+            .nav-button {
+                max-width: 260px;
+                padding: 12px 14px;
+                font-size: 14px;
+            }
+            
+            .mobile-card {
+                padding: 14px;
+                margin-bottom: 12px;
+            }
+            
+            .mobile-card-content {
+                font-size: 12px;
+            }
+            
+            .mobile-card-row {
+                margin-bottom: 4px;
+            }
+            
+            .mobile-card-label {
+                font-size: 11px;
+                min-width: 50px;
+            }
+            
+            .mobile-card-value {
+                font-size: 11px;
+            }
+            
+            .controls {
+                padding: 12px;
+            }
+            
+            .search-input, .filter-select, .cycle-selector {
+                padding: 14px;
+                font-size: 16px;
+            }
+        }
+        
+        /* iPhone 安全區域支援 */
+        @supports (padding: max(0px)) {
+            @media (max-width: 768px) {
+                body {
+                    padding-left: max(0px, env(safe-area-inset-left));
+                    padding-right: max(0px, env(safe-area-inset-right));
+                    padding-bottom: max(0px, env(safe-area-inset-bottom));
+                }
+                
+                .container {
+                    padding-top: max(0px, env(safe-area-inset-top));
+                }
+            }
+        }
+        
+        /* 觸控優化 */
+        @media (max-width: 768px) {
+            .start {
+                min-height: 44px;
+                min-width: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                touch-action: manipulation;
+            }
+            
+            .detail-btn {
+                min-height: 44px;
+                padding: 12px 16px;
+                font-size: 14px;
+                touch-action: manipulation;
+            }
+            
+            .nav-button {
+                min-height: 44px;
+                touch-action: manipulation;
+            }
+        }
+        
+        /* 載入動畫優化 */
+        .loading-overlay {
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
 
-            .nominator-card {
-                padding: 16px;
-            }
+        .api-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 12px;
+            z-index: 1001;
+            display: none;
+            width: 200px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
-            .nominator-card-content {
-                font-size: 13px;
-            }
+        .api-status.show {
+            display: block;
+            animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-            .modal-content {
-                margin: 5px;
-                padding: 15px;
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
             }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .api-status .api-name {
+            font-weight: 600;
+            color: #34C759;
+        }
+
+        .api-status .api-performance {
+            font-size: 11px;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        .error-message {
+            background: rgba(255, 59, 48, 0.1);
+            color: #FF3B30;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 59, 48, 0.2);
+            margin: 16px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .success-message {
+            background: rgba(52, 199, 89, 0.1);
+            color: #34C759;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(52, 199, 89, 0.2);
+            margin: 16px;
+            font-weight: 500;
+            text-align: center;
         }
     </style>
 </head>
@@ -833,6 +971,11 @@
 
 <div class="loading-overlay" id="loadingOverlay">
     <div class="loading-spinner"></div>
+</div>
+
+<div class="api-status" id="apiStatus">
+    <div>數據來源: <span class="api-name" id="apiName">載入中...</span></div>
+    <div class="api-performance" id="apiPerformance"></div>
 </div>
 
 <div class="detail-modal" id="detailModal">
@@ -880,13 +1023,51 @@
     let searchText = '';
     let currentSort = 'total_stake_desc';
 
+    // API 狀態更新
+    function updateApiStatus(apiName, responseTime = null) {
+        const apiStatus = document.getElementById('apiStatus');
+        const apiNameElement = document.getElementById('apiName');
+        const apiPerformance = document.getElementById('apiPerformance');
+
+        // 顯示 API 名稱
+        const displayNames = {
+            'getaruai': 'GetAruAI'
+        };
+        
+        apiNameElement.textContent = displayNames[apiName] || apiName;
+        
+        // 顯示性能信息
+        let performanceText = '';
+        if (responseTime !== null) {
+            performanceText = `${responseTime.toFixed(0)}ms`;
+        }
+        
+        apiPerformance.textContent = performanceText;
+        
+        // 顯示狀態指示器
+        apiStatus.classList.add('show');
+        
+        // 3秒後自動隱藏
+        setTimeout(() => {
+            apiStatus.classList.remove('show');
+        }, 3000);
+    }
+
     // API 請求
     async function fetchNominators() {
+        const startTime = performance.now();
         try {
             const response = await fetch('https://getaruai.com/api/v1/nominators');
+            const endTime = performance.now();
+            const responseTime = endTime - startTime;
+            
             if (!response.ok) {
                 throw new Error(`API 錯誤: ${response.status}`);
             }
+            
+            // 更新 API 狀態
+            updateApiStatus('getaruai', responseTime);
+            
             const data = await response.json();
             return data.nominators || [];
         } catch (error) {
@@ -994,7 +1175,7 @@
         `;
 
         // 移動端卡片
-        let mobileHtml = '<div class="mobile-nominators">';
+        let mobileHtml = '<div class="mobile-table">';
 
         filteredData.forEach(nominator => {
             const stakeAmount = fromNano(nominator.total_stake);
@@ -1016,27 +1197,29 @@
 
             // 移動端卡片
             mobileHtml += `
-                <div class="nominator-card">
-                    <div class="nominator-card-header">
-                        <div>
-                            <div class="nominator-card-id">ID: ${nominator.nominator_id}</div>
+                <div class="mobile-card">
+                    <div class="mobile-card-header">
+                        <div class="mobile-card-title">
+                            Nominator #${nominator.nominator_id}
                         </div>
+                        <div class="mobile-card-index">#${nominator.nominator_id}</div>
                     </div>
-                    <div class="nominator-card-content">
-                        <div class="nominator-card-row">
-                            <span class="nominator-card-label">質押量:</span>
-                            <span class="nominator-card-value">${stakeDisplay} TON</span>
+                    <div class="mobile-card-content">
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">質押量:</span>
+                            <span class="mobile-card-value">${stakeDisplay} TON</span>
                         </div>
-                        <div class="nominator-card-row">
-                            <span class="nominator-card-label">地址:</span>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">地址:</span>
+                            <span class="mobile-card-value mono">${makeAddressUrl(nominator.nominator_address)}</span>
                         </div>
-                        <div class="nominator-card-address mono">
-                            ${makeAddressUrl(nominator.nominator_address)}
-                        </div>
-                        <div class="nominator-card-actions">
-                            <button class="detail-button" onclick="showNominatorDetail('${nominator.nominator_address}')">
-                                查看詳細信息
-                            </button>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">操作:</span>
+                            <span class="mobile-card-value">
+                                <button class="detail-btn" onclick="showNominatorDetail('${nominator.nominator_address}')">
+                                    查看詳細
+                                </button>
+                            </span>
                         </div>
                     </div>
                 </div>

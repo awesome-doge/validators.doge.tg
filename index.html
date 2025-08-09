@@ -1,6 +1,5 @@
-
 <!DOCTYPE html>
-<html lang="en" translate="no">
+<html lang="zh-TW" translate="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
@@ -21,6 +20,7 @@
             color: #1d1d1f;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            scroll-behavior: smooth;
         }
         
         /* macOS 風格滾動條 */
@@ -759,6 +759,7 @@
         @media (max-width: 768px) {
             body {
                 padding: 0;
+                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             }
             
             .container {
@@ -766,70 +767,104 @@
                 margin: 0;
                 border-radius: 0;
                 box-shadow: none;
+                background: rgba(255, 255, 255, 0.95);
             }
             
             .header {
-                padding: 25px 20px;
+                padding: 20px 16px;
                 position: relative;
+                border-radius: 0;
             }
             
             .header h1 {
-                font-size: 2em;
-                margin-bottom: 15px;
+                font-size: 1.8em;
+                margin-bottom: 8px;
+                line-height: 1.2;
+            }
+            
+            .header .subtitle {
+                font-size: 1em;
+                margin: 8px 0 0 0;
             }
             
             .nav-buttons {
                 flex-direction: column;
                 align-items: center;
-                gap: 12px;
+                gap: 10px;
+                margin-top: 20px;
             }
             
             .nav-button {
                 width: 100%;
-                max-width: 300px;
+                max-width: 280px;
                 text-align: center;
+                padding: 14px 16px;
+                font-size: 15px;
+                border-radius: 12px;
+                touch-action: manipulation;
             }
             
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
-                gap: 15px;
-                padding: 20px;
+                gap: 12px;
+                padding: 16px;
+                background: rgba(248, 249, 250, 0.3);
             }
             
             .stat-card {
-                padding: 20px;
+                padding: 16px;
+                min-height: 100px;
+                border-radius: 12px;
             }
             
             .stat-card h3 {
-                font-size: 0.8em;
+                font-size: 0.75em;
+                margin-bottom: 8px;
             }
             
             .stat-card .value {
-                font-size: 1.6em;
+                font-size: 1.4em;
+                line-height: 1.1;
+            }
+            
+            .stat-card .value.long-number {
+                font-size: 1.2em;
             }
             
             .controls {
-                padding: 20px;
+                padding: 16px;
+                background: rgba(255, 255, 255, 0.95);
             }
             
             .search-container, .filter-row {
                 flex-direction: column;
-                gap: 15px;
+                gap: 12px;
             }
             
-            .filter-group {
-                margin-bottom: 10px;
-            }
-            
-            .search-input, .filter-select {
+            .filter-group, .cycle-group {
+                margin-bottom: 8px;
                 min-width: 100%;
-                padding: 14px 16px;
+                max-width: none;
+            }
+            
+            .search-input, .filter-select, .cycle-selector {
+                min-width: 100%;
+                padding: 16px;
                 font-size: 16px;
+                border-radius: 12px;
+                touch-action: manipulation;
+            }
+            
+            .cycle-info {
+                font-size: 11px;
+                padding: 10px;
+                margin-top: 6px;
             }
             
             /* 表格在手機上使用卡片布局 */
             #tableContainer {
-                padding: 20px;
+                padding: 16px;
+                background: rgba(255, 255, 255, 0.95);
             }
             
             table {
@@ -858,102 +893,202 @@
         }
         
         .mobile-card {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
-            margin-bottom: 20px;
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            margin-bottom: 16px;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.3);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            touch-action: manipulation;
         }
             
-            .mobile-card:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
-            }
+        .mobile-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
             
-            .mobile-card-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 15px;
-                padding-bottom: 15px;
-                border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-            }
+        .mobile-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
             
-            .mobile-card-title {
-                font-weight: 600;
-                color: #1d1d1f;
-                font-size: 16px;
-            }
+        .mobile-card-title {
+            font-weight: 600;
+            color: #1d1d1f;
+            font-size: 15px;
+            flex: 1;
+        }
             
-            .mobile-card-index {
-                background: linear-gradient(135deg, #007AFF, #5856D6);
-                color: white;
-                padding: 4px 8px;
-                border-radius: 8px;
-                font-size: 12px;
-                font-weight: 600;
-            }
+        .mobile-card-index {
+            background: linear-gradient(135deg, #007AFF, #5856D6);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
             
-            .mobile-card-content {
-                font-size: 14px;
-                line-height: 1.5;
-            }
+        .mobile-card-content {
+            font-size: 13px;
+            line-height: 1.4;
+        }
             
-            .mobile-card-row {
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 8px;
-                align-items: center;
-            }
+        .mobile-card-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            align-items: center;
+            padding: 4px 0;
+        }
             
-            .mobile-card-label {
-                color: #6e6e73;
-                font-weight: 500;
-                font-size: 13px;
-            }
+        .mobile-card-label {
+            color: #6e6e73;
+            font-weight: 500;
+            font-size: 12px;
+            min-width: 60px;
+        }
             
-            .mobile-card-value {
-                color: #1d1d1f;
-                text-align: right;
-                flex: 1;
-                margin-left: 15px;
-                font-weight: 500;
-            }
+        .mobile-card-value {
+            color: #1d1d1f;
+            text-align: right;
+            flex: 1;
+            margin-left: 12px;
+            font-weight: 500;
+            font-size: 12px;
+        }
             
-            .mobile-card-value.mono {
-                font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-                font-size: 11px;
-                word-break: break-all;
-            }
-            
-
-            
-            .loading-overlay {
-                backdrop-filter: blur(5px);
-                -webkit-backdrop-filter: blur(5px);
-            }
+        .mobile-card-value.mono {
+            font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 10px;
+            word-break: break-all;
         }
         
         @media (max-width: 480px) {
             .stats-grid {
                 grid-template-columns: 1fr;
+                gap: 10px;
+                padding: 12px;
             }
             
             .header h1 {
-                font-size: 1.8em;
+                font-size: 1.6em;
+            }
+            
+            .header .subtitle {
+                font-size: 0.9em;
+            }
+            
+            .nav-button {
+                max-width: 260px;
+                padding: 12px 14px;
+                font-size: 14px;
             }
             
             .mobile-card {
-                padding: 16px;
+                padding: 14px;
+                margin-bottom: 12px;
             }
             
             .mobile-card-content {
-                font-size: 13px;
+                font-size: 12px;
             }
+            
+            .mobile-card-row {
+                margin-bottom: 4px;
+            }
+            
+            .mobile-card-label {
+                font-size: 11px;
+                min-width: 50px;
+            }
+            
+            .mobile-card-value {
+                font-size: 11px;
+            }
+            
+            .controls {
+                padding: 12px;
+            }
+            
+            .search-input, .filter-select, .cycle-selector {
+                padding: 14px;
+                font-size: 16px;
+            }
+        }
+        
+        /* iPhone 安全區域支援 */
+        @supports (padding: max(0px)) {
+            @media (max-width: 768px) {
+                body {
+                    padding-left: max(0px, env(safe-area-inset-left));
+                    padding-right: max(0px, env(safe-area-inset-right));
+                    padding-bottom: max(0px, env(safe-area-inset-bottom));
+                }
+                
+                .container {
+                    padding-top: max(0px, env(safe-area-inset-top));
+                }
+            }
+        }
+        
+        /* 觸控優化 */
+        @media (max-width: 768px) {
+            .start {
+                min-height: 44px;
+                min-width: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                touch-action: manipulation;
+            }
+            
+            .detail-btn {
+                min-height: 44px;
+                padding: 12px 16px;
+                font-size: 14px;
+                touch-action: manipulation;
+            }
+            
+            .nav-button {
+                min-height: 44px;
+                touch-action: manipulation;
+            }
+        }
+        
+        /* 載入動畫優化 */
+        .loading-overlay {
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+        .error-message {
+            background: rgba(255, 59, 48, 0.1);
+            color: #FF3B30;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 59, 48, 0.2);
+            margin: 16px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .success-message {
+            background: rgba(52, 199, 89, 0.1);
+            color: #34C759;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(52, 199, 89, 0.2);
+            margin: 16px;
+            font-weight: 500;
+            text-align: center;
         }
     </style>
 </head>
