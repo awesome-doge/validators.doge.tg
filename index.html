@@ -22,16 +22,38 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
+        
+        /* macOS 風格滾動條 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
 
         .container {
-            width: 100%;
-            margin: 0;
+            max-width: 1400px;
+            margin: 0 auto;
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-radius: 0;
-            box-shadow: none;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
             overflow: hidden;
+            margin-top: 20px;
+            margin-bottom: 20px;
         }
 
         .header {
@@ -39,10 +61,11 @@
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             color: white;
-            padding: 40px 30px;
+            padding: 35px 30px;
             text-align: center;
             position: relative;
             overflow: hidden;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .header::before {
@@ -129,9 +152,9 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            padding: 40px 30px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 30px;
             background: rgba(248, 249, 250, 0.5);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
@@ -148,6 +171,10 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .stat-card::before {
@@ -178,6 +205,7 @@
             text-transform: uppercase;
             letter-spacing: 0.8px;
             font-weight: 600;
+            flex-shrink: 0;
         }
 
         .stat-card .value {
@@ -186,10 +214,21 @@
             color: #1d1d1f;
             margin: 0;
             line-height: 1.2;
+            word-break: break-all;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+        
+        /* 長數字的特殊處理 */
+        .stat-card .value.long-number {
+            font-size: 1.8em;
         }
 
         .controls {
-            padding: 30px;
+            padding: 25px 30px;
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
@@ -226,15 +265,23 @@
 
         .filter-row {
             display: flex;
-            gap: 20px;
+            gap: 25px;
             flex-wrap: wrap;
             align-items: end;
+            margin-bottom: 15px;
+        }
+        
+        .filter-row .filter-group {
+            flex: 1;
+            min-width: 150px;
+            max-width: 200px;
         }
 
         .filter-group {
             display: flex;
             flex-direction: column;
             gap: 8px;
+            min-width: 0;
         }
 
         .filter-group label {
@@ -243,6 +290,56 @@
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
+        
+        /* 驗證週期區域特殊樣式 */
+        .cycle-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 200px;
+        }
+        
+        .cycle-group label {
+            font-size: 13px;
+            color: #6e6e73;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .cycle-selector {
+            background: rgba(248, 249, 250, 0.8);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 14px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            min-width: 200px;
+            cursor: pointer;
+        }
+        
+        .cycle-selector:focus {
+            outline: none;
+            border-color: #007AFF;
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        
+        .cycle-info {
+            font-size: 12px;
+            color: #8e8e93;
+            margin-top: 8px;
+            font-weight: 500;
+            line-height: 1.4;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            padding: 8px 12px;
+            background: rgba(248, 249, 250, 0.6);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
         }
 
         .filter-select {
@@ -277,7 +374,7 @@
 
         table {
             width: 100%;
-            min-width: 1620px;
+            min-width: 1200px;
             border-collapse: separate;
             border-spacing: 0;
             font-size: 13px;
@@ -338,19 +435,19 @@
         }
 
         /* 優化列寬 */
-        th:nth-child(1), td:nth-child(1) { width: 40px; } /* 星號 */
-        th:nth-child(2), td:nth-child(2) { width: 60px; } /* 索引 */
-        th:nth-child(3), td:nth-child(3) { width: 120px; } /* 效率 */
-        th:nth-child(4), td:nth-child(4) { width: 80px; } /* 權重 */
-        th:nth-child(5), td:nth-child(5) { width: 100px; } /* 質押 */
-        th:nth-child(6), td:nth-child(6) { width: 80px; } /* 地理 */
-        th:nth-child(7), td:nth-child(7) { width: 80px; } /* 節點版本 */
-        th:nth-child(8), td:nth-child(8) { width: 100px; } /* MyTonCtrl版本 */
-        th:nth-child(9), td:nth-child(9) { width: 120px; } /* 類型 */
-        th:nth-child(10), td:nth-child(10) { width: 60px; } /* 投訴 */
-        th:nth-child(11), td:nth-child(11) { width: 200px; } /* ADNL地址 */
-        th:nth-child(12), td:nth-child(12) { width: 200px; } /* 錢包地址 */
-        th:nth-child(13), td:nth-child(13) { width: 100px; } /* 詳細信息 */
+        th:nth-child(1), td:nth-child(1) { width: 35px; } /* 星號 */
+        th:nth-child(2), td:nth-child(2) { width: 50px; } /* 索引 */
+        th:nth-child(3), td:nth-child(3) { width: 80px; } /* 效率 */
+        th:nth-child(4), td:nth-child(4) { width: 70px; } /* 權重 */
+        th:nth-child(5), td:nth-child(5) { width: 90px; } /* 質押 */
+        th:nth-child(6), td:nth-child(6) { width: 70px; } /* 地理 */
+        th:nth-child(7), td:nth-child(7) { width: 70px; } /* 節點版本 */
+        th:nth-child(8), td:nth-child(8) { width: 80px; } /* MyTonCtrl版本 */
+        th:nth-child(9), td:nth-child(9) { width: 100px; } /* 類型 */
+        th:nth-child(10), td:nth-child(10) { width: 50px; } /* 投訴 */
+        th:nth-child(11), td:nth-child(11) { width: 150px; } /* ADNL地址 */
+        th:nth-child(12), td:nth-child(12) { width: 150px; } /* 錢包地址 */
+        th:nth-child(13), td:nth-child(13) { width: 80px; } /* 詳細信息 */
 
         .green {
             color: #34C759;
@@ -494,6 +591,9 @@
             color: #8e8e93;
             margin-top: 8px;
             font-weight: 500;
+            line-height: 1.4;
+            word-break: break-word;
+            overflow-wrap: break-word;
         }
 
         .api-status {
@@ -635,14 +735,41 @@
             word-break: break-word;
         }
 
-        /* 手機端優化 */
+        /* 響應式設計優化 */
+        @media (max-width: 1500px) {
+            .container {
+                max-width: 1200px;
+                margin: 20px auto;
+            }
+        }
+        
+        @media (max-width: 1200px) {
+            .container {
+                max-width: 1000px;
+                margin: 15px auto;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+                padding: 25px;
+            }
+        }
+        
         @media (max-width: 768px) {
             body {
                 padding: 0;
             }
             
+            .container {
+                max-width: 100%;
+                margin: 0;
+                border-radius: 0;
+                box-shadow: none;
+            }
+            
             .header {
-                padding: 30px 20px;
+                padding: 25px 20px;
                 position: relative;
             }
             
@@ -719,7 +846,7 @@
             }
         }
         
-                /* 桌面端隱藏移動端卡片 */
+        /* 桌面端隱藏移動端卡片 */
         @media (min-width: 769px) {
             .mobile-table {
                 display: none;
@@ -858,9 +985,9 @@
         </div>
         
         <div class="filter-row">
-            <div class="filter-group">
+            <div class="cycle-group">
                 <label>驗證週期</label>
-                <select id="cycleSelector" class="filter-select">
+                <select id="cycleSelector" class="cycle-selector">
                     <option value="">載入中...</option>
                 </select>
                 <div id="cycleInfo" class="cycle-info"></div>
@@ -1467,12 +1594,17 @@
             status = '<span style="color: #28a745;">進行中</span>';
         }
 
-        const startDate = new Date(cycleInfo.utime_since * 1000).toLocaleString();
-        const endDate = new Date(cycleInfo.utime_until * 1000).toLocaleString();
+        const startDate = new Date(cycleInfo.utime_since * 1000).toLocaleDateString() + ' ' + new Date(cycleInfo.utime_since * 1000).toLocaleTimeString('zh-TW', {hour: '2-digit', minute: '2-digit'});
+        const endDate = new Date(cycleInfo.utime_until * 1000).toLocaleDateString() + ' ' + new Date(cycleInfo.utime_until * 1000).toLocaleTimeString('zh-TW', {hour: '2-digit', minute: '2-digit'});
 
         cycleInfoDiv.innerHTML = `
-            ${status} | ${cycleInfo.validators.length} 個驗證器<br>
-            ${startDate} - ${endDate}
+            <div style="margin-bottom: 4px;">
+                <span style="color: #34C759; font-weight: 600;">${status}</span> | 
+                <span style="font-weight: 500;">${cycleInfo.validators.length} 個驗證器</span>
+            </div>
+            <div style="font-size: 11px; color: #6e6e73;">
+                ${startDate} - ${endDate}
+            </div>
         `;
     }
 
@@ -1578,7 +1710,7 @@
         document.getElementById('statsContainer').innerHTML = `
             <div class="stat-card">
                 <h3>驗證週期</h3>
-                <p class="value">#${cycleData.cycle_id}</p>
+                <p class="value long-number">#${cycleData.cycle_id}</p>
             </div>
             <div class="stat-card">
                 <h3>驗證器數量</h3>

@@ -23,16 +23,38 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
+        
+        /* macOS 風格滾動條 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
 
         .container {
-            width: 100%;
-            margin: 0;
+            max-width: 1400px;
+            margin: 0 auto;
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-radius: 0;
-            box-shadow: none;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
             overflow: hidden;
+            margin-top: 20px;
+            margin-bottom: 20px;
         }
 
         .header {
@@ -40,10 +62,11 @@
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             color: white;
-            padding: 40px 30px;
+            padding: 35px 30px;
             text-align: center;
             position: relative;
             overflow: hidden;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .header::before {
@@ -196,7 +219,7 @@
         }
 
         .data-section {
-            padding: 30px;
+            padding: 25px 30px;
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
@@ -229,8 +252,8 @@
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
             border-radius: 16px;
-            padding: 25px;
-            margin: 25px 0;
+            padding: 20px;
+            margin: 20px 0;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.3);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -578,10 +601,35 @@
             box-shadow: 0 8px 25px rgba(0, 122, 255, 0.3);
         }
 
-        /* 響應式設計 */
+        /* 響應式設計優化 */
+        @media (max-width: 1500px) {
+            .container {
+                max-width: 1200px;
+                margin: 20px auto;
+            }
+        }
+        
+        @media (max-width: 1200px) {
+            .container {
+                max-width: 1000px;
+                margin: 15px auto;
+            }
+        }
+        
         @media (max-width: 768px) {
+            body {
+                padding: 0;
+            }
+            
+            .container {
+                max-width: 100%;
+                margin: 0;
+                border-radius: 0;
+                box-shadow: none;
+            }
+            
             .header {
-                padding: 30px 20px;
+                padding: 25px 20px;
                 text-align: left;
             }
 
@@ -609,7 +657,7 @@
             }
 
             .data-section {
-                padding: 25px;
+                padding: 20px;
             }
 
             .data-table {

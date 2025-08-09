@@ -21,16 +21,38 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
+        
+        /* macOS 風格滾動條 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
 
         .container {
-            width: 100%;
-            margin: 0;
+            max-width: 1400px;
+            margin: 0 auto;
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-radius: 0;
-            box-shadow: none;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
             overflow: hidden;
+            margin-top: 20px;
+            margin-bottom: 20px;
         }
 
         .header {
@@ -38,10 +60,11 @@
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             color: white;
-            padding: 40px 30px;
+            padding: 35px 30px;
             text-align: center;
             position: relative;
             overflow: hidden;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .header::before {
@@ -255,7 +278,7 @@
 
         table {
             width: 100%;
-            min-width: 1000px;
+            min-width: 800px;
             border-collapse: separate;
             border-spacing: 0;
             font-size: 13px;
@@ -434,10 +457,35 @@
             color: #0056CC;
         }
 
-        /* 移動端優化 */
+        /* 響應式設計優化 */
+        @media (max-width: 1500px) {
+            .container {
+                max-width: 1200px;
+                margin: 20px auto;
+            }
+        }
+        
+        @media (max-width: 1200px) {
+            .container {
+                max-width: 1000px;
+                margin: 15px auto;
+            }
+        }
+        
         @media (max-width: 768px) {
+            body {
+                padding: 0;
+            }
+            
+            .container {
+                max-width: 100%;
+                margin: 0;
+                border-radius: 0;
+                box-shadow: none;
+            }
+            
             .header {
-                padding: 30px 20px;
+                padding: 25px 20px;
                 text-align: left;
             }
 
