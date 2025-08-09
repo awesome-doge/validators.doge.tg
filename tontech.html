@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="zh-TW" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
+    <title>TON 技術數據分析 - TON Tech Dashboard</title>
+    
+    <style>
+        * {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            width: 100%;
+            margin: 0;
+            background: white;
+            border-radius: 0;
+            box-shadow: none;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0066cc 0%, #004499 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header .subtitle {
+            margin: 10px 0 0 0;
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .nav-back {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: background 0.3s ease;
+        }
+
+        .nav-back:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-left: 4px solid #0066cc;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+        }
+
+        .stat-card h3 {
+            margin: 0 0 15px 0;
+            color: #666;
+            font-size: 1em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .stat-card .value {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #333;
+            margin: 0 0 10px 0;
+        }
+
+        .stat-card .description {
+            font-size: 0.9em;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .data-section {
+            padding: 30px;
+            background: white;
+            border-bottom: 1px solid #eee;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #0066cc;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #0066cc;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #c3e6cb;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+            overflow-x: auto;
+            display: block;
+            white-space: nowrap;
+        }
+
+        .data-table thead,
+        .data-table tbody {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        .data-table th,
+        .data-table td {
+            text-align: left;
+            padding: 12px 15px;
+            border-bottom: 1px solid #ddd;
+            width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            position: sticky;
+            top: 0;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .metric-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .trend-indicator {
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 0.8em;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .trend-up {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .trend-down {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .trend-stable {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .api-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            z-index: 1001;
+            display: none;
+            max-width: 250px;
+        }
+
+        .api-status.show {
+            display: block;
+        }
+
+        .api-status .api-name {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .mini-chart {
+            width: 100%;
+            height: 60px;
+            margin: 10px 0;
+        }
+
+        .time-filter {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .time-filter button {
+            margin: 0 5px;
+            padding: 8px 16px;
+            border: 1px solid #0066cc;
+            background: white;
+            color: #0066cc;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .time-filter button.active,
+        .time-filter button:hover {
+            background: #0066cc;
+            color: white;
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .header {
+                padding: 20px 15px;
+                text-align: left;
+            }
+
+            .nav-back {
+                position: relative;
+                top: auto;
+                left: auto;
+                margin-bottom: 15px;
+                display: inline-block;
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+                margin: 10px 0;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                padding: 20px;
+            }
+
+            .data-section {
+                padding: 20px;
+            }
+
+            .data-table {
+                font-size: 12px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 8px 10px;
+                width: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <a href="index.html" class="nav-back">← 返回主頁</a>
+        <h1>TON 技術數據分析</h1>
+        <div class="subtitle">實時監控 TON 區塊鏈技術指標與性能數據</div>
+    </div>
+
+    <div id="statsContainer" class="stats-grid">
+        <!-- 動態載入統計卡片 -->
+    </div>
+
+    <!-- 網絡狀態 -->
+    <div class="data-section">
+        <h2 class="section-title">🔍 網絡狀態趨勢</h2>
+        <div class="time-filter">
+            <button class="active" onclick="filterData('status', 7)">7天</button>
+            <button onclick="filterData('status', 30)">30天</button>
+            <button onclick="filterData('status', 90)">90天</button>
+        </div>
+        <div id="statusData">
+            <p>正在載入狀態數據...</p>
+        </div>
+    </div>
+
+    <!-- 交易金額分析 -->
+    <div class="data-section">
+        <h2 class="section-title">💰 交易金額趨勢</h2>
+        <div class="time-filter">
+            <button class="active" onclick="filterData('amounts', 7)">7天</button>
+            <button onclick="filterData('amounts', 30)">30天</button>
+            <button onclick="filterData('amounts', 90)">90天</button>
+        </div>
+        <div id="transactionAmountsData">
+            <p>正在載入交易金額數據...</p>
+        </div>
+    </div>
+
+    <!-- 交易數量統計 -->
+    <div class="data-section">
+        <h2 class="section-title">📊 交易數量統計</h2>
+        <div class="time-filter">
+            <button class="active" onclick="filterData('count', 7)">7天</button>
+            <button onclick="filterData('count', 30)">30天</button>
+            <button onclick="filterData('count', 90)">90天</button>
+        </div>
+        <div id="transactionCountData">
+            <p>正在載入交易數量數據...</p>
+        </div>
+    </div>
+
+    <!-- 質押收益分析 -->
+    <div class="data-section">
+        <h2 class="section-title">📈 質押收益分析</h2>
+        <div class="time-filter">
+            <button class="active" onclick="filterData('yield', 7)">7天</button>
+            <button onclick="filterData('yield', 30)">30天</button>
+            <button onclick="filterData('yield', 90)">90天</button>
+        </div>
+        <div id="yieldData">
+            <p>正在載入收益數據...</p>
+        </div>
+    </div>
+
+    <!-- 選舉數據 -->
+    <div class="data-section">
+        <h2 class="section-title">🗳️ 驗證器選舉數據</h2>
+        <div class="time-filter">
+            <button class="active" onclick="filterData('elections', 10)">最近10次</button>
+            <button onclick="filterData('elections', 20)">最近20次</button>
+            <button onclick="filterData('elections', 50)">最近50次</button>
+        </div>
+        <div id="electionData">
+            <p>正在載入選舉數據...</p>
+        </div>
+    </div>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+</div>
+
+<div class="api-status" id="apiStatus">
+    <div>數據來源: <span class="api-name" id="apiName">TON Tech API</span></div>
+    <div id="apiPerformance"></div>
+</div>
+
+<script>
+    // 全域變數
+    let apiData = {
+        status: null,
+        transactions_amounts: null,
+        elections: null,
+        yield: null,
+        transactions_count: null
+    };
+
+    let currentFilters = {
+        status: 7,
+        amounts: 7,
+        count: 7,
+        yield: 7,
+        elections: 10
+    };
+
+    // API 端點配置
+    const API_ENDPOINTS = {
+        status: 'https://corsproxy.io/?https%3A%2F%2Ftontech.io%2Fapi%2Fv1%2Fstatus',
+        transactions_amounts: 'https://corsproxy.io/?https%3A%2F%2Ftontech.io%2Fapi%2Fv1%2Ftransactions_amounts',
+        elections: 'https://corsproxy.io/?https%3A%2F%2Ftontech.io%2Fapi%2Fv1%2Felections',
+        yield: 'https://corsproxy.io/?https%3A%2F%2Ftontech.io%2Fapi%2Fv1%2Fyield',
+        transactions_count: 'https://corsproxy.io/?https%3A%2F%2Ftontech.io%2Fapi%2Fv1%2Ftransactions_count'
+    };
+
+    // 輔助函數
+    const showLoading = () => {
+        document.getElementById('loadingOverlay').style.display = 'flex';
+    };
+
+    const hideLoading = () => {
+        document.getElementById('loadingOverlay').style.display = 'none';
+    };
+
+    const showApiStatus = (message, isError = false) => {
+        const apiStatus = document.getElementById('apiStatus');
+        const apiPerformance = document.getElementById('apiPerformance');
+        
+        apiPerformance.textContent = message;
+        apiStatus.classList.add('show');
+        
+        if (isError) {
+            apiStatus.style.background = 'rgba(220, 53, 69, 0.9)';
+        } else {
+            apiStatus.style.background = 'rgba(0, 0, 0, 0.8)';
+        }
+        
+        setTimeout(() => {
+            apiStatus.classList.remove('show');
+        }, 3000);
+    };
+
+    const formatNumber = (num) => {
+        if (num >= 1e9) {
+            return (num / 1e9).toFixed(2) + 'B';
+        } else if (num >= 1e6) {
+            return (num / 1e6).toFixed(2) + 'M';
+        } else if (num >= 1e3) {
+            return (num / 1e3).toFixed(2) + 'K';
+        }
+        return num.toLocaleString();
+    };
+
+    const formatTON = (amount) => {
+        // 處理 TON 數量，單位為 nanotons
+        const tons = parseFloat(amount) / 1e9;
+        return formatNumber(tons);
+    };
+
+    const formatDate = (dateStr) => {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('zh-TW');
+    };
+
+    const formatDateTime = (dateStr) => {
+        const date = new Date(dateStr);
+        return date.toLocaleString('zh-TW');
+    };
+
+    const calculateTrend = (data, valueKey) => {
+        if (!data || data.length < 2) return 'stable';
+        
+        const recent = data.slice(-7); // 最近7天
+        const earlier = data.slice(-14, -7); // 之前7天
+        
+        const recentAvg = recent.reduce((sum, item) => sum + (parseFloat(item[valueKey]) || 0), 0) / recent.length;
+        const earlierAvg = earlier.reduce((sum, item) => sum + (parseFloat(item[valueKey]) || 0), 0) / earlier.length;
+        
+        const change = ((recentAvg - earlierAvg) / earlierAvg) * 100;
+        
+        if (change > 5) return 'up';
+        if (change < -5) return 'down';
+        return 'stable';
+    };
+
+    const getTrendIndicator = (trend, value) => {
+        const classes = {
+            up: 'trend-up',
+            down: 'trend-down', 
+            stable: 'trend-stable'
+        };
+        
+        const symbols = {
+            up: '↗',
+            down: '↘',
+            stable: '→'
+        };
+        
+        return `<span class="trend-indicator ${classes[trend]}">${symbols[trend]} ${value}</span>`;
+    };
+
+    // API 請求函數
+    const fetchApiData = async (endpoint, name) => {
+        const startTime = performance.now();
+        try {
+            const response = await fetch(endpoint);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            const endTime = performance.now();
+            const responseTime = endTime - startTime;
+            
+            console.log(`✅ ${name} API 載入成功 (${responseTime.toFixed(0)}ms)`, data.length + ' 條記錄');
+            showApiStatus(`${name} 載入成功 - ${responseTime.toFixed(0)}ms`);
+            
+            return data;
+        } catch (error) {
+            const endTime = performance.now();
+            const responseTime = endTime - startTime;
+            
+            console.error(`❌ ${name} API 載入失敗:`, error);
+            showApiStatus(`${name} 載入失敗: ${error.message}`, true);
+            
+            throw error;
+        }
+    };
+
+    // 載入所有 API 數據
+    const loadAllApiData = async () => {
+        showLoading();
+        
+        const promises = Object.entries(API_ENDPOINTS).map(async ([key, endpoint]) => {
+            try {
+                const data = await fetchApiData(endpoint, key.toUpperCase());
+                apiData[key] = data;
+                return { key, data, success: true };
+            } catch (error) {
+                apiData[key] = null;
+                return { key, error, success: false };
+            }
+        });
+
+        const results = await Promise.all(promises);
+        
+        // 顯示載入結果摘要
+        const successful = results.filter(r => r.success).length;
+        const total = results.length;
+        
+        if (successful === total) {
+            showApiStatus(`全部 ${total} 個 API 載入成功 🎉`);
+        } else if (successful > 0) {
+            showApiStatus(`${successful}/${total} 個 API 載入成功`, false);
+        } else {
+            showApiStatus(`所有 API 載入失敗 - 請檢查網絡連接`, true);
+        }
+        
+        hideLoading();
+        
+        // 渲染數據
+        renderAllData();
+    };
+
+    // 渲染統計卡片
+    const renderStatsCards = () => {
+        const container = document.getElementById('statsContainer');
+        let html = '';
+
+        // 檢查是否有任何數據載入成功
+        const hasAnyData = Object.values(apiData).some(data => data !== null);
+        
+        if (!hasAnyData) {
+            html += `
+                <div class="stat-card" style="grid-column: 1 / -1; text-align: center;">
+                    <h3>⚠️ 數據載入中</h3>
+                    <div class="value">請稍候...</div>
+                    <div class="description">正在從 TON Tech API 載入最新數據</div>
+                </div>
+            `;
+            container.innerHTML = html;
+            return;
+        }
+
+        // 網絡狀態統計
+        if (apiData.status && apiData.status.length > 0) {
+            const latest = apiData.status[apiData.status.length - 1];
+            const totalSupply = formatTON(latest.total_supply);
+            const circulatingSupply = formatTON(latest.circulating_supply);
+            const accounts = formatNumber(latest.total_accounts);
+            
+            html += `
+                <div class="stat-card">
+                    <h3>💰 總供應量</h3>
+                    <div class="value">${totalSupply} TON</div>
+                    <div class="description">當前 TON 總供應量</div>
+                </div>
+                <div class="stat-card">
+                    <h3>🔄 流通供應量</h3>
+                    <div class="value">${circulatingSupply} TON</div>
+                    <div class="description">市場流通的 TON 數量</div>
+                </div>
+                <div class="stat-card">
+                    <h3>👥 總帳戶數</h3>
+                    <div class="value">${accounts}</div>
+                    <div class="description">TON 網絡總帳戶數量</div>
+                </div>
+            `;
+        }
+
+        // 交易統計
+        if (apiData.transactions_amounts && apiData.transactions_amounts.length > 0) {
+            const recent = apiData.transactions_amounts.slice(-7);
+            const totalAmount = recent.reduce((sum, item) => sum + parseFloat(item.sum_transactions_amounts), 0);
+            const avgDaily = totalAmount / recent.length;
+            
+            html += `
+                <div class="stat-card">
+                    <h3>💸 7天交易總額</h3>
+                    <div class="value">${formatTON(totalAmount)} TON</div>
+                    <div class="description">過去7天的交易總金額</div>
+                </div>
+                <div class="stat-card">
+                    <h3>📊 日均交易額</h3>
+                    <div class="value">${formatTON(avgDaily)} TON</div>
+                    <div class="description">每日平均交易金額</div>
+                </div>
+            `;
+        }
+
+        // 質押收益統計
+        if (apiData.yield && apiData.yield.length > 0) {
+            const latest = apiData.yield[apiData.yield.length - 1];
+            const recentYields = apiData.yield.slice(-30);
+            const avgYield = recentYields.reduce((sum, item) => sum + parseFloat(item.annual_percent_yld), 0) / recentYields.length;
+            
+            html += `
+                <div class="stat-card">
+                    <h3>📈 當前年化收益率</h3>
+                    <div class="value">${(parseFloat(latest.annual_percent_yld) * 100).toFixed(2)}%</div>
+                    <div class="description">最新質押年化收益率</div>
+                </div>
+            `;
+        }
+
+        container.innerHTML = html;
+    };
+
+    // 渲染狀態數據
+    const renderStatusData = () => {
+        const container = document.getElementById('statusData');
+        
+        if (!apiData.status || !Array.isArray(apiData.status)) {
+            container.innerHTML = '<div class="error-message">狀態數據載入失敗</div>';
+            return;
+        }
+
+        const days = currentFilters.status;
+        const filteredData = apiData.status.slice(-days);
+        
+        const latest = filteredData[filteredData.length - 1];
+        const earliest = filteredData[0];
+        
+        // 計算增長
+        const accountGrowth = latest.total_accounts - earliest.total_accounts;
+        const supplyGrowth = parseFloat(latest.total_supply) - parseFloat(earliest.total_supply);
+        
+        let html = `
+            <div class="success-message">
+                載入了 ${filteredData.length} 天的網絡狀態數據
+            </div>
+            <div class="metric-grid">
+                <div class="metric-item">
+                    <div class="metric-label">帳戶增長 (${days}天)</div>
+                    <div class="metric-value">+${formatNumber(accountGrowth)}</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">供應量增長 (${days}天)</div>
+                    <div class="metric-value">+${formatTON(supplyGrowth)} TON</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">流通比例</div>
+                    <div class="metric-value">${((parseFloat(latest.circulating_supply) / parseFloat(latest.total_supply)) * 100).toFixed(1)}%</div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>總帳戶數</th>
+                            <th>總供應量</th>
+                            <th>流通供應量</th>
+                            <th>質押量</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        filteredData.slice(-20).forEach(item => {
+            html += `
+                <tr>
+                    <td>${formatDate(item.date)}</td>
+                    <td>${formatNumber(item.total_accounts)}</td>
+                    <td>${formatTON(item.total_supply)} TON</td>
+                    <td>${formatTON(item.circulating_supply)} TON</td>
+                    <td>${formatTON(item.initiated_supply)} TON</td>
+                </tr>
+            `;
+        });
+        
+        html += '</tbody></table></div>';
+        container.innerHTML = html;
+    };
+
+    // 渲染交易金額數據
+    const renderTransactionAmountsData = () => {
+        const container = document.getElementById('transactionAmountsData');
+        
+        if (!apiData.transactions_amounts || !Array.isArray(apiData.transactions_amounts)) {
+            container.innerHTML = '<div class="error-message">交易金額數據載入失敗</div>';
+            return;
+        }
+
+        const days = currentFilters.amounts;
+        const filteredData = apiData.transactions_amounts.slice(-days);
+        
+        // 計算統計
+        const totalAmount = filteredData.reduce((sum, item) => sum + parseFloat(item.sum_transactions_amounts), 0);
+        const avgDaily = totalAmount / filteredData.length;
+        const maxDaily = Math.max(...filteredData.map(item => parseFloat(item.sum_transactions_amounts)));
+        
+        let html = `
+            <div class="success-message">
+                載入了 ${filteredData.length} 天的交易金額數據
+            </div>
+            <div class="metric-grid">
+                <div class="metric-item">
+                    <div class="metric-label">總交易額 (${days}天)</div>
+                    <div class="metric-value">${formatTON(totalAmount)} TON</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">日均交易額</div>
+                    <div class="metric-value">${formatTON(avgDaily)} TON</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">單日最高</div>
+                    <div class="metric-value">${formatTON(maxDaily)} TON</div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>交易總額 (TON)</th>
+                            <th>佔比</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        filteredData.forEach(item => {
+            const amount = parseFloat(item.sum_transactions_amounts);
+            const percentage = ((amount / totalAmount) * 100).toFixed(1);
+            
+            html += `
+                <tr>
+                    <td>${formatDate(item.date)}</td>
+                    <td>${formatTON(amount)} TON</td>
+                    <td>${percentage}%</td>
+                </tr>
+            `;
+        });
+        
+        html += '</tbody></table></div>';
+        container.innerHTML = html;
+    };
+
+    // 渲染交易數量數據
+    const renderTransactionCountData = () => {
+        const container = document.getElementById('transactionCountData');
+        container.innerHTML = '<div class="success-message">交易數量數據正在開發中...</div>';
+    };
+
+    // 渲染收益數據
+    const renderYieldData = () => {
+        const container = document.getElementById('yieldData');
+        
+        if (!apiData.yield || !Array.isArray(apiData.yield)) {
+            container.innerHTML = '<div class="error-message">收益數據載入失敗</div>';
+            return;
+        }
+
+        const days = currentFilters.yield;
+        const filteredData = apiData.yield.slice(-days);
+        
+        // 計算統計
+        const yields = filteredData.map(item => parseFloat(item.annual_percent_yld) * 100);
+        const avgYield = yields.reduce((sum, y) => sum + y, 0) / yields.length;
+        const maxYield = Math.max(...yields);
+        const minYield = Math.min(...yields);
+        const latestYield = yields[yields.length - 1];
+        
+        let html = `
+            <div class="success-message">
+                載入了 ${filteredData.length} 條收益記錄
+            </div>
+            <div class="metric-grid">
+                <div class="metric-item">
+                    <div class="metric-label">當前收益率</div>
+                    <div class="metric-value">${latestYield.toFixed(2)}%</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">平均收益率 (${days}天)</div>
+                    <div class="metric-value">${avgYield.toFixed(2)}%</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">最高收益率</div>
+                    <div class="metric-value">${maxYield.toFixed(2)}%</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">最低收益率</div>
+                    <div class="metric-value">${minYield.toFixed(2)}%</div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>質押量 (TON)</th>
+                            <th>獎勵 (TON)</th>
+                            <th>年化收益率</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        filteredData.slice(-20).forEach(item => {
+            const yieldPercent = (parseFloat(item.annual_percent_yld) * 100).toFixed(2);
+            
+            html += `
+                <tr>
+                    <td>${formatDateTime(item.date)}</td>
+                    <td>${formatTON(item.staked * 1e9)} TON</td>
+                    <td>${formatTON(item.rewarded * 1e9)} TON</td>
+                    <td><strong>${yieldPercent}%</strong></td>
+                </tr>
+            `;
+        });
+        
+        html += '</tbody></table></div>';
+        container.innerHTML = html;
+    };
+
+    // 渲染選舉數據
+    const renderElectionData = () => {
+        const container = document.getElementById('electionData');
+        container.innerHTML = '<div class="success-message">選舉數據正在開發中...</div>';
+    };
+
+    // 過濾數據
+    const filterData = (type, period) => {
+        // 更新按鈕狀態
+        const buttons = document.querySelectorAll(`[onclick*="${type}"]`);
+        buttons.forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        // 更新過濾器
+        currentFilters[type] = period;
+        
+        // 重新渲染對應的數據
+        switch(type) {
+            case 'status':
+                renderStatusData();
+                break;
+            case 'amounts':
+                renderTransactionAmountsData();
+                break;
+            case 'count':
+                renderTransactionCountData();
+                break;
+            case 'yield':
+                renderYieldData();
+                break;
+            case 'elections':
+                renderElectionData();
+                break;
+        }
+    };
+
+    // 渲染所有數據
+    const renderAllData = () => {
+        renderStatsCards();
+        renderStatusData();
+        renderTransactionAmountsData();
+        renderTransactionCountData();
+        renderYieldData();
+        renderElectionData();
+    };
+
+    // 初始化應用
+    const initializeApp = async () => {
+        console.log('🚀 初始化 TON Tech Dashboard...');
+        
+        try {
+            await loadAllApiData();
+            console.log('✅ TON Tech Dashboard 初始化完成');
+        } catch (error) {
+            console.error('❌ 初始化失敗:', error);
+            showApiStatus('初始化失敗: ' + error.message, true);
+        }
+    };
+
+    // 頁面載入完成後初始化
+    document.addEventListener('DOMContentLoaded', initializeApp);
+
+    // 定期更新數據（每 5 分鐘）
+    setInterval(loadAllApiData, 5 * 60 * 1000);
+</script>
+
+</body>
+</html>
