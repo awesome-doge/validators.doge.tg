@@ -289,6 +289,43 @@
             color: #4CAF50;
         }
 
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .trend-up {
+            color: #28a745;
+        }
+
+        .trend-down {
+            color: #dc3545;
+        }
+
         .mini-chart {
             width: 100%;
             height: 60px;
@@ -572,12 +609,41 @@
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             
-            const data = await response.json();
+            const text = await response.text();
             const endTime = performance.now();
             const responseTime = endTime - startTime;
             
-            console.log(`✅ ${name} API 載入成功 (${responseTime.toFixed(0)}ms)`, data.length + ' 條記錄');
-            showApiStatus(`${name} 載入成功 - ${responseTime.toFixed(0)}ms`);
+            // 檢查響應是否為空
+            if (!text || text.trim() === '') {
+                console.warn(`⚠️ ${name} API 返回空響應`);
+                showApiStatus(`${name} API 暫無數據`, false);
+                return [];
+            }
+            
+            // 嘗試解析 JSON
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (parseError) {
+                console.error(`❌ ${name} JSON 解析失敗:`, parseError);
+                console.log('原始響應:', text.substring(0, 200));
+                throw new Error(`JSON 解析失敗: ${parseError.message}`);
+            }
+            
+            // 檢查數據格式
+            if (!Array.isArray(data)) {
+                console.warn(`⚠️ ${name} API 返回非陣列數據:`, typeof data);
+                if (data && typeof data === 'object') {
+                    // 如果是對象，嘗試包裝成陣列
+                    data = [data];
+                } else {
+                    throw new Error('API 返回格式不正確');
+                }
+            }
+            
+            const recordCount = data.length;
+            console.log(`✅ ${name} API 載入成功 (${responseTime.toFixed(0)}ms)`, recordCount + ' 條記錄');
+            showApiStatus(`${name} 載入成功 - ${recordCount} 條記錄 (${responseTime.toFixed(0)}ms)`);
             
             return data;
         } catch (error) {
@@ -587,7 +653,8 @@
             console.error(`❌ ${name} API 載入失敗:`, error);
             showApiStatus(`${name} 載入失敗: ${error.message}`, true);
             
-            throw error;
+            // 返回空陣列而不是拋出錯誤，讓其他 API 繼續載入
+            return [];
         }
     };
 
@@ -599,10 +666,11 @@
             try {
                 const data = await fetchApiData(endpoint, key.toUpperCase());
                 apiData[key] = data;
-                return { key, data, success: true };
+                return { key, data, success: true, count: data.length };
             } catch (error) {
-                apiData[key] = null;
-                return { key, error, success: false };
+                // fetchApiData 現在返回空陣列而不是拋出錯誤
+                apiData[key] = [];
+                return { key, error, success: false, count: 0 };
             }
         });
 
@@ -844,7 +912,110 @@
     // 渲染交易數量數據
     const renderTransactionCountData = () => {
         const container = document.getElementById('transactionCountData');
-        container.innerHTML = '<div class="success-message">交易數量數據正在開發中...</div>';
+        
+        if (!apiData.transactions_count) {
+            container.innerHTML = '<div class="error-message">交易數量數據載入失敗 - API 無響應或暫時不可用</div>';
+            return;
+        }
+        
+        if (!Array.isArray(apiData.transactions_count) || apiData.transactions_count.length === 0) {
+            container.innerHTML = '<div class="error-message">交易數量數據為空或格式不正確</div>';
+            return;
+        }
+
+        const count = currentFilters.count;
+        const filteredData = apiData.transactions_count.slice(-count);
+        const latest = filteredData[filteredData.length - 1];
+        
+        // 計算統計數據
+        const totalTransactions = filteredData.reduce((sum, item) => sum + (item.transactions_count || 0), 0);
+        const totalUsers = filteredData.reduce((sum, item) => sum + (item.users_transactions_count || 0), 0);
+        const avgDaily = Math.round(totalTransactions / filteredData.length);
+        const avgUsers = Math.round(totalUsers / filteredData.length);
+        
+        // 計算趨勢
+        const recent7Days = filteredData.slice(-7);
+        const previous7Days = filteredData.slice(-14, -7);
+        const recentAvg = recent7Days.reduce((sum, item) => sum + (item.transactions_count || 0), 0) / recent7Days.length;
+        const previousAvg = previous7Days.length > 0 ? previous7Days.reduce((sum, item) => sum + (item.transactions_count || 0), 0) / previous7Days.length : recentAvg;
+        const trendPercent = previousAvg > 0 ? ((recentAvg - previousAvg) / previousAvg * 100) : 0;
+        
+        let html = `
+            <div class="success-message">
+                載入了 ${filteredData.length} 天交易數量數據
+            </div>
+            <div class="metric-grid">
+                <div class="metric-item">
+                    <div class="metric-label">最新日交易量</div>
+                    <div class="metric-value">${formatNumber(latest.transactions_count)}</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">最新用戶交易量</div>
+                    <div class="metric-value">${formatNumber(latest.users_transactions_count)}</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">平均日交易量</div>
+                    <div class="metric-value">${formatNumber(avgDaily)}</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">7日趨勢</div>
+                    <div class="metric-value ${trendPercent >= 0 ? 'trend-up' : 'trend-down'}">
+                        ${trendPercent >= 0 ? '↗' : '↘'} ${Math.abs(trendPercent).toFixed(1)}%
+                    </div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>總交易數</th>
+                            <th>用戶交易數</th>
+                            <th>交易密度</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        filteredData.forEach((day) => {
+            const date = new Date(day.date).toLocaleDateString('zh-TW');
+            const transactionCount = day.transactions_count || 0;
+            const userCount = day.users_transactions_count || 0;
+            const density = userCount > 0 ? (transactionCount / userCount).toFixed(2) : '0';
+            
+            // 判斷是否為高交易日（超過平均值1.5倍）
+            const isHighVolume = transactionCount > avgDaily * 1.5;
+            
+            html += `
+                <tr${isHighVolume ? ' style="background-color: #fff3cd;"' : ''}>
+                    <td>${date}</td>
+                    <td><strong>${formatNumber(transactionCount)}</strong></td>
+                    <td>${formatNumber(userCount)}</td>
+                    <td>
+                        <span class="badge ${isHighVolume ? 'badge-warning' : 'badge-info'}">
+                            ${density} tx/用戶
+                        </span>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        html += '</tbody></table></div>';
+        
+        // 添加統計摘要
+        html += `
+            <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                <h4 style="margin: 0 0 10px 0; color: #333;">統計摘要 (${filteredData.length} 天)</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                    <div>📊 總交易數: <strong>${formatNumber(totalTransactions)}</strong></div>
+                    <div>👥 總用戶交易: <strong>${formatNumber(totalUsers)}</strong></div>
+                    <div>📈 日均交易: <strong>${formatNumber(avgDaily)}</strong></div>
+                    <div>🎯 日均用戶: <strong>${formatNumber(avgUsers)}</strong></div>
+                </div>
+            </div>
+        `;
+        
+        container.innerHTML = html;
     };
 
     // 渲染收益數據
@@ -921,7 +1092,90 @@
     // 渲染選舉數據
     const renderElectionData = () => {
         const container = document.getElementById('electionData');
-        container.innerHTML = '<div class="success-message">選舉數據正在開發中...</div>';
+        
+        if (!apiData.elections) {
+            container.innerHTML = '<div class="error-message">選舉數據載入失敗 - API 無響應或暫時不可用</div>';
+            return;
+        }
+        
+        if (!Array.isArray(apiData.elections) || apiData.elections.length === 0) {
+            container.innerHTML = '<div class="error-message">選舉數據為空或格式不正確</div>';
+            return;
+        }
+
+        const count = currentFilters.elections;
+        const filteredData = apiData.elections.slice(-count);
+        
+        // 分析數據結構
+        const firstItem = filteredData[0];
+        console.log('選舉數據結構:', firstItem);
+        
+        let html = `
+            <div class="success-message">
+                載入了 ${filteredData.length} 條選舉記錄
+            </div>
+            <div class="metric-grid">
+                <div class="metric-item">
+                    <div class="metric-label">總選舉次數</div>
+                    <div class="metric-value">${apiData.elections.length}</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-label">顯示記錄</div>
+                    <div class="metric-value">${filteredData.length}</div>
+                </div>
+            </div>
+            <div class="chart-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>選舉 ID</th>
+                            <th>時間</th>
+                            <th>狀態</th>
+                            <th>詳細信息</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        filteredData.forEach((election, index) => {
+            // 嘗試從不同的字段獲取信息
+            const electionId = election.id || election.election_id || election.cycle_id || `#${index + 1}`;
+            const date = election.date || election.timestamp || election.time || 'Unknown';
+            const status = election.status || election.state || 'Active';
+            
+            // 嘗試獲取更多信息
+            const validators = election.validators || election.validator_count || election.participants;
+            const stakes = election.total_stake || election.stake_sum || election.stakes;
+            
+            let details = [];
+            if (validators) details.push(`驗證器: ${formatNumber(validators)}`);
+            if (stakes) details.push(`總質押: ${formatTON(stakes)} TON`);
+            
+            const detailText = details.length > 0 ? details.join(' | ') : 'N/A';
+            
+            html += `
+                <tr>
+                    <td>${electionId}</td>
+                    <td>${typeof date === 'string' ? date : formatDateTime(date)}</td>
+                    <td><span class="badge badge-info">${status}</span></td>
+                    <td>${detailText}</td>
+                </tr>
+            `;
+        });
+        
+        html += '</tbody></table></div>';
+        
+        // 如果數據結構未知，顯示原始數據
+        if (filteredData.length > 0) {
+            html += `
+                <details style="margin-top: 20px;">
+                    <summary style="cursor: pointer; font-weight: bold;">顯示原始數據結構 (調試用)</summary>
+                    <pre style="background: #f8f9fa; padding: 15px; border-radius: 8px; overflow-x: auto; margin-top: 10px;">${JSON.stringify(filteredData[0], null, 2)}</pre>
+                </details>
+            `;
+        }
+        
+        container.innerHTML = html;
     };
 
     // 過濾數據
