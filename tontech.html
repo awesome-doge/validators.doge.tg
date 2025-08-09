@@ -1729,7 +1729,7 @@
                     <tbody>
         `;
         
-        filteredData.slice(-20).forEach(item => {
+        filteredData.slice(-20).reverse().forEach(item => {
             html += `
                 <tr>
                     <td>${formatDate(item.date)}</td>
@@ -1832,7 +1832,7 @@
                     <tbody>
         `;
         
-        filteredData.forEach(item => {
+        filteredData.reverse().forEach(item => {
             const amount = parseFloat(item.sum_transactions_amounts);
             const percentage = ((amount / totalAmount) * 100).toFixed(1);
             
@@ -1941,7 +1941,7 @@
                     <tbody>
         `;
         
-        filteredData.forEach((day) => {
+        filteredData.reverse().forEach((day) => {
             const date = new Date(day.date).toLocaleDateString('zh-TW');
             const transactionCount = day.transactions_count || 0;
             const userCount = day.users_transactions_count || 0;
@@ -2036,7 +2036,7 @@
                     <tbody>
         `;
         
-        filteredData.slice(-20).forEach(item => {
+        filteredData.slice(-20).reverse().forEach(item => {
             const yieldPercent = (parseFloat(item.annual_percent_yld) * 100).toFixed(2);
             
             html += `
@@ -2151,9 +2151,9 @@
                     <tbody>
         `;
         
-        filteredData.forEach((election, index) => {
+        filteredData.reverse().forEach((election, index) => {
             // 嘗試從不同的字段獲取信息
-            const electionId = election.id || election.election_id || election.cycle_id || `#${index + 1}`;
+            const electionId = election.id || election.election_id || election.cycle_id || `#${filteredData.length - index}`;
             const date = election.date || election.timestamp || election.time || 'Unknown';
             const status = election.status || election.state || 'Active';
             
