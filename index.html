@@ -360,6 +360,188 @@
             box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
             background: rgba(255, 255, 255, 0.95);
         }
+        
+        /* iPhone 移動端優化 - 驗證週期和過濾器區域 */
+        @media (max-width: 768px) {
+            .controls {
+                padding: 20px;
+                background: rgba(255, 255, 255, 0.95);
+            }
+            
+            .search-container {
+                flex-direction: column;
+                gap: 16px;
+                margin-bottom: 20px;
+            }
+            
+            .search-input {
+                min-width: 100%;
+                padding: 18px 20px;
+                font-size: 16px;
+                border-radius: 16px;
+                /* 防止 iOS 縮放 */
+                font-size: 16px;
+                /* 改善觸控體驗 */
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            
+            .search-input:focus {
+                transform: scale(1.02);
+                box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
+            }
+            
+            .filter-row {
+                flex-direction: column;
+                gap: 16px;
+                margin-bottom: 0;
+            }
+            
+            .filter-group, .cycle-group {
+                margin-bottom: 0;
+                min-width: 100%;
+                max-width: none;
+            }
+            
+            .filter-group label, .cycle-group label {
+                font-size: 14px;
+                font-weight: 700;
+                color: #1d1d1f;
+                margin-bottom: 8px;
+                text-transform: none;
+                letter-spacing: 0.3px;
+            }
+            
+            .cycle-selector, .filter-select {
+                min-width: 100%;
+                padding: 18px 20px;
+                font-size: 16px;
+                border-radius: 16px;
+                /* 防止 iOS 縮放 */
+                font-size: 16px;
+                /* 改善觸控體驗 */
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                background: rgba(248, 249, 250, 0.9);
+                border: 2px solid rgba(0, 0, 0, 0.08);
+            }
+            
+            .cycle-selector:focus, .filter-select:focus {
+                transform: scale(1.02);
+                box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
+                border-color: #007AFF;
+                background: rgba(255, 255, 255, 0.95);
+            }
+            
+            .cycle-info {
+                font-size: 13px;
+                padding: 12px 16px;
+                margin-top: 8px;
+                border-radius: 12px;
+                background: rgba(248, 249, 250, 0.8);
+                border: 1px solid rgba(0, 122, 255, 0.1);
+                color: #1d1d1f;
+                font-weight: 500;
+                line-height: 1.5;
+            }
+            
+            /* 改善選擇器在移動端的視覺效果 */
+            .cycle-selector, .filter-select {
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .cycle-selector::after, .filter-select::after {
+                content: '▼';
+                position: absolute;
+                right: 16px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #8e8e93;
+                font-size: 12px;
+                pointer-events: none;
+                transition: color 0.2s ease;
+            }
+            
+            .cycle-selector:focus::after, .filter-select:focus::after {
+                color: #007AFF;
+            }
+            
+            /* 改善觸控體驗 */
+            .cycle-selector, .filter-select {
+                -webkit-appearance: none;
+                -webkit-tap-highlight-color: transparent;
+                touch-action: manipulation;
+            }
+            
+            /* 改善選項的顯示 */
+            .cycle-selector option, .filter-select option {
+                padding: 12px;
+                font-size: 16px;
+                background: white;
+                color: #1d1d1f;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .controls {
+                padding: 16px;
+            }
+            
+            .search-container {
+                gap: 12px;
+                margin-bottom: 16px;
+            }
+            
+            .search-input, .cycle-selector, .filter-select {
+                padding: 16px 18px;
+                font-size: 16px;
+            }
+            
+            .filter-row {
+                gap: 12px;
+            }
+            
+            .filter-group label, .cycle-group label {
+                font-size: 13px;
+                margin-bottom: 6px;
+            }
+            
+            .cycle-info {
+                font-size: 12px;
+                padding: 10px 14px;
+                margin-top: 6px;
+            }
+        }
+        
+        @media (max-width: 375px) {
+            .controls {
+                padding: 12px;
+            }
+            
+            .search-container {
+                gap: 10px;
+                margin-bottom: 12px;
+            }
+            
+            .search-input, .cycle-selector, .filter-select {
+                padding: 14px 16px;
+                font-size: 16px;
+            }
+            
+            .filter-row {
+                gap: 10px;
+            }
+            
+            .filter-group label, .cycle-group label {
+                font-size: 12px;
+                margin-bottom: 4px;
+            }
+            
+            .cycle-info {
+                font-size: 11px;
+                padding: 8px 12px;
+                margin-top: 4px;
+            }
+        }
 
         #tableContainer {
             overflow-x: auto;
@@ -760,6 +942,10 @@
             body {
                 padding: 0;
                 background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+                /* iPhone 安全區域支援 */
+                padding-left: env(safe-area-inset-left);
+                padding-right: env(safe-area-inset-right);
+                padding-bottom: env(safe-area-inset-bottom);
             }
             
             .container {
@@ -768,102 +954,134 @@
                 border-radius: 0;
                 box-shadow: none;
                 background: rgba(255, 255, 255, 0.95);
+                /* iPhone 安全區域支援 */
+                padding-top: env(safe-area-inset-top);
             }
             
             .header {
-                padding: 20px 16px;
+                padding: 24px 20px;
                 position: relative;
                 border-radius: 0;
+                /* 改善 iPhone 上的視覺效果 */
+                background: linear-gradient(135deg, rgba(0, 122, 255, 0.95) 0%, rgba(88, 86, 214, 0.95) 100%);
             }
             
             .header h1 {
-                font-size: 1.8em;
-                margin-bottom: 8px;
+                font-size: 2.2em;
+                margin-bottom: 12px;
                 line-height: 1.2;
+                font-weight: 700;
             }
             
             .header .subtitle {
-                font-size: 1em;
-                margin: 8px 0 0 0;
+                font-size: 1.1em;
+                margin: 12px 0 0 0;
+                opacity: 0.95;
             }
             
             .nav-buttons {
                 flex-direction: column;
                 align-items: center;
-                gap: 10px;
-                margin-top: 20px;
+                gap: 12px;
+                margin-top: 24px;
             }
             
             .nav-button {
                 width: 100%;
-                max-width: 280px;
+                max-width: 320px;
                 text-align: center;
-                padding: 14px 16px;
-                font-size: 15px;
-                border-radius: 12px;
+                padding: 16px 20px;
+                font-size: 16px;
+                border-radius: 16px;
                 touch-action: manipulation;
+                min-height: 52px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 600;
+                /* 改善觸控反饋 */
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            
+            .nav-button:active {
+                transform: scale(0.98);
+                background: rgba(255, 255, 255, 0.35);
             }
             
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
-                gap: 12px;
-                padding: 16px;
+                gap: 16px;
+                padding: 20px;
                 background: rgba(248, 249, 250, 0.3);
             }
             
             .stat-card {
-                padding: 16px;
-                min-height: 100px;
-                border-radius: 12px;
+                padding: 20px;
+                min-height: 120px;
+                border-radius: 16px;
+                /* 改善觸控體驗 */
+                touch-action: manipulation;
             }
             
             .stat-card h3 {
-                font-size: 0.75em;
-                margin-bottom: 8px;
+                font-size: 0.8em;
+                margin-bottom: 10px;
+                font-weight: 700;
             }
             
             .stat-card .value {
-                font-size: 1.4em;
+                font-size: 1.6em;
                 line-height: 1.1;
+                font-weight: 800;
             }
             
             .stat-card .value.long-number {
-                font-size: 1.2em;
+                font-size: 1.4em;
             }
             
             .controls {
-                padding: 16px;
+                padding: 20px;
                 background: rgba(255, 255, 255, 0.95);
             }
             
             .search-container, .filter-row {
                 flex-direction: column;
-                gap: 12px;
+                gap: 16px;
             }
             
             .filter-group, .cycle-group {
-                margin-bottom: 8px;
+                margin-bottom: 0;
                 min-width: 100%;
                 max-width: none;
             }
             
             .search-input, .filter-select, .cycle-selector {
                 min-width: 100%;
-                padding: 16px;
+                padding: 18px 20px;
                 font-size: 16px;
-                border-radius: 12px;
+                border-radius: 16px;
                 touch-action: manipulation;
+                /* 防止 iOS 縮放 */
+                font-size: 16px;
+                /* 改善觸控體驗 */
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            
+            .search-input:focus, .filter-select:focus, .cycle-selector:focus {
+                transform: scale(1.02);
+                box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
             }
             
             .cycle-info {
-                font-size: 11px;
-                padding: 10px;
-                margin-top: 6px;
+                font-size: 12px;
+                padding: 12px;
+                margin-top: 8px;
+                border-radius: 12px;
             }
             
             /* 表格在手機上使用卡片布局 */
             #tableContainer {
-                padding: 16px;
+                padding: 20px;
                 background: rgba(255, 255, 255, 0.95);
             }
             
@@ -897,104 +1115,208 @@
             backdrop-filter: blur(15px);
             -webkit-backdrop-filter: blur(15px);
             margin-bottom: 16px;
-            padding: 16px;
-            border-radius: 12px;
+            padding: 20px;
+            border-radius: 16px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             border: 1px solid rgba(255, 255, 255, 0.3);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             touch-action: manipulation;
+            /* 改善觸控體驗 */
+            position: relative;
+            overflow: hidden;
+        }
+            
+        .mobile-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #007AFF, #5856D6);
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
             
         .mobile-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
         }
+        
+        .mobile-card:active {
+            transform: scale(0.98);
+        }
+        
+        .mobile-card:hover::before {
+            opacity: 1;
+        }
             
         .mobile-card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
         }
             
         .mobile-card-title {
-            font-weight: 600;
+            font-weight: 700;
             color: #1d1d1f;
-            font-size: 15px;
+            font-size: 16px;
             flex: 1;
+            line-height: 1.3;
         }
             
         .mobile-card-index {
             background: linear-gradient(135deg, #007AFF, #5856D6);
             color: white;
-            padding: 4px 8px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 600;
-            margin-left: 8px;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-left: 12px;
+            min-width: 40px;
+            text-align: center;
         }
             
         .mobile-card-content {
-            font-size: 13px;
-            line-height: 1.4;
+            font-size: 14px;
+            line-height: 1.5;
         }
             
         .mobile-card-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             align-items: center;
-            padding: 4px 0;
+            padding: 6px 0;
+            min-height: 24px;
         }
             
         .mobile-card-label {
             color: #6e6e73;
-            font-weight: 500;
-            font-size: 12px;
-            min-width: 60px;
+            font-weight: 600;
+            font-size: 13px;
+            min-width: 70px;
         }
             
         .mobile-card-value {
             color: #1d1d1f;
             text-align: right;
             flex: 1;
-            margin-left: 12px;
-            font-weight: 500;
-            font-size: 12px;
+            margin-left: 16px;
+            font-weight: 600;
+            font-size: 13px;
         }
             
         .mobile-card-value.mono {
             font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 10px;
+            font-size: 11px;
             word-break: break-all;
         }
         
         @media (max-width: 480px) {
             .stats-grid {
                 grid-template-columns: 1fr;
-                gap: 10px;
-                padding: 12px;
+                gap: 12px;
+                padding: 16px;
             }
             
             .header h1 {
-                font-size: 1.6em;
+                font-size: 2em;
             }
             
             .header .subtitle {
-                font-size: 0.9em;
+                font-size: 1em;
             }
             
             .nav-button {
-                max-width: 260px;
-                padding: 12px 14px;
+                max-width: 300px;
+                padding: 14px 18px;
+                font-size: 15px;
+            }
+            
+            .mobile-card {
+                padding: 16px;
+                margin-bottom: 12px;
+            }
+            
+            .mobile-card-content {
+                font-size: 13px;
+            }
+            
+            .mobile-card-row {
+                margin-bottom: 6px;
+            }
+            
+            .mobile-card-label {
+                font-size: 12px;
+                min-width: 60px;
+            }
+            
+            .mobile-card-value {
+                font-size: 12px;
+            }
+            
+            .controls {
+                padding: 16px;
+            }
+            
+            .search-input, .filter-select, .cycle-selector {
+                padding: 16px 18px;
+                font-size: 16px;
+            }
+        }
+        
+        @media (max-width: 375px) {
+            .header {
+                padding: 20px 16px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .header .subtitle {
+                font-size: 0.95em;
+            }
+            
+            .nav-button {
+                max-width: 280px;
+                padding: 12px 16px;
                 font-size: 14px;
+            }
+            
+            .stats-grid {
+                padding: 12px;
+                gap: 10px;
+            }
+            
+            .stat-card {
+                padding: 16px;
+                min-height: 100px;
+            }
+            
+            .stat-card h3 {
+                font-size: 0.75em;
+            }
+            
+            .stat-card .value {
+                font-size: 1.4em;
             }
             
             .mobile-card {
                 padding: 14px;
+            }
+            
+            .mobile-card-header {
                 margin-bottom: 12px;
+                padding-bottom: 12px;
+            }
+            
+            .mobile-card-title {
+                font-size: 15px;
             }
             
             .mobile-card-content {
@@ -1003,28 +1325,20 @@
             
             .mobile-card-row {
                 margin-bottom: 4px;
+                padding: 4px 0;
             }
             
             .mobile-card-label {
                 font-size: 11px;
-                min-width: 50px;
+                min-width: 55px;
             }
             
             .mobile-card-value {
                 font-size: 11px;
             }
-            
-            .controls {
-                padding: 12px;
-            }
-            
-            .search-input, .filter-select, .cycle-selector {
-                padding: 14px;
-                font-size: 16px;
-            }
         }
         
-        /* iPhone 安全區域支援 */
+        /* iPhone 安全區域支援 - 更完整的實現 */
         @supports (padding: max(0px)) {
             @media (max-width: 768px) {
                 body {
@@ -1036,30 +1350,77 @@
                 .container {
                     padding-top: max(0px, env(safe-area-inset-top));
                 }
+                
+                /* 確保內容不被安全區域遮擋 */
+                .header {
+                    padding-top: max(24px, env(safe-area-inset-top) + 12px);
+                    padding-bottom: max(24px, env(safe-area-inset-bottom) + 12px);
+                }
+                
+                /* 底部按鈕區域的安全區域支援 */
+                .nav-buttons {
+                    padding-bottom: max(0px, env(safe-area-inset-bottom));
+                }
             }
         }
         
-        /* 觸控優化 */
+        /* 觸控優化 - 更完整的實現 */
         @media (max-width: 768px) {
+            /* 確保所有可點擊元素都有足夠的觸控區域 */
             .start {
-                min-height: 44px;
-                min-width: 44px;
+                min-height: 48px;
+                min-width: 48px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 touch-action: manipulation;
+                border-radius: 50%;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            
+            .start:active {
+                transform: scale(0.9);
             }
             
             .detail-btn {
-                min-height: 44px;
-                padding: 12px 16px;
-                font-size: 14px;
+                min-height: 48px;
+                padding: 14px 18px;
+                font-size: 15px;
                 touch-action: manipulation;
+                border-radius: 12px;
+                font-weight: 600;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            
+            .detail-btn:active {
+                transform: scale(0.95);
             }
             
             .nav-button {
-                min-height: 44px;
+                min-height: 52px;
                 touch-action: manipulation;
+                /* 防止雙擊縮放 */
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            /* 改善滾動體驗 */
+            .container {
+                -webkit-overflow-scrolling: touch;
+                scroll-behavior: smooth;
+            }
+            
+            /* 改善輸入框體驗 */
+            .search-input, .filter-select, .cycle-selector {
+                -webkit-appearance: none;
+                -webkit-tap-highlight-color: transparent;
+                /* 防止 iOS 自動縮放 */
+                font-size: 16px;
+            }
+            
+            /* 改善表格滾動 */
+            #tableContainer {
+                -webkit-overflow-scrolling: touch;
+                scroll-behavior: smooth;
             }
         }
         
@@ -1067,6 +1428,19 @@
         .loading-overlay {
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
+        }
+        
+        /* 改善載入動畫在移動端的顯示 */
+        @media (max-width: 768px) {
+            .loading-overlay {
+                background: rgba(255, 255, 255, 0.95);
+            }
+            
+            .loading-spinner {
+                width: 60px;
+                height: 60px;
+                border-width: 4px;
+            }
         }
 
         .error-message {
