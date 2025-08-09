@@ -389,18 +389,47 @@
             margin-top: 2px;
         }
 
+        /* 手機端優化 */
         @media (max-width: 768px) {
             body {
                 padding: 0;
             }
             
+            .header {
+                padding: 20px 15px;
+                position: relative;
+            }
+            
             .header h1 {
-                font-size: 1.8em;
+                font-size: 1.6em;
+                margin-bottom: 10px;
+            }
+            
+            .header div {
+                margin-top: 10px !important;
+            }
+            
+            .header a {
+                font-size: 12px !important;
+                padding: 6px 12px !important;
             }
             
             .stats-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
                 padding: 15px;
+            }
+            
+            .stat-card {
+                padding: 15px;
+            }
+            
+            .stat-card h3 {
+                font-size: 0.8em;
+            }
+            
+            .stat-card .value {
+                font-size: 1.4em;
             }
             
             .controls {
@@ -409,19 +438,120 @@
             
             .search-container, .filter-row {
                 flex-direction: column;
+                gap: 10px;
+            }
+            
+            .filter-group {
+                margin-bottom: 10px;
             }
             
             input, select {
                 min-width: 100%;
+                padding: 10px 12px;
+                font-size: 16px; /* 防止 iOS 縮放 */
             }
             
-            th, td {
-                padding: 8px 5px;
-                font-size: 11px;
+            /* 表格在手機上使用卡片布局 */
+            #tableContainer {
+                padding: 15px;
             }
             
             table {
-                min-width: 1620px;
+                display: none;
+            }
+            
+            .mobile-table {
+                display: block;
+            }
+            
+            .mobile-card {
+                background: white;
+                margin-bottom: 15px;
+                padding: 15px;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                border-left: 4px solid #0066cc;
+            }
+            
+            .mobile-card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 10px;
+                padding-bottom: 10px;
+                border-bottom: 1px solid #eee;
+            }
+            
+            .mobile-card-title {
+                font-weight: bold;
+                color: #333;
+            }
+            
+            .mobile-card-index {
+                background: #0066cc;
+                color: white;
+                padding: 2px 6px;
+                border-radius: 4px;
+                font-size: 11px;
+            }
+            
+            .mobile-card-content {
+                font-size: 12px;
+                line-height: 1.4;
+            }
+            
+            .mobile-card-row {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 5px;
+            }
+            
+            .mobile-card-label {
+                color: #666;
+                font-weight: 500;
+            }
+            
+            .mobile-card-value {
+                color: #333;
+                text-align: right;
+                flex: 1;
+                margin-left: 10px;
+            }
+            
+            .mobile-card-value.mono {
+                font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+                font-size: 10px;
+                word-break: break-all;
+            }
+            
+            .api-status {
+                top: 60px;
+                right: 5px;
+                left: 5px;
+                max-width: none;
+                font-size: 10px;
+            }
+            
+            .loading-overlay {
+                backdrop-filter: blur(2px);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.4em;
+            }
+            
+            .mobile-card {
+                padding: 12px;
+            }
+            
+            .mobile-card-content {
+                font-size: 11px;
             }
         }
     </style>
@@ -1213,7 +1343,7 @@
         const isTop100EfficiencyReady = secondsSinceCycleStart > 30 * 60; // 30 min
         const isEfficiencyReady = secondsSinceCycleStart > 60 * 60; // 60 min
 
-        // validators table
+        // validators table - desktop version
         let s = '<table>' +
             '<thead>' +
             '<tr>' +
@@ -1234,6 +1364,9 @@
             '<th>公鑰</th>' +
             '</tr>' +
             '</thead>';
+
+        // mobile version
+        let mobileHtml = '<div class="mobile-table">';
 
         let validators = cycleInfo.validators.concat();
 
@@ -1369,6 +1502,7 @@
 
             const countryFlag = getCountryFlag(geolocation);
 
+            // Desktop table row
             s += `<tr class="${rowClass}">`;
             s += `<td class="start ${starClass}" onclick="saveAdnl('${v.adnl_addr}')">★</td>`;
             s += `<td>${v.index}</td>`;
@@ -1387,14 +1521,65 @@
             s += `<td class="mono">${v.pubkey}</td>`;
             s += '</tr>';
 
+            // Mobile card
+            mobileHtml += `
+                <div class="mobile-card ${rowClass}">
+                    <div class="mobile-card-header">
+                        <div class="mobile-card-title">
+                            <span class="start ${starClass}" onclick="saveAdnl('${v.adnl_addr}')" style="margin-right: 8px;">★</span>
+                            ${label || `驗證器 #${v.index}`}
+                        </div>
+                        <div class="mobile-card-index">#${v.index}</div>
+                    </div>
+                    <div class="mobile-card-content">
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">效率:</span>
+                            <span class="mobile-card-value ${efficiencyClass}">${efficiency}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">權重:</span>
+                            <span class="mobile-card-value">${toPercent(v.stake / totalStake)}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">質押:</span>
+                            <span class="mobile-card-value">${toMillions(fromNano(v.stake))} TON</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">地理:</span>
+                            <span class="mobile-card-value">${countryFlag} ${geolocation}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">類型:</span>
+                            <span class="mobile-card-value">${formatType(walletVersion)}</span>
+                        </div>
+                        ${complaintsCount > 0 ? `
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">投訴:</span>
+                            <span class="mobile-card-value">${complaintsDisplay}</span>
+                        </div>
+                        ` : ''}
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">錢包地址:</span>
+                            <span class="mobile-card-value mono">${makeAddressUrl(v.wallet_address)}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">ADNL:</span>
+                            <span class="mobile-card-value mono">${v.adnl_addr}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
             if (v.complaints && v.complaints.length > 0) {
                 console.log('COMPLAINTS', v.complaints);
             }
         }
 
         s += '</table>';
+        
+        mobileHtml += '</div>';
 
-        document.getElementById('tableContainer').innerHTML = s;
+        document.getElementById('tableContainer').innerHTML = s + mobileHtml;
 
         // Update sort indicators
         updateSortIndicators();

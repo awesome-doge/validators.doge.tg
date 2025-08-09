@@ -293,21 +293,47 @@
         }
 
         @media (max-width: 768px) {
+            .header {
+                padding: 20px 15px;
+                text-align: left;
+            }
+
             .nav-back {
                 position: relative;
                 top: auto;
                 left: auto;
-                margin-bottom: 20px;
+                margin-bottom: 15px;
                 display: inline-block;
+                font-size: 14px;
+                padding: 8px 12px;
             }
 
             .header h1 {
-                font-size: 1.8em;
+                font-size: 1.6em;
+                margin: 10px 0;
+            }
+
+            .header .subtitle {
+                font-size: 1em;
+                margin: 5px 0 0 0;
             }
             
             .stats-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
                 padding: 15px;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+            
+            .stat-card h3 {
+                font-size: 0.8em;
+            }
+            
+            .stat-card .value {
+                font-size: 1.4em;
             }
             
             .controls {
@@ -316,15 +342,161 @@
             
             .search-container {
                 flex-direction: column;
+                gap: 10px;
             }
             
             input, select {
                 min-width: 100%;
+                padding: 12px 16px;
+                font-size: 16px; /* 防止 iOS 縮放 */
             }
-            
-            th, td {
-                padding: 8px 5px;
+
+            /* 移動端表格使用卡片布局 */
+            table {
+                display: none;
+            }
+
+            .mobile-nominators {
+                display: block;
+            }
+
+            .nominator-card {
+                background: white;
+                margin-bottom: 15px;
+                padding: 15px;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                border-left: 4px solid #0066cc;
+            }
+
+            .nominator-card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 10px;
+                padding-bottom: 10px;
+                border-bottom: 1px solid #eee;
+            }
+
+            .nominator-card-id {
+                background: #0066cc;
+                color: white;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 12px;
+                font-weight: bold;
+            }
+
+            .nominator-card-content {
+                font-size: 13px;
+                line-height: 1.4;
+            }
+
+            .nominator-card-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 8px;
+                flex-wrap: wrap;
+            }
+
+            .nominator-card-label {
+                color: #666;
+                font-weight: 500;
+                min-width: 60px;
+            }
+
+            .nominator-card-value {
+                color: #333;
+                text-align: right;
+                flex: 1;
+                margin-left: 10px;
+                word-break: break-all;
+            }
+
+            .nominator-card-value.mono {
+                font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
                 font-size: 11px;
+            }
+
+            .nominator-card-address {
+                width: 100%;
+                margin-top: 5px;
+                font-size: 11px;
+            }
+
+            .nominator-card-actions {
+                margin-top: 10px;
+                text-align: center;
+            }
+
+            .detail-button {
+                background: #0066cc;
+                color: white;
+                padding: 8px 16px;
+                border: none;
+                border-radius: 6px;
+                font-size: 12px;
+                cursor: pointer;
+                text-decoration: none;
+                display: inline-block;
+            }
+
+            .detail-button:hover {
+                background: #004499;
+            }
+
+            /* 模態框在移動端的優化 */
+            .modal-content {
+                padding: 20px;
+                margin: 10px;
+                max-height: 85vh;
+                border-radius: 8px;
+            }
+
+            .modal-content h2 {
+                font-size: 1.3em;
+                margin: 0 0 15px 0;
+            }
+
+            .stake-item {
+                padding: 12px;
+                margin: 8px 0;
+                font-size: 12px;
+            }
+
+            .stake-item h3, .stake-item h4 {
+                font-size: 1.1em;
+                margin: 0 0 8px 0;
+            }
+
+            .stake-item p {
+                margin: 5px 0;
+                line-height: 1.3;
+                word-break: break-word;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.4em;
+            }
+
+            .nominator-card {
+                padding: 12px;
+            }
+
+            .nominator-card-content {
+                font-size: 12px;
+            }
+
+            .modal-content {
+                margin: 5px;
+                padding: 15px;
             }
         }
     </style>
@@ -505,7 +677,8 @@
     function renderTable() {
         const container = document.getElementById('tableContainer');
         
-        let html = `
+        // 桌面版表格
+        let desktopHtml = `
             <table>
                 <thead>
                     <tr>
@@ -518,11 +691,15 @@
                 <tbody>
         `;
 
+        // 移動端卡片
+        let mobileHtml = '<div class="mobile-nominators">';
+
         filteredData.forEach(nominator => {
             const stakeAmount = fromNano(nominator.total_stake);
             const stakeDisplay = Number(stakeAmount) === 0 ? '0' : toMillions(stakeAmount);
             
-            html += `
+            // 桌面版表格行
+            desktopHtml += `
                 <tr>
                     <td>${nominator.nominator_id}</td>
                     <td class="mono">${makeAddressUrl(nominator.nominator_address)}</td>
@@ -534,14 +711,44 @@
                     </td>
                 </tr>
             `;
+
+            // 移動端卡片
+            mobileHtml += `
+                <div class="nominator-card">
+                    <div class="nominator-card-header">
+                        <div>
+                            <div class="nominator-card-id">ID: ${nominator.nominator_id}</div>
+                        </div>
+                    </div>
+                    <div class="nominator-card-content">
+                        <div class="nominator-card-row">
+                            <span class="nominator-card-label">質押量:</span>
+                            <span class="nominator-card-value">${stakeDisplay} TON</span>
+                        </div>
+                        <div class="nominator-card-row">
+                            <span class="nominator-card-label">地址:</span>
+                        </div>
+                        <div class="nominator-card-address mono">
+                            ${makeAddressUrl(nominator.nominator_address)}
+                        </div>
+                        <div class="nominator-card-actions">
+                            <button class="detail-button" onclick="showNominatorDetail('${nominator.nominator_address}')">
+                                查看詳細信息
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
         });
 
-        html += `
+        desktopHtml += `
                 </tbody>
             </table>
         `;
 
-        container.innerHTML = html;
+        mobileHtml += '</div>';
+
+        container.innerHTML = desktopHtml + mobileHtml;
     }
 
     // 顯示 nominator 詳細信息
