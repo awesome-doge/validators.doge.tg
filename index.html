@@ -1679,16 +1679,10 @@
         const totalStake = cycleInfo.total_stake;
         const stakesUnfreezeAt = cycleInfo.utime_until + cycleData.config15.stake_held_for;
 
-        let labeledTotalStake = BigInt(0);
         let efficiencyStats = { high: 0, good: 0, poor: 0, na: 0 };
         let complaintsCount = 0;
 
         for (const v of cycleInfo.validators) {
-            const label = labels[v.adnl_addr] || labels[v.wallet_address] || '';
-            if (label) {
-                labeledTotalStake += BigInt(v.stake);
-            }
-
             // Count complaints
             if (v.complaints && v.complaints.length > 0) {
                 complaintsCount += v.complaints.length;
@@ -1719,10 +1713,6 @@
             <div class="stat-card">
                 <h3>總質押量</h3>
                 <p class="value">${toMillionsShort(fromNano(totalStake))} TON</p>
-            </div>
-            <div class="stat-card">
-                <h3>已知質押量</h3>
-                <p class="value">${labeledTotalStake > 0 ? toMillionsShort(fromNano(labeledTotalStake)) + ' TON' : 'N/A'}</p>
             </div>
             <div class="stat-card">
                 <h3>週期開始</h3>
