@@ -360,6 +360,35 @@
             margin-top: 5px;
         }
 
+        .api-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            z-index: 1001;
+            display: none;
+            max-width: 250px;
+        }
+
+        .api-status.show {
+            display: block;
+        }
+
+        .api-status .api-name {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .api-status .api-performance {
+            font-size: 10px;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
         @media (max-width: 768px) {
             body {
                 padding: 0;
@@ -461,6 +490,11 @@
 
 <div class="loading-overlay" id="loadingOverlay">
     <div class="loading-spinner"></div>
+</div>
+
+<div class="api-status" id="apiStatus">
+    <div>數據來源: <span class="api-name" id="apiName">載入中...</span></div>
+    <div class="api-performance" id="apiPerformance"></div>
 </div>
 
 <script>
@@ -577,6 +611,27 @@
         saved: ''
     };
 
+    // API 配置和性能監控
+    const API_ENDPOINTS = {
+        toncenter: {
+            cycles: "https://elections.toncenter.com/getValidationCycles",
+            qos: "https://toncenter.com/api/qos/cycleScoreboard/",
+            priority: 1,
+            lastResponseTime: null,
+            errorCount: 0
+        },
+        getaruai: {
+            cycles: "https://getaruai.com/api/v1/validation-cycle",
+            qos: "https://toncenter.com/api/qos/cycleScoreboard/", // 回退到 toncenter
+            priority: 2,
+            lastResponseTime: null,
+            errorCount: 0
+        }
+    };
+
+    let currentApiEndpoint = 'toncenter'; // 默認使用 toncenter
+    let apiPerformanceData = {};
+
     const storage = localStorage.getItem('savedAdnl');
     let savedAdnl = storage ? storage.split(',') : [];
 
@@ -618,6 +673,40 @@
         }
     }
 
+    // 性能監控的 API 請求函數
+    async function apiWithPerformanceTracking(url, endpointName) {
+        const startTime = performance.now();
+        try {
+            const response = await fetch(url);
+            const endTime = performance.now();
+            const responseTime = endTime - startTime;
+            
+            // 更新性能數據
+            API_ENDPOINTS[endpointName].lastResponseTime = responseTime;
+            API_ENDPOINTS[endpointName].errorCount = 0; // 重置錯誤計數
+            
+            if (!response.ok) {
+                API_ENDPOINTS[endpointName].errorCount++;
+                console.error(`API 錯誤 (${endpointName}):`, response);
+                throw new Error(`無法載入數據 - ${response.status}`);
+            }
+
+            console.log(`API 響應時間 (${endpointName}): ${responseTime.toFixed(2)}ms`);
+            
+            // 更新 API 狀態顯示
+            updateApiStatus(endpointName, responseTime);
+            
+            return await response.json();
+        } catch (error) {
+            const endTime = performance.now();
+            API_ENDPOINTS[endpointName].lastResponseTime = endTime - startTime;
+            API_ENDPOINTS[endpointName].errorCount++;
+            console.error(`API 請求失敗 (${endpointName}):`, error);
+            throw error;
+        }
+    }
+
+    // 原有的 api 函數，用於向後兼容
     async function api(url) {
         const response = await fetch(url);
         if (!response.ok) {
@@ -628,13 +717,135 @@
         return await response.json();
     }
 
+    // 選擇最佳 API 端點
+    function selectBestApiEndpoint() {
+        const endpoints = Object.keys(API_ENDPOINTS);
+        let bestEndpoint = endpoints[0];
+        let bestScore = -1;
+
+        for (const endpoint of endpoints) {
+            const data = API_ENDPOINTS[endpoint];
+            let score = 0;
+
+            // 基於優先級的基礎分數 (優先級越高分數越高)
+            score += (10 - data.priority) * 10;
+
+            // 響應時間分數 (響應時間越短分數越高)
+            if (data.lastResponseTime !== null) {
+                score += Math.max(0, 100 - data.lastResponseTime / 10);
+            }
+
+            // 錯誤率懲罰
+            score -= data.errorCount * 20;
+
+            if (score > bestScore) {
+                bestScore = score;
+                bestEndpoint = endpoint;
+            }
+        }
+
+        console.log(`選擇的 API 端點: ${bestEndpoint} (分數: ${bestScore.toFixed(2)})`);
+        return bestEndpoint;
+    }
+
+    // 更新 API 狀態顯示
+    function updateApiStatus(endpointName, responseTime = null) {
+        const apiStatus = document.getElementById('apiStatus');
+        const apiName = document.getElementById('apiName');
+        const apiPerformance = document.getElementById('apiPerformance');
+
+        // 顯示 API 名稱
+        const displayNames = {
+            'toncenter': 'TON Center',
+            'getaruai': 'GetAruAI'
+        };
+        
+        apiName.textContent = displayNames[endpointName] || endpointName;
+        
+        // 顯示性能信息
+        let performanceText = '';
+        if (responseTime !== null) {
+            performanceText = `響應時間: ${responseTime.toFixed(0)}ms`;
+            
+            const endpoint = API_ENDPOINTS[endpointName];
+            if (endpoint && endpoint.errorCount > 0) {
+                performanceText += ` | 錯誤次數: ${endpoint.errorCount}`;
+            }
+        }
+        
+        apiPerformance.textContent = performanceText;
+        
+        // 顯示狀態指示器
+        apiStatus.classList.add('show');
+        
+        // 3秒後自動隱藏
+        setTimeout(() => {
+            apiStatus.classList.remove('show');
+        }, 3000);
+    }
+
     async function loadAvailableCycles() {
         try {
-            const response = await api("https://elections.toncenter.com/getValidationCycles?limit=50");
+            // 嘗試從多個 API 端點獲取數據
+            let response = null;
+            let usedEndpoint = null;
+
+            // 首先嘗試使用選擇的最佳端點
+            currentApiEndpoint = selectBestApiEndpoint();
+            
+            try {
+                if (currentApiEndpoint === 'getaruai') {
+                    // GetAruAI API 返回單個週期數據，需要包裝成數組
+                    const cycleResponse = await apiWithPerformanceTracking(
+                        API_ENDPOINTS.getaruai.cycles, 
+                        'getaruai'
+                    );
+                    response = Array.isArray(cycleResponse) ? cycleResponse : [cycleResponse];
+                } else {
+                    // TON Center API 返回多個週期
+                    response = await apiWithPerformanceTracking(
+                        API_ENDPOINTS.toncenter.cycles + "?limit=50", 
+                        'toncenter'
+                    );
+                }
+                usedEndpoint = currentApiEndpoint;
+            } catch (error) {
+                console.warn(`主要 API (${currentApiEndpoint}) 失敗，嘗試備用 API:`, error);
+                
+                // 如果主要 API 失敗，嘗試備用 API
+                const backupEndpoint = currentApiEndpoint === 'toncenter' ? 'getaruai' : 'toncenter';
+                
+                try {
+                    if (backupEndpoint === 'getaruai') {
+                        const cycleResponse = await apiWithPerformanceTracking(
+                            API_ENDPOINTS.getaruai.cycles, 
+                            'getaruai'
+                        );
+                        response = Array.isArray(cycleResponse) ? cycleResponse : [cycleResponse];
+                    } else {
+                        response = await apiWithPerformanceTracking(
+                            API_ENDPOINTS.toncenter.cycles + "?limit=50", 
+                            'toncenter'
+                        );
+                    }
+                    usedEndpoint = backupEndpoint;
+                    currentApiEndpoint = backupEndpoint;
+                } catch (backupError) {
+                    throw new Error(`所有 API 端點都失敗了: ${error.message}, ${backupError.message}`);
+                }
+            }
+
             availableCycles = response;
             renderCycleSelector();
+            
+            // 顯示使用的 API 信息
+            console.log(`成功載入 ${availableCycles.length} 個驗證週期，使用的 API: ${usedEndpoint}`);
+            
         } catch (error) {
             console.error('無法載入驗證週期列表:', error);
+            // 顯示錯誤信息給用戶
+            const cycleSelector = document.getElementById('cycleSelector');
+            cycleSelector.innerHTML = '<option value="">載入失敗 - 請重試</option>';
         }
     }
 
@@ -673,39 +884,119 @@
     async function getCycleData(selectedCycleId = null) {
         showLoading();
         try {
+            let response = null;
+            let usedEndpoint = null;
+
+            // 嘗試使用選擇的最佳端點
+            currentApiEndpoint = selectBestApiEndpoint();
+
             // 如果有指定週期ID，使用指定的週期
             if (selectedCycleId) {
-                const response = await api(`https://elections.toncenter.com/getValidationCycles?cycle_id=${selectedCycleId}`);
-                if (response && response.length > 0) {
-                    cycleData = response[0];
-                    currentCycleId = selectedCycleId;
-                } else {
-                    throw new Error('找不到指定的驗證週期');
+                try {
+                    if (currentApiEndpoint === 'getaruai') {
+                        // GetAruAI 可能不支持特定週期ID查詢，回退到 toncenter
+                        response = await apiWithPerformanceTracking(
+                            `${API_ENDPOINTS.toncenter.cycles}?cycle_id=${selectedCycleId}`, 
+                            'toncenter'
+                        );
+                        usedEndpoint = 'toncenter';
+                    } else {
+                        response = await apiWithPerformanceTracking(
+                            `${API_ENDPOINTS.toncenter.cycles}?cycle_id=${selectedCycleId}`, 
+                            'toncenter'
+                        );
+                        usedEndpoint = 'toncenter';
+                    }
+                    
+                    if (response && response.length > 0) {
+                        cycleData = response[0];
+                        currentCycleId = selectedCycleId;
+                    } else {
+                        throw new Error('找不到指定的驗證週期');
+                    }
+                } catch (error) {
+                    throw new Error(`載入指定週期失敗: ${error.message}`);
                 }
             } 
             // 如果URL有cycle_id參數，使用URL中的週期
             else if (cycleIdFromUrl) {
-                const response = await api(`https://elections.toncenter.com/getValidationCycles?cycle_id=${cycleIdFromUrl}`);
-                if (response && response.length > 0) {
-                    cycleData = response[0];
-                    currentCycleId = cycleIdFromUrl;
-                } else {
-                    throw new Error('找不到URL指定的驗證週期');
+                try {
+                    response = await apiWithPerformanceTracking(
+                        `${API_ENDPOINTS.toncenter.cycles}?cycle_id=${cycleIdFromUrl}`, 
+                        'toncenter'
+                    );
+                    usedEndpoint = 'toncenter';
+                    
+                    if (response && response.length > 0) {
+                        cycleData = response[0];
+                        currentCycleId = cycleIdFromUrl;
+                    } else {
+                        throw new Error('找不到URL指定的驗證週期');
+                    }
+                } catch (error) {
+                    throw new Error(`載入URL指定週期失敗: ${error.message}`);
                 }
             } 
-            // 否則使用當前週期
+            // 否則使用當前週期 - 這裡可以使用新的 API
             else {
-                const response = await api("https://elections.toncenter.com/getValidationCycles?node_details=true&limit=2");
-                const now = Date.now() / 1000;
-                if (response[0].cycle_info.utime_since < now) {
-                    cycleData = response[0];
-                } else {
-                    cycleData = response[1];
+                try {
+                    if (currentApiEndpoint === 'getaruai') {
+                        // GetAruAI API 返回當前週期
+                        const cycleResponse = await apiWithPerformanceTracking(
+                            API_ENDPOINTS.getaruai.cycles, 
+                            'getaruai'
+                        );
+                        cycleData = cycleResponse;
+                        usedEndpoint = 'getaruai';
+                    } else {
+                        // TON Center API
+                        response = await apiWithPerformanceTracking(
+                            `${API_ENDPOINTS.toncenter.cycles}?node_details=true&limit=2`, 
+                            'toncenter'
+                        );
+                        const now = Date.now() / 1000;
+                        if (response[0].cycle_info.utime_since < now) {
+                            cycleData = response[0];
+                        } else {
+                            cycleData = response[1];
+                        }
+                        usedEndpoint = 'toncenter';
+                    }
+                    currentCycleId = null; // 表示使用當前週期
+                } catch (error) {
+                    console.warn(`主要 API (${currentApiEndpoint}) 失敗，嘗試備用 API:`, error);
+                    
+                    // 嘗試備用 API
+                    const backupEndpoint = currentApiEndpoint === 'toncenter' ? 'getaruai' : 'toncenter';
+                    
+                    try {
+                        if (backupEndpoint === 'getaruai') {
+                            const cycleResponse = await apiWithPerformanceTracking(
+                                API_ENDPOINTS.getaruai.cycles, 
+                                'getaruai'
+                            );
+                            cycleData = cycleResponse;
+                        } else {
+                            response = await apiWithPerformanceTracking(
+                                `${API_ENDPOINTS.toncenter.cycles}?node_details=true&limit=2`, 
+                                'toncenter'
+                            );
+                            const now = Date.now() / 1000;
+                            if (response[0].cycle_info.utime_since < now) {
+                                cycleData = response[0];
+                            } else {
+                                cycleData = response[1];
+                            }
+                        }
+                        usedEndpoint = backupEndpoint;
+                        currentApiEndpoint = backupEndpoint;
+                    } catch (backupError) {
+                        throw new Error(`所有 API 端點都失敗了: ${error.message}, ${backupError.message}`);
+                    }
                 }
-                currentCycleId = null; // 表示使用當前週期
             }
 
-            console.log('載入的週期數據:', cycleData);
+            console.log(`載入的週期數據 (使用 ${usedEndpoint} API):`, cycleData);
 
             // 更新URL
             updateUrlParams();
