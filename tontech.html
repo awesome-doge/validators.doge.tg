@@ -776,6 +776,62 @@
         <!-- 動態載入統計卡片 -->
     </div>
 
+    <!-- 質押收益分析 -->
+    <div class="data-section important">
+        <h2 class="section-title">📈 質押收益分析</h2>
+        <div class="time-filter">
+            <button class="active" onclick="filterData('yield', 7)">最近7天</button>
+            <button onclick="filterData('yield', 14)">最近14天</button>
+            <button onclick="filterData('yield', 30)">最近30天</button>
+            <button onclick="filterData('yield', 90)">最近90天</button>
+        </div>
+        <div id="yieldData">
+            <p>正在載入收益數據...</p>
+        </div>
+        <div class="chart-container">
+            <div class="chart-wrapper">
+                <canvas id="yieldChart"></canvas>
+            </div>
+            <div class="chart-controls">
+                <button class="active" onclick="changeChartType('yield', 'line')">折線圖</button>
+                <button onclick="changeChartType('yield', 'bar')">柱狀圖</button>
+                <button onclick="changeChartType('yield', 'area')">面積圖</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 選舉數據 -->
+    <div class="data-section important">
+        <h2 class="section-title">🗳️ 驗證器選舉數據</h2>
+        <div class="time-filter">
+            <button class="active" onclick="filterData('elections', 7)">最近7天</button>
+            <button onclick="filterData('elections', 14)">最近14天</button>
+            <button onclick="filterData('elections', 30)">最近30天</button>
+            <button onclick="filterData('elections', 50)">最近50次</button>
+        </div>
+        <div id="electionData">
+            <p>正在載入選舉數據...</p>
+        </div>
+        <div class="chart-container">
+            <div class="chart-wrapper">
+                <canvas id="electionsChart"></canvas>
+            </div>
+            <div class="chart-controls">
+                <button class="active" onclick="changeChartType('elections', 'line')">折線圖</button>
+                <button onclick="changeChartType('elections', 'bar')">柱狀圖</button>
+                <button onclick="changeChartType('elections', 'area')">面積圖</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 網絡基礎統計 -->
+    <div class="data-section">
+        <h2 class="section-title">📊 網絡基礎統計</h2>
+        <div id="networkStatsContainer" class="stats-grid">
+            <!-- 動態載入網絡基礎統計卡片 -->
+        </div>
+    </div>
+
     <!-- 網絡狀態 -->
     <div class="data-section">
         <h2 class="section-title">🔍 網絡狀態趨勢</h2>
@@ -841,54 +897,6 @@
                 <button class="active" onclick="changeChartType('count', 'line')">折線圖</button>
                 <button onclick="changeChartType('count', 'bar')">柱狀圖</button>
                 <button onclick="changeChartType('count', 'area')">面積圖</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 質押收益分析 -->
-    <div class="data-section important">
-        <h2 class="section-title">📈 質押收益分析</h2>
-        <div class="time-filter">
-            <button class="active" onclick="filterData('yield', 7)">最近7天</button>
-            <button onclick="filterData('yield', 14)">最近14天</button>
-            <button onclick="filterData('yield', 30)">最近30天</button>
-            <button onclick="filterData('yield', 90)">最近90天</button>
-        </div>
-        <div id="yieldData">
-            <p>正在載入收益數據...</p>
-        </div>
-        <div class="chart-container">
-            <div class="chart-wrapper">
-                <canvas id="yieldChart"></canvas>
-            </div>
-            <div class="chart-controls">
-                <button class="active" onclick="changeChartType('yield', 'line')">折線圖</button>
-                <button onclick="changeChartType('yield', 'bar')">柱狀圖</button>
-                <button onclick="changeChartType('yield', 'area')">面積圖</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 選舉數據 -->
-    <div class="data-section important">
-        <h2 class="section-title">🗳️ 驗證器選舉數據</h2>
-        <div class="time-filter">
-            <button class="active" onclick="filterData('elections', 7)">最近7天</button>
-            <button onclick="filterData('elections', 14)">最近14天</button>
-            <button onclick="filterData('elections', 30)">最近30天</button>
-            <button onclick="filterData('elections', 50)">最近50次</button>
-        </div>
-        <div id="electionData">
-            <p>正在載入選舉數據...</p>
-        </div>
-        <div class="chart-container">
-            <div class="chart-wrapper">
-                <canvas id="electionsChart"></canvas>
-            </div>
-            <div class="chart-controls">
-                <button class="active" onclick="changeChartType('elections', 'line')">折線圖</button>
-                <button onclick="changeChartType('elections', 'bar')">柱狀圖</button>
-                <button onclick="changeChartType('elections', 'area')">面積圖</button>
             </div>
         </div>
     </div>
@@ -1385,9 +1393,9 @@
         if (apiData.yield && apiData.yield.length > 0) {
             const latest = apiData.yield[apiData.yield.length - 1];
             html += `
-                <div class="stat-card important" style="grid-column: 1 / -1; background: linear-gradient(135deg, rgba(52, 199, 89, 0.1) 0%, rgba(88, 86, 214, 0.1) 100%); border: 2px solid rgba(52, 199, 89, 0.3);">
+                <div class="stat-card important" style="background: linear-gradient(135deg, rgba(52, 199, 89, 0.1) 0%, rgba(88, 86, 214, 0.1) 100%); border: 2px solid rgba(52, 199, 89, 0.3);">
                     <h3>⭐ 當前年化收益率</h3>
-                    <div class="value" style="font-size: 3em; background: linear-gradient(135deg, #34C759, #5856D6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">${(parseFloat(latest.annual_percent_yld) * 100).toFixed(2)}%</div>
+                    <div class="value" style="font-size: 2.5em; background: linear-gradient(135deg, #34C759, #5856D6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">${(parseFloat(latest.annual_percent_yld) * 100).toFixed(2)}%</div>
                     <div class="description">最新質押年化收益率</div>
                 </div>
             `;
@@ -1545,31 +1553,8 @@
             }
         }
 
-        // 網絡狀態統計
-        if (apiData.status && apiData.status.length > 0) {
-            const latest = apiData.status[apiData.status.length - 1];
-            const totalSupply = formatTON(latest.total_supply);
-            const circulatingSupply = formatTON(latest.circulating_supply);
-            const accounts = formatNumber(latest.total_accounts);
-            
-            html += `
-                <div class="stat-card">
-                    <h3>💰 總供應量</h3>
-                    <div class="value">${totalSupply} TON</div>
-                    <div class="description">當前 TON 總供應量</div>
-                </div>
-                <div class="stat-card">
-                    <h3>🔄 流通供應量</h3>
-                    <div class="value">${circulatingSupply} TON</div>
-                    <div class="description">市場流通的 TON 數量</div>
-                </div>
-                <div class="stat-card">
-                    <h3>👥 總帳戶數</h3>
-                    <div class="value">${accounts}</div>
-                    <div class="description">TON 網絡總帳戶數量</div>
-                </div>
-            `;
-        }
+        // 渲染網絡基礎統計
+        renderNetworkStats();
         
         // 添加數據調試信息
         if (Object.values(apiData).some(data => data && data.length > 0)) {
@@ -1599,6 +1584,49 @@
             `;
         }
 
+
+
+
+
+        container.innerHTML = html;
+        
+        // 渲染圖表
+        renderCountChart();
+    };
+
+    // 渲染網絡基礎統計
+    const renderNetworkStats = () => {
+        const networkStatsContainer = document.getElementById('networkStatsContainer');
+        if (!networkStatsContainer) return;
+        
+        let html = '';
+        
+        // 網絡狀態統計
+        if (apiData.status && apiData.status.length > 0) {
+            const latest = apiData.status[apiData.status.length - 1];
+            const totalSupply = formatTON(latest.total_supply);
+            const circulatingSupply = formatTON(latest.circulating_supply);
+            const accounts = formatNumber(latest.total_accounts);
+            
+            html += `
+                <div class="stat-card">
+                    <h3>💰 總供應量</h3>
+                    <div class="value">${totalSupply} TON</div>
+                    <div class="description">當前 TON 總供應量</div>
+                </div>
+                <div class="stat-card">
+                    <h3>🔄 流通供應量</h3>
+                    <div class="value">${circulatingSupply} TON</div>
+                    <div class="description">市場流通的 TON 數量</div>
+                </div>
+                <div class="stat-card">
+                    <h3>👥 總帳戶數</h3>
+                    <div class="value">${accounts}</div>
+                    <div class="description">TON 網絡總帳戶數量</div>
+                </div>
+            `;
+        }
+        
         // 交易統計
         if (apiData.transactions_amounts && apiData.transactions_amounts.length > 0) {
             const recent = apiData.transactions_amounts.slice(-7);
@@ -1618,13 +1646,8 @@
                 </div>
             `;
         }
-
-
-
-        container.innerHTML = html;
         
-        // 渲染圖表
-        renderCountChart();
+        networkStatsContainer.innerHTML = html;
     };
 
     // 渲染交易數量圖表
@@ -2295,6 +2318,7 @@
     // 渲染所有數據
     const renderAllData = () => {
         renderStatsCards();
+        renderNetworkStats();
         renderStatusData();
         renderTransactionAmountsData();
         renderTransactionCountData();
