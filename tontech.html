@@ -52,21 +52,7 @@
             opacity: 0.9;
         }
 
-        .nav-back {
-            position: absolute;
-            top: 30px;
-            left: 30px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 10px 15px;
-            border-radius: 6px;
-            text-decoration: none;
-            transition: background 0.3s ease;
-        }
 
-        .nav-back:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
 
         .stats-grid {
             display: grid;
@@ -419,19 +405,21 @@
                 text-align: left;
             }
 
-            .nav-back {
-                position: relative;
-                top: auto;
-                left: auto;
-                margin-bottom: 15px;
-                display: inline-block;
-                font-size: 14px;
-                padding: 8px 12px;
-            }
+
 
             .header h1 {
                 font-size: 1.8em;
                 margin: 10px 0;
+            }
+            
+            .header div {
+                margin-top: 10px !important;
+            }
+            
+            .header a {
+                font-size: 12px !important;
+                padding: 6px 12px !important;
+                margin-bottom: 5px !important;
             }
 
             .stats-grid {
@@ -469,9 +457,19 @@
 
 <div class="container">
     <div class="header">
-        <a href="index.html" class="nav-back">← 返回主頁</a>
         <h1>TON 技術數據分析</h1>
         <div class="subtitle">實時監控 TON 區塊鏈技術指標與性能數據</div>
+        <div style="margin-top: 15px;">
+            <a href="index.html" style="background: rgba(255,255,255,0.2); color: white; padding: 8px 15px; border-radius: 6px; text-decoration: none; margin-right: 10px; display: inline-block; transition: background 0.3s ease;">
+                🏠 驗證器儀表板
+            </a>
+            <a href="nominators.html" style="background: rgba(255,255,255,0.2); color: white; padding: 8px 15px; border-radius: 6px; text-decoration: none; margin-right: 10px; display: inline-block; transition: background 0.3s ease;">
+                📊 Nominator Pool 資金提供者
+            </a>
+            <a href="tontech.html" style="background: rgba(255,255,255,0.3); color: white; padding: 8px 15px; border-radius: 6px; text-decoration: none; margin-right: 10px; display: inline-block; transition: background 0.3s ease; font-weight: bold;">
+                🔬 TON 技術數據分析
+            </a>
+        </div>
     </div>
 
     <div id="statsContainer" class="stats-grid">
