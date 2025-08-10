@@ -2,10 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from "react";
 import { RefreshCw, Copy, CheckCircle, AlertCircle, Info, DollarSign, Users, Clock, Shield } from "lucide-react";
-import {
-  loadElectorState,
-  electorStateStringify,
-} from "./elector-utils-official";
+
 import { Address } from "@ton/core";
 import ReactJson from "react-json-view";
 import {
@@ -164,11 +161,11 @@ const ControllerDisplay = ({ data }: { data: any }) => {
           <InfoLine label="允許借貸開始時間" value={`選舉結束前 ${parsedData.allowed_borrow_start_prior_elections_end} 秒`} />
           
           {/* 計算預期收益 */}
-          {parsedData.borrowed_amount && parsedData.borrowing_interest && (
+          {parsedData.borrowed_amount && parsedData.borrowing_interest > 0 && (
             <div className="flex justify-between items-center text-xs py-1 border-t border-yellow-200 pt-2 mt-2">
               <span className="text-gray-600">預期利息</span>
               <span className="font-mono text-green-600 font-medium">
-                {(parseFloat(parsedData.borrowed_amount) * parsedData.borrowing_interest / 1000000).toFixed(4)} TON
+                {(parseFloat(parsedData.borrowed_amount) * (parsedData.borrowing_interest / 1000000)).toFixed(4)} TON
               </span>
             </div>
           )}
@@ -381,167 +378,7 @@ const PoolDisplay = ({ data }: { data: any }) => {
   );
 };
 
-// Elector 狀態展示組件
-const ElectorDisplay = ({ data }: { data: any }) => {
-  if (!data || Object.keys(data).length === 0) {
-    return (
-      <div className="text-center py-8">
-        <div className="text-gray-400 mb-2">
-          <Clock size={24} className="mx-auto" />
-        </div>
-        <p className="text-gray-500 text-sm">載入中...</p>
-      </div>
-    );
-  }
 
-  if (data.error) {
-    return (
-      <div className="text-center py-8">
-        <div className="text-red-400 mb-2">
-          <AlertCircle size={24} className="mx-auto" />
-        </div>
-        <p className="text-red-600 text-sm">{data.error}</p>
-      </div>
-    );
-  }
-
-  const parsedData = JSON.parse(electorStateStringify(data));
-
-  return (
-    <div className="space-y-3">
-      {/* 選舉器基本信息 */}
-      <div className="bg-purple-50 rounded-lg p-3">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-700">選舉器狀態</span>
-        </div>
-        <div className="space-y-1">
-          <InfoLine label="活躍 ID" value={parsedData.active_id} />
-          <InfoLine label="餘額" value={parsedData.grams} type="amount" />
-          <InfoLine label="活躍哈希" value={parsedData.active_hash} type="address" copyable />
-        </div>
-      </div>
-
-      {/* 當前選舉 */}
-      {parsedData.elect ? (
-        <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-2">當前選舉</h4>
-          <div className="bg-blue-50 rounded-lg p-3">
-            <div className="grid grid-cols-2 gap-2 text-xs mb-2">
-              <div className="flex justify-between">
-                <span className="text-gray-600">已失敗</span>
-                <span className={parsedData.elect.failed ? "text-red-600" : "text-green-600"}>
-                  {parsedData.elect.failed ? "✓" : "✗"}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">已完成</span>
-                <span className={parsedData.elect.finished ? "text-green-600" : "text-blue-600"}>
-                  {parsedData.elect.finished ? "✓" : "✗"}
-                </span>
-              </div>
-            </div>
-            <div className="space-y-1">
-              <InfoLine label="選舉時間" value={parsedData.elect.elect_at} type="time" />
-              <InfoLine label="結束時間" value={parsedData.elect.elect_close} type="time" />
-              <InfoLine label="最小質押" value={parsedData.elect.min_stake} type="amount" />
-              <InfoLine label="總質押" value={parsedData.elect.total_stake} type="amount" />
-              <InfoLine label="參與者數量" value={Object.keys(parsedData.elect.members || {}).length} />
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="text-center py-4">
-          <div className="text-gray-400 mb-2">
-            <Clock size={20} className="mx-auto" />
-          </div>
-          <p className="text-gray-500 text-xs">當前沒有進行中的選舉</p>
-        </div>
-      )}
-
-      {/* 統計信息 */}
-      <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-2">統計信息</h4>
-        <div className="space-y-1">
-          <InfoLine label="信用記錄數" value={Object.keys(parsedData.credits || {}).length} />
-          <InfoLine label="歷史選舉數" value={Object.keys(parsedData.past_elections || {}).length} />
-        </div>
-      </div>
-
-      {/* 選舉參與者 */}
-      {parsedData.elect && Object.keys(parsedData.elect.members || {}).length > 0 && (
-        <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-2">參與者 (前3名)</h4>
-          <div className="space-y-1">
-            {Object.entries(parsedData.elect.members).slice(0, 3).map(([pubkey, participant]: [string, any]) => (
-              <div key={pubkey} className="flex justify-between items-center text-xs">
-                <button
-                  onClick={() => navigator.clipboard.writeText(pubkey)}
-                  className="font-mono text-blue-600 hover:text-blue-800 transition-colors truncate max-w-24"
-                  title={pubkey}
-                >
-                  {pubkey.substring(0, 6)}...{pubkey.slice(-4)}
-                </button>
-                <span className="font-mono text-gray-700">{participant.stake} TON</span>
-              </div>
-            ))}
-            {Object.keys(parsedData.elect.members).length > 3 && (
-              <div className="text-center text-xs text-gray-500 pt-1">
-                還有 {Object.keys(parsedData.elect.members).length - 3} 個參與者
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* 信用記錄 */}
-      {Object.keys(parsedData.credits || {}).length > 0 && (
-        <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-2">信用記錄 (前3筆)</h4>
-          <div className="space-y-1">
-            {Object.entries(parsedData.credits).slice(0, 3).map(([address, amount]: [string, any]) => (
-              <div key={address} className="flex justify-between items-center text-xs">
-                <button
-                  onClick={() => navigator.clipboard.writeText(address)}
-                  className="font-mono text-blue-600 hover:text-blue-800 transition-colors truncate max-w-24"
-                  title={address}
-                >
-                  {address.substring(0, 6)}...{address.slice(-4)}
-                </button>
-                <span className="font-mono text-gray-700">{amount} TON</span>
-              </div>
-            ))}
-            {Object.keys(parsedData.credits).length > 3 && (
-              <div className="text-center text-xs text-gray-500 pt-1">
-                還有 {Object.keys(parsedData.credits).length - 3} 筆記錄
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* 歷史選舉 */}
-      {Object.keys(parsedData.past_elections || {}).length > 0 && (
-        <div>
-          <h4 className="text-sm font-medium text-gray-700 mb-2">最近選舉 (前2次)</h4>
-          <div className="space-y-1">
-            {Object.entries(parsedData.past_elections).slice(-2).reverse().map(([electionId, election]: [string, any]) => (
-              <div key={electionId} className="bg-gray-50 rounded p-2">
-                <div className="flex justify-between items-center text-xs mb-1">
-                  <span className="font-medium">選舉 ID: {electionId}</span>
-                  <span className="font-mono">{election.total_stake} TON</span>
-                </div>
-                <div className="grid grid-cols-2 gap-1 text-xs text-gray-600">
-                  <div>解凍: {new Date(election.unfreeze_at * 1000).toLocaleDateString('zh-TW')}</div>
-                  <div>獎金: {election.bonuses} TON</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
 
 function App() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -549,20 +386,15 @@ function App() {
 
   // 預設地址
   const [controllerAddress, setControllerAddress] = useState("Ef9GOR1wqJFPVpbHOxObSATkdbfTizRTmDi6DdjJFYaRKhoK"); // KTON Validator Controller
-  const [electorAddress] = useState(
-    addressDisplay(
-      "Ef8zMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzM0vF", // Elector
-      isTestnet
-    )
-  );
+
   const [poolAddress, setPoolAddress] = useState("EQA9HwEZD_tONfVz6lJS0PVKR5viEiEGyj9AuQewGQVnXPg0"); // KTON Pool
 
   const [controllerData, setControllerData] = useState<any>({});
-  const [electorData, setElectorData] = useState<any>({});
+
   const [poolData, setPoolData] = useState<any>({});
   const [poolControllers, setPoolControllers] = useState<any[]>([]); // Pool相關的Controllers
   const [isControllerLoading, setIsControllerLoading] = useState(false);
-  const [isElectorLoading, setIsElectorLoading] = useState(false);
+
   const [isPoolLoading, setIsPoolLoading] = useState(false);
   const [isPoolControllersLoading, setIsPoolControllersLoading] = useState(false);
 
@@ -733,18 +565,7 @@ function App() {
     }
   };
 
-  const handleElectorRefresh = async () => {
-    setIsElectorLoading(true);
-    try {
-      const data = await apiCallWithRetry(() => loadElectorState(isTestnet));
-      setElectorData(data);
-    } catch (error) {
-      console.log(error);
-      setElectorData({ error: "Failed to refresh data" });
-    } finally {
-      setIsElectorLoading(false);
-    }
-  };
+
 
   const handlePoolSubmit = async () => {
     setIsPoolLoading(true);
@@ -773,14 +594,14 @@ function App() {
     if (poolAddress) {
       handlePoolSubmit();
     }
-    handleElectorRefresh();
+
   }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* 統一的查詢面板 */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Controller 查詢 */}
           <div className="bg-white rounded-xl p-4 shadow-lg border border-gray-100">
             <div className="flex items-center gap-2 mb-3">
@@ -833,37 +654,13 @@ function App() {
             </div>
           </div>
 
-          {/* Elector 查詢 */}
-          <div className="bg-white rounded-xl p-4 shadow-lg border border-gray-100">
-            <div className="flex items-center gap-2 mb-3">
-              <Clock className="text-purple-600" size={20} />
-              <h3 className="text-lg font-semibold text-gray-800">Elector 選舉器</h3>
-            </div>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={electorAddress}
-                disabled
-                placeholder="Elector 地址（固定）"
-                className="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-300 bg-gray-50 cursor-not-allowed text-gray-600"
-              />
-              <button
-                onClick={handleElectorRefresh}
-                disabled={isElectorLoading}
-                className={`px-4 py-2 text-sm bg-purple-600 text-white rounded-lg transition-all ${
-                  isElectorLoading ? "opacity-50" : "hover:bg-purple-700"
-                }`}
-              >
-                {isElectorLoading ? "刷新中" : "刷新"}
-              </button>
-            </div>
-          </div>
+
         </div>
 
         {/* 主要數據展示面板 */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-100">
           <div className="p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Controller 數據 */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2 mb-4">
@@ -882,14 +679,7 @@ function App() {
                 <PoolDisplay data={poolData} />
               </div>
 
-              {/* Elector 數據 */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <Clock className="text-purple-600" size={20} />
-                  <h3 className="text-lg font-semibold text-gray-800">Elector 數據</h3>
-                </div>
-                <ElectorDisplay data={electorData} />
-              </div>
+
             </div>
           </div>
         </div>
@@ -992,7 +782,7 @@ function App() {
               <h2 className="text-xl font-semibold text-gray-800">LST 生態系統概覽</h2>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Pool 總量 */}
               {poolData && Object.keys(poolData).length > 0 && !poolData.error && (
                 <>
@@ -1047,39 +837,120 @@ function App() {
                       Jetton Minter
                     </div>
                   </div>
+
+                  {/* 新增：Pool 利用率卡片 */}
+                  <div className="bg-indigo-50 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Shield className="text-indigo-600" size={16} />
+                      <span className="text-sm font-medium text-gray-700">資金利用率</span>
+                    </div>
+                    <div className="text-2xl font-bold text-indigo-600">
+                      {(parseFloat(JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.borrowed) / parseFloat(JSON.parse(poolStateStringify(poolData)).total_balance) * 100).toFixed(1)}%
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      借出/總餘額
+                    </div>
+                  </div>
+
+                  {/* 新增：實際 vs 預期收益 */}
+                  <div className="bg-rose-50 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="text-rose-600" size={16} />
+                      <span className="text-sm font-medium text-gray-700">上輪收益率</span>
+                    </div>
+                    <div className="text-2xl font-bold text-rose-600">
+                      {parseFloat(JSON.parse(poolStateStringify(poolData)).round_data.prev_round_borrowers.borrowed) > 0 ? 
+                        (parseFloat(JSON.parse(poolStateStringify(poolData)).round_data.prev_round_borrowers.profit) / parseFloat(JSON.parse(poolStateStringify(poolData)).round_data.prev_round_borrowers.borrowed) * 100).toFixed(2) : '0.00'}%
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      實際利潤/借出金額
+                    </div>
+                  </div>
+
+                  {/* 新增：治理費用累積 */}
+                  <div className="bg-emerald-50 rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Users className="text-emerald-600" size={16} />
+                      <span className="text-sm font-medium text-gray-700">治理費用</span>
+                    </div>
+                    <div className="text-2xl font-bold text-emerald-600">
+                      {JSON.parse(poolStateStringify(poolData)).accrued_governance_fee} TON
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      累積費用 ({(JSON.parse(poolStateStringify(poolData)).governance_fee_share / 1000000 * 100).toFixed(2)}%)
+                    </div>
+                  </div>
                 </>
               )}
             </div>
 
-            {/* 系統狀態指示器 */}
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <h3 className="text-sm font-medium text-gray-700 mb-3">系統狀態</h3>
-              <div className="flex flex-wrap gap-3">
-                {poolData && Object.keys(poolData).length > 0 && !poolData.error && (
-                  <>
-                    <StatusBadge 
-                      status={JSON.parse(poolStateStringify(poolData)).state} 
-                      type={JSON.parse(poolStateStringify(poolData)).state === "NORMAL" ? "success" : "warning"}
-                    />
-                    <StatusBadge 
-                      status={JSON.parse(poolStateStringify(poolData)).deposit_withdrawal_parameters.deposits_open ? "存款開放" : "存款關閉"} 
-                      type={JSON.parse(poolStateStringify(poolData)).deposit_withdrawal_parameters.deposits_open ? "success" : "error"}
-                    />
-                  </>
-                )}
-                {controllerData && Object.keys(controllerData).length > 0 && !controllerData.error && (
-                  <StatusBadge 
-                    status={JSON.parse(controllerStateStringify(controllerData)).state} 
-                    type="info"
-                  />
-                )}
-                {electorData && Object.keys(electorData).length > 0 && !electorData.error && (
-                  <StatusBadge 
-                    status={JSON.parse(electorStateStringify(electorData)).elect ? "選舉進行中" : "無進行中選舉"} 
-                    type={JSON.parse(electorStateStringify(electorData)).elect ? "warning" : "info"}
-                  />
-                )}
-              </div>
+            {/* 系統狀態指示器 - 優化版 */}
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Pool 狀態 */}
+              {poolData && Object.keys(poolData).length > 0 && !poolData.error && (
+                <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-100">
+                  <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                    <Users className="text-green-600" size={16} />
+                    Pool 系統狀態
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Pool 狀態</span>
+                      <StatusBadge 
+                        status={JSON.parse(poolStateStringify(poolData)).state} 
+                        type={JSON.parse(poolStateStringify(poolData)).state === "NORMAL" ? "success" : "warning"}
+                      />
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">存款狀態</span>
+                      <StatusBadge 
+                        status={JSON.parse(poolStateStringify(poolData)).deposit_withdrawal_parameters.deposits_open ? "開放" : "關閉"} 
+                        type={JSON.parse(poolStateStringify(poolData)).deposit_withdrawal_parameters.deposits_open ? "success" : "error"}
+                      />
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Pool 是否暫停</span>
+                      <StatusBadge 
+                        status={JSON.parse(poolStateStringify(poolData)).halted ? "已暫停" : "正常"} 
+                        type={JSON.parse(poolStateStringify(poolData)).halted ? "error" : "success"}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Controller 狀態 */}
+              {controllerData && Object.keys(controllerData).length > 0 && !controllerData.error && (
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100">
+                  <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                    <Shield className="text-blue-600" size={16} />
+                    Controller 狀態
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Controller 狀態</span>
+                      <StatusBadge 
+                        status={JSON.parse(controllerStateStringify(controllerData)).state} 
+                        type="info"
+                      />
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">是否已批准</span>
+                      <StatusBadge 
+                        status={JSON.parse(controllerStateStringify(controllerData)).approved ? "已批准" : "未批准"} 
+                        type={JSON.parse(controllerStateStringify(controllerData)).approved ? "success" : "warning"}
+                      />
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">是否暫停</span>
+                      <StatusBadge 
+                        status={JSON.parse(controllerStateStringify(controllerData)).halted ? "已暫停" : "正常"} 
+                        type={JSON.parse(controllerStateStringify(controllerData)).halted ? "error" : "success"}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
