@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-TW" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
+    <title>KTON 分析工具 - TON Dashboard</title>
+    <link rel="icon" type="image/png" href="./ktonviewer-dist/ton-symbol.png" />
+
+    <style>
+        * {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: #1d1d1f;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            scroll-behavior: smooth;
+        }
+
+        /* macOS 風格滾動條 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, rgba(0, 122, 255, 0.9) 0%, rgba(88, 86, 214, 0.9) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: white;
+            padding: 35px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.8em;
+            font-weight: 600;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header .subtitle {
+            margin: 10px 0 0 0;
+            font-size: 1.2em;
+            opacity: 0.9;
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-buttons {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-button {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .nav-button:hover::before {
+            left: 100%;
+        }
+
+        .nav-button:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .nav-button.active {
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            font-weight: 600;
+        }
+
+        .ktonviewer-container {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 20px;
+        }
+
+        /* React 應用樣式重寫以匹配設計語言 */
+        #root {
+            width: 100%;
+            min-height: 600px;
+        }
+
+        /* 覆蓋 Tailwind 樣式以匹配現有設計 */
+        .bg-gray-100 {
+            background: transparent !important;
+        }
+
+        .bg-blue-600 {
+            background: linear-gradient(135deg, #007AFF, #5856D6) !important;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+        }
+
+        .bg-blue-600:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
+        }
+
+        .bg-green-600 {
+            background: linear-gradient(135deg, #34C759, #30B950) !important;
+            border: none;
+            box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+        }
+
+        .bg-green-600:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(52, 199, 89, 0.4);
+        }
+
+        .border-gray-300 {
+            border-color: rgba(0, 0, 0, 0.1) !important;
+            background: rgba(248, 249, 250, 0.8) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .focus\:ring-2:focus {
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1) !important;
+            border-color: #007AFF !important;
+            background: rgba(255, 255, 255, 0.95) !important;
+        }
+
+        .rounded-lg {
+            border-radius: 12px !important;
+        }
+
+        .text-white {
+            color: white !important;
+        }
+
+        /* 添加更好的陰影和背景 */
+        .grid > div {
+            background: rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .grid > div:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        /* JSON viewer 優化 */
+        .react-json-view {
+            background: rgba(248, 249, 250, 0.8) !important;
+            border-radius: 12px !important;
+            padding: 15px !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.08) !important;
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            body {
+                padding: 0;
+                padding-left: env(safe-area-inset-left);
+                padding-right: env(safe-area-inset-right);
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+            
+            .container {
+                max-width: 100%;
+                margin: 0;
+                border-radius: 0;
+                box-shadow: none;
+                background: rgba(255, 255, 255, 0.95);
+                padding-top: env(safe-area-inset-top);
+            }
+            
+            .header {
+                padding: 24px 20px;
+                border-radius: 0;
+                background: linear-gradient(135deg, rgba(0, 122, 255, 0.95) 0%, rgba(88, 86, 214, 0.95) 100%);
+            }
+            
+            .header h1 {
+                font-size: 2.2em;
+                margin-bottom: 12px;
+                line-height: 1.2;
+                font-weight: 700;
+            }
+            
+            .header .subtitle {
+                font-size: 1.1em;
+                margin: 12px 0 0 0;
+                opacity: 0.95;
+            }
+            
+            .nav-buttons {
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+                margin-top: 24px;
+            }
+            
+            .nav-button {
+                width: 100%;
+                max-width: 320px;
+                text-align: center;
+                padding: 16px 20px;
+                font-size: 16px;
+                border-radius: 16px;
+                touch-action: manipulation;
+                min-height: 52px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 600;
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            
+            .nav-button:active {
+                transform: scale(0.98);
+                background: rgba(255, 255, 255, 0.35);
+            }
+
+            .ktonviewer-container {
+                padding: 10px;
+            }
+
+            /* 讓 React 應用在移動端更友好 */
+            .grid {
+                grid-template-columns: 1fr !important;
+                gap: 10px !important;
+            }
+
+            .grid > div {
+                padding: 15px !important;
+            }
+
+            .flex {
+                flex-direction: column !important;
+                gap: 10px !important;
+            }
+
+            .flex > input {
+                width: 100% !important;
+                padding: 14px 16px !important;
+                font-size: 16px !important; /* 防止 iOS 縮放 */
+            }
+
+            .flex > button {
+                width: 100% !important;
+                padding: 14px 16px !important;
+                font-size: 16px !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .header .subtitle {
+                font-size: 1em;
+            }
+            
+            .nav-button {
+                max-width: 300px;
+                padding: 14px 18px;
+                font-size: 15px;
+            }
+
+            .ktonviewer-container {
+                padding: 5px;
+            }
+        }
+
+        /* iPhone 安全區域支援 */
+        @supports (padding: max(0px)) {
+            @media (max-width: 768px) {
+                body {
+                    padding-left: max(0px, env(safe-area-inset-left));
+                    padding-right: max(0px, env(safe-area-inset-right));
+                    padding-bottom: max(0px, env(safe-area-inset-bottom));
+                }
+                
+                .container {
+                    padding-top: max(0px, env(safe-area-inset-top));
+                }
+                
+                .header {
+                    padding-top: max(24px, env(safe-area-inset-top) + 12px);
+                    padding-bottom: max(24px, env(safe-area-inset-bottom) + 12px);
+                }
+                
+                .nav-buttons {
+                    padding-bottom: max(0px, env(safe-area-inset-bottom));
+                }
+            }
+        }
+    </style>
+    
+    <!-- 載入 React 應用的 CSS -->
+    <link rel="stylesheet" crossorigin href="./ktonviewer-dist/assets/index-xDgioLRv.css">
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>KTON 分析工具</h1>
+        <div class="subtitle">TON 網絡合約狀態查看器與分析工具</div>
+        <div class="nav-buttons">
+            <a href="index.html" class="nav-button">
+                🏠 驗證器儀表板
+            </a>
+            <a href="nominators.html" class="nav-button">
+                📊 Nominator Pool 資金提供者
+            </a>
+            <a href="tontech.html" class="nav-button">
+                🔬 TON 技術數據分析
+            </a>
+            <a href="ktonviewer.html" class="nav-button active">
+                🔍 KTON 分析工具
+            </a>
+        </div>
+    </div>
+
+    <div class="ktonviewer-container">
+        <!-- React 應用將在此處渲染 -->
+        <div id="root"></div>
+    </div>
+</div>
+
+<!-- 載入 React 應用的 JavaScript -->
+<script type="module" crossorigin src="./ktonviewer-dist/assets/index-BxbEPNoK.js"></script>
+
+</body>
+</html>
