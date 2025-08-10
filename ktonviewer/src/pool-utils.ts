@@ -239,13 +239,22 @@ export async function loadPoolState(
   address: string,
   isTestnet: boolean
 ): Promise<PoolStorage> {
-  const jsondata = await (
-    await fetch(
-      `https://${
-        isTestnet ? "testnet." : ""
-      }toncenter.com/api/v2/getExtendedAddressInformation?address=${address}`
-    )
-  ).json();
+  const response = await fetch(
+    `https://${
+      isTestnet ? "testnet." : ""
+    }toncenter.com/api/v2/getExtendedAddressInformation?address=${address}`
+  );
+  
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+  
+  const jsondata = await response.json();
+  
+  if (!jsondata.result || !jsondata.result.account_state || !jsondata.result.account_state.data) {
+    throw new Error('Invalid API response structure');
+  }
+  
   const data = jsondata.result.account_state.data;
   const slice = Cell.fromBase64(data).beginParse();
   const res = parseStorage(slice);
