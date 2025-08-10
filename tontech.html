@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-TW" translate="no">
+<html lang="en" translate="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
-    <title>TON 技術數據分析 - TON Tech Dashboard</title>
+    <title>TON Technical Data Analysis - TON Tech Dashboard</title>
     
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -25,7 +25,7 @@
             scroll-behavior: smooth;
         }
         
-        /* macOS 風格滾動條 */
+        /* macOS style scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -162,7 +162,7 @@
             -webkit-backdrop-filter: blur(10px);
         }
         
-        /* 重要數據卡片特殊樣式 */
+        /* Important data card special styles */
         .stat-card.important {
             background: linear-gradient(135deg, rgba(0, 122, 255, 0.1) 0%, rgba(88, 86, 214, 0.1) 100%);
             border: 2px solid rgba(0, 122, 255, 0.2);
@@ -278,7 +278,7 @@
             border-bottom: 1px solid rgba(0, 0, 0, 0.06);
         }
         
-        /* 重要數據區域特殊樣式 */
+        /* Important data area special styles */
         .data-section.important {
             background: linear-gradient(135deg, rgba(0, 122, 255, 0.05) 0%, rgba(88, 86, 214, 0.05) 100%);
             border-left: 4px solid #007AFF;
@@ -331,7 +331,7 @@
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
         }
 
-        /* 圖表樣式 */
+        /* Chart styles */
         .chart-wrapper {
             position: relative;
             height: 400px;
@@ -668,7 +668,7 @@
             box-shadow: 0 8px 25px rgba(0, 122, 255, 0.3);
         }
 
-        /* 響應式設計優化 */
+        /* Responsive design optimization */
         @media (max-width: 1500px) {
             .container {
                 max-width: 1200px;
@@ -697,7 +697,7 @@
             body {
                 padding: 0;
                 background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-                /* iPhone 安全區域支援 */
+                /* iPhone safe area support */
                 padding-left: env(safe-area-inset-left);
                 padding-right: env(safe-area-inset-right);
                 padding-bottom: env(safe-area-inset-bottom);
@@ -709,7 +709,7 @@
                 border-radius: 0;
                 box-shadow: none;
                 background: rgba(255, 255, 255, 0.95);
-                /* iPhone 安全區域支援 */
+                /* iPhone safe area support */
                 padding-top: env(safe-area-inset-top);
             }
             
@@ -717,7 +717,7 @@
                 padding: 24px 20px;
                 position: relative;
                 border-radius: 0;
-                /* 改善 iPhone 上的視覺效果 */
+                /* Improve visual effects on iPhone */
                 background: linear-gradient(135deg, rgba(0, 122, 255, 0.95) 0%, rgba(88, 86, 214, 0.95) 100%);
             }
             
@@ -754,7 +754,7 @@
                 align-items: center;
                 justify-content: center;
                 font-weight: 600;
-                /* 改善觸控反饋 */
+                /* Improve touch feedback */
                 transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             }
             
@@ -773,7 +773,7 @@
                 padding: 20px;
                 min-height: 120px;
                 border-radius: 16px;
-                /* 改善觸控體驗 */
+                /* Improve touch experience */
                 touch-action: manipulation;
             }
             
@@ -815,9 +815,9 @@
                 font-size: 16px;
                 border-radius: 16px;
                 touch-action: manipulation;
-                /* 防止 iOS 縮放 */
+                /* Prevent iOS zoom */
                 font-size: 16px;
-                /* 改善觸控體驗 */
+                /* Improve touch experience */
                 transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             }
             
@@ -833,14 +833,14 @@
                 border-radius: 12px;
             }
             
-            /* 圖表容器在手機上的優化 */
+            /* Chart container optimization on mobile */
             .chart-container {
                 padding: 20px;
                 background: rgba(255, 255, 255, 0.95);
                 margin: 16px;
                 border-radius: 16px;
                 box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-                /* 改善觸控體驗 */
+                /* Improve touch experience */
                 touch-action: manipulation;
             }
             
@@ -855,7 +855,7 @@
                 margin: 16px 0;
             }
             
-            /* 改善圖表控制按鈕 */
+            /* Improve chart control buttons */
             .chart-controls {
                 gap: 8px;
                 margin: 16px 0;
@@ -874,7 +874,7 @@
                 transform: scale(0.95);
             }
             
-            /* 時間過濾器按鈕優化 */
+            /* Time filter button optimization */
             .time-filter {
                 margin: 20px 0;
             }
@@ -893,7 +893,7 @@
                 transform: scale(0.95);
             }
             
-            /* 數據區域優化 */
+            /* Data area optimization */
             .data-section {
                 padding: 20px;
                 margin: 0;
@@ -912,7 +912,7 @@
                 padding-bottom: 12px;
             }
             
-            /* 表格在手機上使用卡片布局 */
+            /* Use card layout for tables on mobile */
             #tableContainer {
                 padding: 20px;
                 background: rgba(255, 255, 255, 0.95);
@@ -926,12 +926,12 @@
                 display: block;
             }
             
-            /* 隱藏桌面版表格，顯示移動端卡片 */
+            /* Hide desktop table, show mobile cards */
             .mobile-card {
                 display: block;
             }
             
-            /* 改善圖表信息顯示 */
+            /* Improve chart info display */
             .chart-info {
                 padding: 16px;
                 border-radius: 12px;
@@ -950,7 +950,7 @@
                 line-height: 1.4;
             }
             
-            /* 改善指標網格 */
+            /* Improve metric grid */
             .metric-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 16px;
@@ -974,7 +974,7 @@
             }
         }
         
-        /* 桌面端隱藏移動端卡片 */
+                    /* Hide mobile cards on desktop */
         @media (min-width: 769px) {
             .mobile-table {
                 display: none;
@@ -996,7 +996,7 @@
             border: 1px solid rgba(255, 255, 255, 0.3);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             touch-action: manipulation;
-            /* 改善觸控體驗 */
+            /* Improve touch experience */
             position: relative;
             overflow: hidden;
         }
@@ -1260,7 +1260,7 @@
             }
         }
         
-        /* iPhone 安全區域支援 - 更完整的實現 */
+        /* iPhone safe area support - more complete implementation */
         @supports (padding: max(0px)) {
             @media (max-width: 768px) {
                 body {
@@ -1273,22 +1273,22 @@
                     padding-top: max(0px, env(safe-area-inset-top));
                 }
                 
-                /* 確保內容不被安全區域遮擋 */
+                /* Ensure content is not blocked by safe area */
                 .header {
                     padding-top: max(24px, env(safe-area-inset-top) + 12px);
                     padding-bottom: max(24px, env(safe-area-inset-bottom) + 12px);
                 }
                 
-                /* 底部按鈕區域的安全區域支援 */
+                /* Safe area support for bottom button area */
                 .nav-buttons {
                     padding-bottom: max(0px, env(safe-area-inset-bottom));
                 }
             }
         }
         
-        /* 觸控優化 - 更完整的實現 */
+        /* Touch optimization - more complete implementation */
         @media (max-width: 768px) {
-            /* 確保所有可點擊元素都有足夠的觸控區域 */
+            /* Ensure all clickable elements have sufficient touch area */
             .start {
                 min-height: 48px;
                 min-width: 48px;
@@ -1321,48 +1321,48 @@
             .nav-button {
                 min-height: 52px;
                 touch-action: manipulation;
-                /* 防止雙擊縮放 */
+                /* Prevent double-tap zoom */
                 -webkit-tap-highlight-color: transparent;
             }
             
-            /* 改善滾動體驗 */
+            /* Improve scrolling experience */
             .container {
                 -webkit-overflow-scrolling: touch;
                 scroll-behavior: smooth;
             }
             
-            /* 改善輸入框體驗 */
+            /* Improve input field experience */
             .search-input, .filter-select, .cycle-selector {
                 -webkit-appearance: none;
                 -webkit-tap-highlight-color: transparent;
-                /* 防止 iOS 自動縮放 */
+                /* Prevent iOS auto-zoom */
                 font-size: 16px;
             }
             
-            /* 改善表格滾動 */
+            /* Improve table scrolling */
             #tableContainer {
                 -webkit-overflow-scrolling: touch;
                 scroll-behavior: smooth;
             }
             
-            /* 改善圖表觸控體驗 */
+            /* Improve chart touch experience */
             .chart-container {
                 touch-action: manipulation;
                 -webkit-overflow-scrolling: touch;
             }
             
-            /* 改善按鈕觸控體驗 */
+            /* Improve button touch experience */
             .chart-controls button, .time-filter button {
                 -webkit-tap-highlight-color: transparent;
                 touch-action: manipulation;
             }
             
-            /* 改善數據區域觸控體驗 */
+            /* Improve data area touch experience */
             .data-section {
                 touch-action: manipulation;
             }
             
-            /* 改善指標項目觸控體驗 */
+            /* Improve metric item touch experience */
             .metric-item {
                 touch-action: manipulation;
                 transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1373,13 +1373,13 @@
             }
         }
         
-        /* 載入動畫優化 */
+        /* Loading animation optimization */
         .loading-overlay {
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
         }
         
-        /* 改善載入動畫在移動端的顯示 */
+        /* Improve loading animation display on mobile */
         @media (max-width: 768px) {
             .loading-overlay {
                 background: rgba(255, 255, 255, 0.95);
@@ -1392,15 +1392,15 @@
             }
         }
         
-        /* 改善圖表在移動端的顯示 */
+        /* Improve chart display on mobile */
         @media (max-width: 768px) {
-            /* 確保圖表在小螢幕上正確顯示 */
+            /* Ensure charts display correctly on small screens */
             .chart-wrapper canvas {
                 max-height: 300px !important;
                 width: 100% !important;
             }
             
-            /* 改善圖表工具提示在移動端的顯示 */
+            /* Improve chart tooltip display on mobile */
             .chartjs-tooltip {
                 background: rgba(0, 0, 0, 0.8) !important;
                 border-radius: 8px !important;
@@ -1409,7 +1409,7 @@
                 max-width: 200px !important;
             }
             
-            /* 改善圖表圖例在移動端的顯示 */
+            /* Improve chart legend display on mobile */
             .chartjs-legend {
                 font-size: 11px !important;
                 margin-top: 8px !important;
@@ -1421,17 +1421,17 @@
 
 <div class="container">
     <div class="header">
-        <h1>TON 技術數據分析</h1>
-        <div class="subtitle">實時監控 TON 區塊鏈技術指標與性能數據</div>
+        <h1>TON Technical Data Analysis</h1>
+        <div class="subtitle">Real-time monitoring of TON blockchain technical indicators and performance data</div>
         <div class="nav-buttons">
             <a href="index.html" class="nav-button">
-                🏠 驗證器儀表板
+                🏠 Validator Dashboard
             </a>
             <a href="nominators.html" class="nav-button">
-                📊 Nominator Pool 資金提供者
+                📊 Nominator Pool Providers
             </a>
             <a href="tontech.html" class="nav-button active">
-                🔬 TON 技術數據分析
+                🔬 TON Technical Data Analysis
             </a>
             <a href="ktonviewer.html" class="nav-button">
                 🔍 LST Viewer
@@ -1440,130 +1440,130 @@
     </div>
 
     <div id="statsContainer" class="stats-grid">
-        <!-- 動態載入統計卡片 -->
+        <!-- Dynamically load statistics cards -->
     </div>
 
-    <!-- 質押收益分析 -->
+    <!-- Staking Yield Analysis -->
     <div class="data-section important">
-        <h2 class="section-title">📈 質押收益分析</h2>
+        <h2 class="section-title">📈 Staking Yield Analysis</h2>
         <div class="time-filter">
-            <button class="active" onclick="filterData('yield', 7)">最近7天</button>
-            <button onclick="filterData('yield', 14)">最近14天</button>
-            <button onclick="filterData('yield', 30)">最近30天</button>
-            <button onclick="filterData('yield', 90)">最近90天</button>
+            <button class="active" onclick="filterData('yield', 7)">Last 7 Days</button>
+            <button onclick="filterData('yield', 14)">Last 14 Days</button>
+            <button onclick="filterData('yield', 30)">Last 30 Days</button>
+            <button onclick="filterData('yield', 90)">Last 90 Days</button>
         </div>
         <div id="yieldData">
-            <p>正在載入收益數據...</p>
+            <p>Loading yield data...</p>
         </div>
         <div class="chart-container">
             <div class="chart-wrapper">
                 <canvas id="yieldChart"></canvas>
             </div>
             <div class="chart-controls">
-                <button class="active" onclick="changeChartType('yield', 'line')">折線圖</button>
-                <button onclick="changeChartType('yield', 'bar')">柱狀圖</button>
-                <button onclick="changeChartType('yield', 'area')">面積圖</button>
+                <button class="active" onclick="changeChartType('yield', 'line')">Line Chart</button>
+                <button onclick="changeChartType('yield', 'bar')">Bar Chart</button>
+                <button onclick="changeChartType('yield', 'area')">Area Chart</button>
             </div>
         </div>
     </div>
 
-    <!-- 選舉數據 -->
+    <!-- Election Data -->
     <div class="data-section important">
-        <h2 class="section-title">🗳️ 驗證器選舉數據</h2>
+        <h2 class="section-title">🗳️ Validator Election Data</h2>
         <div class="time-filter">
-            <button class="active" onclick="filterData('elections', 7)">最近7天</button>
-            <button onclick="filterData('elections', 14)">最近14天</button>
-            <button onclick="filterData('elections', 30)">最近30天</button>
-            <button onclick="filterData('elections', 50)">最近50次</button>
+            <button class="active" onclick="filterData('elections', 7)">Last 7 Days</button>
+            <button onclick="filterData('elections', 14)">Last 14 Days</button>
+            <button onclick="filterData('elections', 30)">Last 30 Days</button>
+            <button onclick="filterData('elections', 50)">Last 50 Elections</button>
         </div>
         <div id="electionData">
-            <p>正在載入選舉數據...</p>
+            <p>Loading election data...</p>
         </div>
         <div class="chart-container">
             <div class="chart-wrapper">
                 <canvas id="electionsChart"></canvas>
             </div>
             <div class="chart-controls">
-                <button class="active" onclick="changeChartType('elections', 'line')">折線圖</button>
-                <button onclick="changeChartType('elections', 'bar')">柱狀圖</button>
-                <button onclick="changeChartType('elections', 'area')">面積圖</button>
+                <button class="active" onclick="changeChartType('elections', 'line')">Line Chart</button>
+                <button onclick="changeChartType('yield', 'bar')">Bar Chart</button>
+                <button onclick="changeChartType('elections', 'area')">Area Chart</button>
             </div>
         </div>
     </div>
 
-    <!-- 網絡基礎統計 -->
+    <!-- Network Basic Statistics -->
     <div class="data-section">
-        <h2 class="section-title">📊 網絡基礎統計</h2>
+        <h2 class="section-title">📊 Network Basic Statistics</h2>
         <div id="networkStatsContainer" class="stats-grid">
-            <!-- 動態載入網絡基礎統計卡片 -->
+            <!-- Dynamically load network basic statistics cards -->
         </div>
     </div>
 
-    <!-- 網絡狀態 -->
+    <!-- Network Status -->
     <div class="data-section">
-        <h2 class="section-title">🔍 網絡狀態趨勢</h2>
+        <h2 class="section-title">🔍 Network Status Trends</h2>
         <div class="time-filter">
-            <button class="active" onclick="filterData('status', 7)">7天</button>
-            <button onclick="filterData('status', 30)">30天</button>
-            <button onclick="filterData('status', 90)">90天</button>
+            <button class="active" onclick="filterData('status', 7)">7 Days</button>
+            <button onclick="filterData('status', 30)">30 Days</button>
+            <button onclick="filterData('status', 90)">90 Days</button>
         </div>
         <div id="statusData">
-            <p>正在載入狀態數據...</p>
+                            <p>Loading status data...</p>
         </div>
         <div class="chart-container">
             <div class="chart-wrapper">
                 <canvas id="statusChart"></canvas>
             </div>
             <div class="chart-controls">
-                <button class="active" onclick="changeChartType('status', 'line')">折線圖</button>
-                <button onclick="changeChartType('status', 'bar')">柱狀圖</button>
-                <button onclick="changeChartType('status', 'area')">面積圖</button>
+                <button class="active" onclick="changeChartType('status', 'line')">Line Chart</button>
+                <button onclick="changeChartType('status', 'bar')">Bar Chart</button>
+                <button onclick="changeChartType('status', 'area')">Area Chart</button>
             </div>
         </div>
     </div>
 
-    <!-- 交易金額分析 -->
+    <!-- Transaction Amount Analysis -->
     <div class="data-section">
-        <h2 class="section-title">💰 交易金額趨勢</h2>
+                    <h2 class="section-title">💰 Transaction Amount Trends</h2>
         <div class="time-filter">
-            <button class="active" onclick="filterData('amounts', 7)">7天</button>
-            <button onclick="filterData('amounts', 30)">30天</button>
-            <button onclick="filterData('amounts', 90)">90天</button>
+            <button class="active" onclick="filterData('amounts', 7)">7 Days</button>
+            <button onclick="filterData('amounts', 30)">30 Days</button>
+            <button onclick="filterData('amounts', 90)">90 Days</button>
         </div>
         <div id="transactionAmountsData">
-            <p>正在載入交易金額數據...</p>
+                            <p>Loading transaction amount data...</p>
         </div>
         <div class="chart-container">
             <div class="chart-wrapper">
                 <canvas id="amountsChart"></canvas>
             </div>
             <div class="chart-controls">
-                <button class="active" onclick="changeChartType('amounts', 'line')">折線圖</button>
-                <button onclick="changeChartType('amounts', 'bar')">柱狀圖</button>
-                <button onclick="changeChartType('amounts', 'area')">面積圖</button>
+                <button class="active" onclick="changeChartType('amounts', 'line')">Line Chart</button>
+                <button onclick="changeChartType('amounts', 'bar')">Bar Chart</button>
+                <button onclick="changeChartType('amounts', 'area')">Area Chart</button>
             </div>
         </div>
     </div>
 
-    <!-- 交易數量統計 -->
+    <!-- Transaction Count Statistics -->
     <div class="data-section">
-        <h2 class="section-title">📊 交易數量統計</h2>
+        <h2 class="section-title">📊 Transaction Count Statistics</h2>
         <div class="time-filter">
-            <button class="active" onclick="filterData('count', 7)">7天</button>
-            <button onclick="filterData('count', 30)">30天</button>
-            <button onclick="filterData('count', 90)">90天</button>
+                            <button class="active" onclick="filterData('count', 7)">7 days</button>
+                <button onclick="filterData('count', 30)">30 days</button>
+                <button onclick="filterData('count', 90)">90 days</button>
         </div>
         <div id="transactionCountData">
-            <p>正在載入交易數量數據...</p>
+                            <p>Loading transaction count data...</p>
         </div>
         <div class="chart-container">
             <div class="chart-wrapper">
                 <canvas id="countChart"></canvas>
             </div>
             <div class="chart-controls">
-                <button class="active" onclick="changeChartType('count', 'line')">折線圖</button>
-                <button onclick="changeChartType('count', 'bar')">柱狀圖</button>
-                <button onclick="changeChartType('count', 'area')">面積圖</button>
+                <button class="active" onclick="changeChartType('count', 'line')">Line Chart</button>
+                <button onclick="changeChartType('count', 'bar')">Bar Chart</button>
+                <button onclick="changeChartType('count', 'area')">Area Chart</button>
             </div>
         </div>
     </div>
@@ -1574,12 +1574,12 @@
 </div>
 
 <div class="api-status" id="apiStatus">
-    <div>數據來源: <span class="api-name" id="apiName">TON Tech API</span></div>
+            <div>Data Source: <span class="api-name" id="apiName">TON Tech API</span></div>
     <div id="apiPerformance"></div>
 </div>
 
 <script>
-    // 全域變數
+    // Global variables
     let apiData = {
         status: null,
         transactions_amounts: null,
@@ -1596,7 +1596,7 @@
         elections: 10
     };
 
-    // 圖表實例
+    // Chart instances
     let charts = {
         status: null,
         amounts: null,
@@ -1605,7 +1605,7 @@
         elections: null
     };
 
-    // 圖表類型
+    // Chart types
     let chartTypes = {
         status: 'line',
         amounts: 'line',
@@ -1614,7 +1614,7 @@
         elections: 'line'
     };
 
-    // API 端點配置
+    // API endpoint configuration
     const API_ENDPOINTS = {
         status: 'https://corsproxy.io/?https%3A%2F%2Ftontech.io%2Fapi%2Fv1%2Fstatus',
         transactions_amounts: 'https://corsproxy.io/?https%3A%2F%2Ftontech.io%2Fapi%2Fv1%2Ftransactions_amounts',
@@ -1623,7 +1623,7 @@
         transactions_count: 'https://corsproxy.io/?https%3A%2F%2Ftontech.io%2Fapi%2Fv1%2Ftransactions_count'
     };
 
-    // 輔助函數
+    // Helper functions
     const showLoading = () => {
         document.getElementById('loadingOverlay').style.display = 'flex';
     };
@@ -1662,7 +1662,7 @@
     };
 
     const formatTON = (amount) => {
-        // 處理 TON 數量，單位為 nanotons
+        // Handle TON amounts, unit is nanotons
         const tons = parseFloat(amount) / 1e9;
         return formatNumber(tons);
     };
@@ -1680,8 +1680,8 @@
     const calculateTrend = (data, valueKey) => {
         if (!data || data.length < 2) return 'stable';
         
-        const recent = data.slice(-7); // 最近7天
-        const earlier = data.slice(-14, -7); // 之前7天
+        const recent = data.slice(-7); // Last 7 days
+        const earlier = data.slice(-14, -7); // Previous 7 days
         
         const recentAvg = recent.reduce((sum, item) => sum + (parseFloat(item[valueKey]) || 0), 0) / recent.length;
         const earlierAvg = earlier.reduce((sum, item) => sum + (parseFloat(item[valueKey]) || 0), 0) / earlier.length;
@@ -1709,21 +1709,21 @@
         return `<span class="trend-indicator ${classes[trend]}">${symbols[trend]} ${value}</span>`;
     };
 
-    // 圖表相關函數
+    // Chart-related functions
     const createChart = (canvasId, data, options) => {
         const ctx = document.getElementById(canvasId);
         if (!ctx) return null;
         
-        // 銷毀現有圖表
+        // Destroy existing chart
         const chartKey = canvasId.replace('Chart', '');
         if (charts[chartKey]) {
             charts[chartKey].destroy();
         }
         
-        // 檢查是否需要雙 Y 軸
+        // Check if dual Y-axis is needed
         const hasDualY = data.datasets.some(dataset => dataset.yAxisID === 'y1');
         
-        // 處理面積圖 - 實際上是帶填充的折線圖
+        // Handle area chart - actually a line chart with fill
         const chartType = options.type === 'area' ? 'line' : options.type || 'line';
         
         const chartConfig = {
@@ -1776,7 +1776,7 @@
                         display: true,
                         title: {
                             display: true,
-                            text: '日期'
+                            text: 'Date'
                         }
                     },
                     y: {
@@ -1785,7 +1785,7 @@
                         position: 'left',
                         title: {
                             display: true,
-                            text: options.yAxisLabel || '數值'
+                            text: options.yAxisLabel || 'Value'
                         },
                         beginAtZero: true
                     }
@@ -1798,7 +1798,7 @@
             }
         };
         
-        // 如果有雙 Y 軸，添加右側 Y 軸
+        // If dual Y-axis exists, add right Y-axis
         if (hasDualY) {
             chartConfig.options.scales.y1 = {
                 type: 'linear',
@@ -1873,15 +1873,15 @@
     };
 
     const changeChartType = (chartType, newType) => {
-        // 更新按鈕狀態
+        // Update button state
         const buttons = document.querySelectorAll(`[onclick*="${chartType}"]`);
         buttons.forEach(btn => btn.classList.remove('active'));
         event.target.classList.add('active');
         
-        // 更新圖表類型
+        // Update chart type
         chartTypes[chartType] = newType;
         
-        // 重新渲染圖表
+        // Re-render chart
         switch(chartType) {
             case 'status':
                 renderStatusChart();
@@ -1915,52 +1915,52 @@
             const endTime = performance.now();
             const responseTime = endTime - startTime;
             
-            // 檢查響應是否為空
+            // Check if response is empty
             if (!text || text.trim() === '') {
-                console.warn(`⚠️ ${name} API 返回空響應`);
-                showApiStatus(`${name} API 暫無數據`, false);
+                console.warn(`⚠️ ${name} API returned empty response`);
+                showApiStatus(`${name} API no data available`, false);
                 return [];
             }
             
-            // 嘗試解析 JSON
+            // Try to parse JSON
             let data;
             try {
                 data = JSON.parse(text);
             } catch (parseError) {
-                console.error(`❌ ${name} JSON 解析失敗:`, parseError);
-                console.log('原始響應:', text.substring(0, 200));
-                throw new Error(`JSON 解析失敗: ${parseError.message}`);
+                console.error(`❌ ${name} JSON parsing failed:`, parseError);
+                console.log('Raw response:', text.substring(0, 200));
+                throw new Error(`JSON parsing failed: ${parseError.message}`);
             }
             
-            // 檢查數據格式
+            // Check data format
             if (!Array.isArray(data)) {
-                console.warn(`⚠️ ${name} API 返回非陣列數據:`, typeof data);
+                console.warn(`⚠️ ${name} API returned non-array data:`, typeof data);
                 if (data && typeof data === 'object') {
-                    // 如果是對象，嘗試包裝成陣列
+                    // If it's an object, try to wrap it in an array
                     data = [data];
                 } else {
-                    throw new Error('API 返回格式不正確');
+                    throw new Error('API returned incorrect format');
                 }
             }
             
             const recordCount = data.length;
-            console.log(`✅ ${name} API 載入成功 (${responseTime.toFixed(0)}ms)`, recordCount + ' 條記錄');
-            showApiStatus(`${name} 載入成功 - ${recordCount} 條記錄 (${responseTime.toFixed(0)}ms)`);
+            console.log(`✅ ${name} API loaded successfully (${responseTime.toFixed(0)}ms)`, recordCount + ' records');
+            showApiStatus(`${name} loaded successfully - ${recordCount} records (${responseTime.toFixed(0)}ms)`);
             
             return data;
         } catch (error) {
             const endTime = performance.now();
             const responseTime = endTime - startTime;
             
-            console.error(`❌ ${name} API 載入失敗:`, error);
-            showApiStatus(`${name} 載入失敗: ${error.message}`, true);
+            console.error(`❌ ${name} API loading failed:`, error);
+            showApiStatus(`${name} loading failed: ${error.message}`, true);
             
-            // 返回空陣列而不是拋出錯誤，讓其他 API 繼續載入
+            // Return empty array instead of throwing error, allowing other APIs to continue loading
             return [];
         }
     };
 
-    // 載入所有 API 數據
+    // Load all API data
     const loadAllApiData = async () => {
         showLoading();
         
@@ -1970,7 +1970,7 @@
                 apiData[key] = data;
                 return { key, data, success: true, count: data.length };
             } catch (error) {
-                // fetchApiData 現在返回空陣列而不是拋出錯誤
+                // fetchApiData now returns empty array instead of throwing error
                 apiData[key] = [];
                 return { key, error, success: false, count: 0 };
             }
@@ -1978,25 +1978,25 @@
 
         const results = await Promise.all(promises);
         
-        // 顯示載入結果摘要
+        // Show loading results summary
         const successful = results.filter(r => r.success).length;
         const total = results.length;
         
         if (successful === total) {
-            showApiStatus(`全部 ${total} 個 API 載入成功 🎉`);
+            showApiStatus(`All ${total} APIs loaded successfully 🎉`);
         } else if (successful > 0) {
-            showApiStatus(`${successful}/${total} 個 API 載入成功`, false);
+            showApiStatus(`${successful}/${total} APIs loaded successfully`, false);
         } else {
-            showApiStatus(`所有 API 載入失敗 - 請檢查網絡連接`, true);
+            showApiStatus(`All APIs failed to load - please check network connection`, true);
         }
         
         hideLoading();
         
-        // 渲染數據
+        // Render data
         renderAllData();
     };
 
-    // 計算變化百分比
+    // Calculate change percentage
     const calculateChange = (current, previous) => {
         if (!previous || previous === 0) return { change: 0, percentage: 0 };
         const change = current - previous;
@@ -2004,13 +2004,13 @@
         return { change, percentage };
     };
 
-    // 獲取變化指示器HTML
+    // Get change indicator HTML
     const getChangeIndicator = (change, percentage) => {
-        // 對於 APY 這類小數值，使用更小的閾值
-        // 如果變化小於 0.0005（相當於 0.05%），則認為無變化
+        // For small decimal values like APY, use smaller threshold
+        // If change is less than 0.0005 (equivalent to 0.05%), consider it no change
         const threshold = 0.0005;
         if (Math.abs(change) < threshold) {
-            return `<div class="change-indicator change-neutral">→ 無變化</div>`;
+            return `<div class="change-indicator change-neutral">→ No change</div>`;
         }
         const arrow = change > 0 ? '↗' : '↘';
         const colorClass = change > 0 ? 'change-positive' : 'change-negative';
@@ -2027,7 +2027,7 @@
         } else if (Math.abs(change) >= 0.01) {
             formattedChange = `${sign}${change.toFixed(2)}`;
         } else {
-            // 對於很小的數值（如 APY 變化），顯示百分比形式
+            // For very small values (like APY changes), display as percentage
             formattedChange = `${sign}${(change * 100).toFixed(2)}%`;
         }
         
@@ -2039,68 +2039,68 @@
         const container = document.getElementById('statsContainer');
         let html = '';
 
-        // 檢查是否有任何數據載入成功
+        // Check if any data loaded successfully
         const hasAnyData = Object.values(apiData).some(data => data !== null);
         
         if (!hasAnyData) {
             html += `
                 <div class="stat-card" style="grid-column: 1 / -1; text-align: center;">
-                    <h3>⚠️ 數據載入中</h3>
-                    <div class="value">請稍候...</div>
-                    <div class="description">正在從 TON Tech API 載入最新數據</div>
+                    <h3>⚠️ Loading Data</h3>
+                    <div class="value">Please wait...</div>
+                    <div class="description">Loading latest data from TON Tech API</div>
                 </div>
             `;
             container.innerHTML = html;
             return;
         }
 
-        // 最重要的三個指標：當前年化收益率、當前驗證器數量、當前總質押量
+        // The three most important metrics: current annual yield, current validator count, current total stake
         
-        // 1. 當前年化收益率（最重要）
+        // 1. Current Annual Yield (Most Important)
         if (apiData.yield && apiData.yield.length > 0) {
             const latest = apiData.yield[apiData.yield.length - 1];
             html += `
                 <div class="stat-card important" style="background: linear-gradient(135deg, rgba(52, 199, 89, 0.1) 0%, rgba(88, 86, 214, 0.1) 100%); border: 2px solid rgba(52, 199, 89, 0.3);">
-                    <h3>⭐ 當前年化收益率</h3>
+                    <h3>⭐ Current Annual Yield</h3>
                     <div class="value" style="font-size: 2.5em; background: linear-gradient(135deg, #34C759, #5856D6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">${(parseFloat(latest.annual_percent_yld) * 100).toFixed(2)}%</div>
-                    <div class="description">最新質押年化收益率</div>
+                    <div class="description">Latest staking annual yield</div>
                 </div>
             `;
         }
 
-        // 2. 當前驗證器數量
+        // 2. Current Validator Count
         if (apiData.elections && apiData.elections.length > 0) {
             const latest = apiData.elections[apiData.elections.length - 1];
             const currentValidators = latest.validators || latest.validator_count || latest.participants || 0;
             html += `
                 <div class="stat-card important" style="background: linear-gradient(135deg, rgba(0, 122, 255, 0.1) 0%, rgba(88, 86, 214, 0.1) 100%); border: 2px solid rgba(0, 122, 255, 0.3);">
-                    <h3>🔧 當前驗證器數量</h3>
+                    <h3>🔧 Current Validator Count</h3>
                     <div class="value" style="font-size: 2.5em; background: linear-gradient(135deg, #007AFF, #5856D6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">${currentValidators}</div>
-                    <div class="description">當前活躍驗證器數量</div>
+                    <div class="description">Current active validator count</div>
                 </div>
             `;
         }
 
-        // 3. 當前總質押量
+        // 3. Current Total Stake
         if (apiData.elections && apiData.elections.length > 0) {
             const latest = apiData.elections[apiData.elections.length - 1];
             const currentStake = parseFloat(latest.total_stake) || parseFloat(latest.stake_sum) || parseFloat(latest.stakes) || parseFloat(latest.total_staked) || 0;
-            const currentStakeTON = currentStake / 1e9; // 轉換為 TON 單位
+            const currentStakeTON = currentStake / 1e9; // Convert to TON units
             html += `
                 <div class="stat-card important" style="background: linear-gradient(135deg, rgba(255, 149, 0, 0.1) 0%, rgba(88, 86, 214, 0.1) 100%); border: 2px solid rgba(255, 149, 0, 0.3);">
-                    <h3>💰 當前總質押量</h3>
+                    <h3>💰 Current Total Stake</h3>
                     <div class="value" style="font-size: 2.5em; background: linear-gradient(135deg, #FF9500, #5856D6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">${formatNumber(currentStakeTON)} TON</div>
-                    <div class="description">當前總質押量</div>
+                    <div class="description">Current total stake</div>
                 </div>
             `;
         }
 
-        // 週變化指標（次要重要）
+        // Weekly change indicators (secondary importance)
         
-        // 驗證器數量週變化
+        // Validator count weekly change
         if (apiData.elections && apiData.elections.length >= 2) {
-            const recent = apiData.elections.slice(-7); // 最近7天
-            const older = apiData.elections.slice(-14, -7); // 7-14天前
+            const recent = apiData.elections.slice(-7); // Last 7 days
+            const older = apiData.elections.slice(-14, -7); // 7-14 days ago
             
             if (recent.length > 0 && older.length > 0) {
                 const recentAvg = recent.reduce((sum, item) => sum + (item.validators || 0), 0) / recent.length;
@@ -2109,26 +2109,26 @@
                 
                 html += `
                     <div class="stat-card">
-                        <h3>📊 驗證器數量 (週變化)</h3>
+                        <h3>📊 Validator Count (Weekly Change)</h3>
                         <div class="value">${recentAvg.toFixed(0)}</div>
                         ${getChangeIndicator(validatorChange.change, validatorChange.percentage)}
-                        <div class="description">最近7天平均驗證器數量</div>
+                        <div class="description">Average validator count for last 7 days</div>
                     </div>
                 `;
             }
         }
 
-        // APY週變化
+        // APY weekly change
         if (apiData.yield && apiData.yield.length > 0) {
-            const recent = apiData.yield.slice(-7); // 最近7天
-            const older = apiData.yield.slice(-14, -7); // 7-14天前
+            const recent = apiData.yield.slice(-7); // Last 7 days
+            const older = apiData.yield.slice(-14, -7); // 7-14 days ago
             
             if (recent.length > 0) {
-                // 調試：顯示第一個數據項的結構
-                console.log('APY 數據結構:', Object.keys(recent[0]));
-                console.log('APY 樣本數據:', recent[0]);
+                        // Debug: Show structure of first data item
+        console.log('APY data structure:', Object.keys(recent[0]));
+        console.log('APY sample data:', recent[0]);
                 
-                // 嘗試不同的APY字段名稱，APY 數據通常是小數形式（如 0.0532 表示 5.32%）
+                // Try different APY field names, APY data is usually in decimal form (e.g., 0.0532 represents 5.32%)
                 const recentAvg = recent.reduce((sum, item) => {
                     const apy = parseFloat(item.annual_percent_yld) || parseFloat(item.apy) || parseFloat(item.yield) || 0;
                     return sum + apy;
@@ -2166,83 +2166,83 @@
                     
                     changeIndicator = getChangeIndicator(apyChange.change, apyChange.percentage);
                 } else {
-                    changeIndicator = '<div class="change-indicator change-neutral">→ 數據不足</div>';
+                    changeIndicator = '<div class="change-indicator change-neutral">→ Insufficient Data</div>';
                 }
                 
                 html += `
                     <div class="stat-card">
-                        <h3>📈 APY 收益率 (週變化)</h3>
+                        <h3>📈 APY Yield Rate (Weekly Change)</h3>
                         <div class="value">${(recentAvg * 100).toFixed(2)}%</div>
                         ${changeIndicator}
-                        <div class="description">最近7天平均年化收益率</div>
+                        <div class="description">7-day average annualized yield rate</div>
                     </div>
                 `;
             }
         }
 
-        // 總質押量週變化
+        // Total stake weekly change
         if (apiData.elections && apiData.elections.length > 0) {
-            const recent = apiData.elections.slice(-7); // 最近7天
-            const older = apiData.elections.slice(-14, -7); // 7-14天前
+            const recent = apiData.elections.slice(-7); // Last 7 days
+            const older = apiData.elections.slice(-14, -7); // 7-14 days ago
             
             if (recent.length > 0) {
-                // 調試：顯示第一個數據項的結構
-                console.log('選舉數據結構:', Object.keys(recent[0]));
-                console.log('選舉樣本數據:', recent[0]);
+                // Debug: Show structure of first data item
+                console.log('Election data structure:', Object.keys(recent[0]));
+                console.log('Election sample data:', recent[0]);
                 
-                // 嘗試不同的質押字段名稱，並轉換為 TON 單位
+                // Try different stake field names and convert to TON units
                 const recentAvg = recent.reduce((sum, item) => {
                     const stake = parseFloat(item.total_stake) || parseFloat(item.stake_sum) || parseFloat(item.stakes) || parseFloat(item.total_staked) || 0;
-                    return sum + (stake / 1e9); // 轉換為 TON 單位
+                    return sum + (stake / 1e9); // Convert to TON units
                 }, 0) / recent.length;
                 
                 let changeIndicator = '';
                 if (older.length > 0) {
                     const olderAvg = older.reduce((sum, item) => {
                         const stake = parseFloat(item.total_stake) || parseFloat(item.stake_sum) || parseFloat(item.stakes) || parseFloat(item.total_staked) || 0;
-                        return sum + (stake / 1e9); // 轉換為 TON 單位
+                        return sum + (stake / 1e9); // Convert to TON units
                     }, 0) / older.length;
                     
                     const stakeChange = calculateChange(recentAvg, olderAvg);
                     changeIndicator = getChangeIndicator(stakeChange.change, stakeChange.percentage);
                 } else {
-                    changeIndicator = '<div class="change-indicator change-neutral">→ 數據不足</div>';
+                    changeIndicator = '<div class="change-indicator change-neutral">→ Insufficient Data</div>';
                 }
                 
                 html += `
                     <div class="stat-card">
-                        <h3>💰 總質押量 (週變化)</h3>
+                        <h3>💰 Total Staked Amount (Weekly Change)</h3>
                         <div class="value">${formatNumber(recentAvg)} TON</div>
                         ${changeIndicator}
-                        <div class="description">最近7天平均總質押量</div>
+                        <div class="description">7-day average total staked amount</div>
                     </div>
                 `;
             }
         }
 
-        // 渲染網絡基礎統計
+        // Render network basic statistics
         renderNetworkStats();
         
-        // 添加數據調試信息
+        // Add data debug information
         if (Object.values(apiData).some(data => data && data.length > 0)) {
             html += `
                 <div class="stat-card" style="grid-column: 1 / -1;">
                     <details style="margin-top: 10px;">
-                        <summary style="cursor: pointer; font-weight: bold; color: #007AFF;">🔍 數據調試信息</summary>
+                        <summary style="cursor: pointer; font-weight: bold; color: #007AFF;">🔍 Data Debug Info</summary>
                         <div style="margin-top: 10px; font-size: 12px;">
-                            <p><strong>API 數據狀態:</strong></p>
+                            <p><strong>API Data Status:</strong></p>
                             <ul>
-                                <li>Status: ${apiData.status ? apiData.status.length + ' 條記錄' : '無數據'}</li>
-                                <li>Elections: ${apiData.elections ? apiData.elections.length + ' 條記錄' : '無數據'}</li>
-                                <li>Yield: ${apiData.yield ? apiData.yield.length + ' 條記錄' : '無數據'}</li>
-                                <li>Transactions: ${apiData.transactions_amounts ? apiData.transactions_amounts.length + ' 條記錄' : '無數據'}</li>
+                                <li>Status: ${apiData.status ? apiData.status.length + ' records' : 'No data'}</li>
+                                <li>Elections: ${apiData.elections ? apiData.elections.length + ' records' : 'No data'}</li>
+                                <li>Yield: ${apiData.yield ? apiData.yield.length + ' records' : 'No data'}</li>
+                                <li>Transactions: ${apiData.transactions_amounts ? apiData.transactions_amounts.length + ' records' : 'No data'}</li>
                             </ul>
                             ${apiData.elections && apiData.elections.length > 0 ? `
-                            <p><strong>選舉數據樣本:</strong></p>
+                            <p><strong>Election Data Sample:</strong></p>
                             <pre style="background: #f8f9fa; padding: 10px; border-radius: 8px; overflow-x: auto; font-size: 11px;">${JSON.stringify(apiData.elections[0], null, 2)}</pre>
                             ` : ''}
                             ${apiData.yield && apiData.yield.length > 0 ? `
-                            <p><strong>收益數據樣本:</strong></p>
+                            <p><strong>Yield Data Sample:</strong></p>
                             <pre style="background: #f8f9fa; padding: 10px; border-radius: 8px; overflow-x: auto; font-size: 11px;">${JSON.stringify(apiData.yield[0], null, 2)}</pre>
                             ` : ''}
                         </div>
@@ -2257,18 +2257,18 @@
 
         container.innerHTML = html;
         
-        // 渲染圖表
+        // Render charts
         renderCountChart();
     };
 
-    // 渲染網絡基礎統計
+    // Render network basic statistics
     const renderNetworkStats = () => {
         const networkStatsContainer = document.getElementById('networkStatsContainer');
         if (!networkStatsContainer) return;
         
         let html = '';
         
-        // 網絡狀態統計
+        // Network status statistics
         if (apiData.status && apiData.status.length > 0) {
             const latest = apiData.status[apiData.status.length - 1];
             const totalSupply = formatTON(latest.total_supply);
@@ -2277,24 +2277,24 @@
             
             html += `
                 <div class="stat-card">
-                    <h3>💰 總供應量</h3>
+                    <h3>💰 Total Supply</h3>
                     <div class="value">${totalSupply} TON</div>
-                    <div class="description">當前 TON 總供應量</div>
+                    <div class="description">Current TON total supply</div>
                 </div>
                 <div class="stat-card">
-                    <h3>🔄 流通供應量</h3>
+                    <h3>🔄 Circulating Supply</h3>
                     <div class="value">${circulatingSupply} TON</div>
-                    <div class="description">市場流通的 TON 數量</div>
+                    <div class="description">Market circulating TON amount</div>
                 </div>
                 <div class="stat-card">
-                    <h3>👥 總帳戶數</h3>
+                    <h3>👥 Total Accounts</h3>
                     <div class="value">${accounts}</div>
-                    <div class="description">TON 網絡總帳戶數量</div>
+                    <div class="description">Total TON network accounts</div>
                 </div>
             `;
         }
         
-        // 交易統計
+        // Transaction statistics
         if (apiData.transactions_amounts && apiData.transactions_amounts.length > 0) {
             const recent = apiData.transactions_amounts.slice(-7);
             const totalAmount = recent.reduce((sum, item) => sum + parseFloat(item.sum_transactions_amounts), 0);
@@ -2302,14 +2302,14 @@
             
             html += `
                 <div class="stat-card">
-                    <h3>💸 7天交易總額</h3>
+                    <h3>💸 7-Day Total Transactions</h3>
                     <div class="value">${formatTON(totalAmount)} TON</div>
-                    <div class="description">過去7天的交易總金額</div>
+                    <div class="description">Total transaction amount in past 7 days</div>
                 </div>
                 <div class="stat-card">
-                    <h3>📊 日均交易額</h3>
+                    <h3>📊 Daily Average Transactions</h3>
                     <div class="value">${formatTON(avgDaily)} TON</div>
-                    <div class="description">每日平均交易金額</div>
+                    <div class="description">Daily average transaction amount</div>
                 </div>
             `;
         }
@@ -2317,7 +2317,7 @@
         networkStatsContainer.innerHTML = html;
     };
 
-    // 渲染交易數量圖表
+    // Render transaction count chart
     const renderCountChart = () => {
         if (!apiData.transactions_count || !Array.isArray(apiData.transactions_count)) return;
         
@@ -2327,14 +2327,14 @@
         const labels = filteredData.map(item => formatDate(item.date));
         const datasets = [
             {
-                label: '總交易數',
+                label: 'Total Transactions',
                 data: filteredData.map(item => item.transactions_count || 0),
                 borderColor: '#17a2b8',
                 backgroundColor: 'rgba(23, 162, 184, 0.1)',
                 tension: 0.4
             },
             {
-                label: '用戶交易數',
+                label: 'User Transactions',
                 data: filteredData.map(item => item.users_transactions_count || 0),
                 borderColor: '#6f42c1',
                 backgroundColor: 'rgba(111, 66, 193, 0.1)',
@@ -2345,12 +2345,12 @@
         updateChart('count', null, labels, datasets);
     };
 
-    // 渲染狀態數據
+            // Render status data
     const renderStatusData = () => {
         const container = document.getElementById('statusData');
         
         if (!apiData.status || !Array.isArray(apiData.status)) {
-            container.innerHTML = '<div class="error-message">狀態數據載入失敗</div>';
+            container.innerHTML = '<div class="error-message">Failed to load status data</div>';
             return;
         }
 
@@ -2366,19 +2366,19 @@
         
         let html = `
             <div class="success-message">
-                載入了 ${filteredData.length} 天的網絡狀態數據
+                Loaded ${filteredData.length} days of network status data
             </div>
             <div class="metric-grid">
                 <div class="metric-item">
-                    <div class="metric-label">帳戶增長 (${days}天)</div>
+                    <div class="metric-label">Account Growth (${days} days)</div>
                     <div class="metric-value">+${formatNumber(accountGrowth)}</div>
                 </div>
                 <div class="metric-item">
-                    <div class="metric-label">供應量增長 (${days}天)</div>
+                    <div class="metric-label">Supply Growth (${days} days)</div>
                     <div class="metric-value">+${formatTON(supplyGrowth)} TON</div>
                 </div>
                 <div class="metric-item">
-                    <div class="metric-label">流通比例</div>
+                    <div class="metric-label">Circulation Ratio</div>
                     <div class="metric-value">${((parseFloat(latest.circulating_supply) / parseFloat(latest.total_supply)) * 100).toFixed(1)}%</div>
                 </div>
             </div>
@@ -2386,11 +2386,11 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>日期</th>
-                            <th>總帳戶數</th>
-                            <th>總供應量</th>
-                            <th>流通供應量</th>
-                            <th>質押量</th>
+                            <th>Date</th>
+                            <th>Total Accounts</th>
+                            <th>Total Supply</th>
+                            <th>Circulating Supply</th>
+                            <th>Staked Amount</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -2411,7 +2411,7 @@
         html += '</tbody></table></div>';
         container.innerHTML = html;
         
-        // 渲染圖表
+        // Render chart
         renderStatusChart();
     };
 
@@ -2425,14 +2425,14 @@
         const labels = filteredData.map(item => formatDate(item.date));
         const datasets = [
             {
-                label: '總帳戶數',
+                label: 'Total Accounts',
                 data: filteredData.map(item => item.total_accounts),
                 borderColor: '#007AFF',
                 backgroundColor: 'rgba(0, 122, 255, 0.1)',
                 tension: 0.4
             },
             {
-                label: '總供應量 (TON)',
+                label: 'Total Supply (TON)',
                 data: filteredData.map(item => parseFloat(item.total_supply) / 1e9),
                 borderColor: '#34C759',
                 backgroundColor: 'rgba(52, 199, 89, 0.1)',
@@ -2440,7 +2440,7 @@
                 yAxisID: 'y1'
             },
             {
-                label: '流通供應量 (TON)',
+                label: 'Circulating Supply (TON)',
                 data: filteredData.map(item => parseFloat(item.circulating_supply) / 1e9),
                 borderColor: '#FF9500',
                 backgroundColor: 'rgba(255, 149, 0, 0.1)',
@@ -2452,38 +2452,38 @@
         updateChart('status', null, labels, datasets);
     };
 
-    // 渲染交易金額數據
+    // Render transaction amount data
     const renderTransactionAmountsData = () => {
         const container = document.getElementById('transactionAmountsData');
         
         if (!apiData.transactions_amounts || !Array.isArray(apiData.transactions_amounts)) {
-            container.innerHTML = '<div class="error-message">交易金額數據載入失敗</div>';
+            container.innerHTML = '<div class="error-message">Failed to load transaction amount data</div>';
             return;
         }
 
         const days = currentFilters.amounts;
         const filteredData = apiData.transactions_amounts.slice(-days);
         
-        // 計算統計
+        // Calculate statistics
         const totalAmount = filteredData.reduce((sum, item) => sum + parseFloat(item.sum_transactions_amounts), 0);
         const avgDaily = totalAmount / filteredData.length;
         const maxDaily = Math.max(...filteredData.map(item => parseFloat(item.sum_transactions_amounts)));
         
         let html = `
             <div class="success-message">
-                載入了 ${filteredData.length} 天的交易金額數據
+                Loaded ${filteredData.length} days of transaction amount data
             </div>
             <div class="metric-grid">
                 <div class="metric-item">
-                    <div class="metric-label">總交易額 (${days}天)</div>
+                    <div class="metric-label">Total Transaction Amount (${days} days)</div>
                     <div class="metric-value">${formatTON(totalAmount)} TON</div>
                 </div>
                 <div class="metric-item">
-                    <div class="metric-label">日均交易額</div>
+                    <div class="metric-label">Daily Average</div>
                     <div class="metric-value">${formatTON(avgDaily)} TON</div>
                 </div>
                 <div class="metric-item">
-                    <div class="metric-label">單日最高</div>
+                    <div class="metric-label">Single Day Peak</div>
                     <div class="metric-value">${formatTON(maxDaily)} TON</div>
                 </div>
             </div>
@@ -2491,9 +2491,9 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>日期</th>
-                            <th>交易總額 (TON)</th>
-                            <th>佔比</th>
+                            <th>Date</th>
+                            <th>Transaction Amount (TON)</th>
+                            <th>Percentage</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -2515,11 +2515,11 @@
         html += '</tbody></table></div>';
         container.innerHTML = html;
         
-        // 渲染圖表
+        // Render chart
         renderAmountsChart();
     };
 
-    // 渲染交易金額圖表
+    // Render transaction amount chart
     const renderAmountsChart = () => {
         if (!apiData.transactions_amounts || !Array.isArray(apiData.transactions_amounts)) return;
         
@@ -2529,7 +2529,7 @@
         const labels = filteredData.map(item => formatDate(item.date));
         const datasets = [
             {
-                label: '日交易總額 (TON)',
+                label: 'Daily Transaction Amount (TON)',
                 data: filteredData.map(item => parseFloat(item.sum_transactions_amounts) / 1e9),
                 borderColor: '#FF3B30',
                 backgroundColor: 'rgba(255, 59, 48, 0.1)',
@@ -2540,17 +2540,17 @@
         updateChart('amounts', null, labels, datasets);
     };
 
-    // 渲染交易數量數據
+    // Render transaction count data
     const renderTransactionCountData = () => {
         const container = document.getElementById('transactionCountData');
         
         if (!apiData.transactions_count) {
-            container.innerHTML = '<div class="error-message">交易數量數據載入失敗 - API 無響應或暫時不可用</div>';
+            container.innerHTML = '<div class="error-message">Failed to load transaction count data - API no response or temporarily unavailable</div>';
             return;
         }
         
         if (!Array.isArray(apiData.transactions_count) || apiData.transactions_count.length === 0) {
-            container.innerHTML = '<div class="error-message">交易數量數據為空或格式不正確</div>';
+            container.innerHTML = '<div class="error-message">Transaction count data is empty or format is incorrect</div>';
             return;
         }
 
@@ -2558,13 +2558,13 @@
         const filteredData = apiData.transactions_count.slice(-count);
         const latest = filteredData[filteredData.length - 1];
         
-        // 計算統計數據
+        // Calculate statistics
         const totalTransactions = filteredData.reduce((sum, item) => sum + (item.transactions_count || 0), 0);
         const totalUsers = filteredData.reduce((sum, item) => sum + (item.users_transactions_count || 0), 0);
         const avgDaily = Math.round(totalTransactions / filteredData.length);
         const avgUsers = Math.round(totalUsers / filteredData.length);
         
-        // 計算趨勢
+        // Calculate trend
         const recent7Days = filteredData.slice(-7);
         const previous7Days = filteredData.slice(-14, -7);
         const recentAvg = recent7Days.reduce((sum, item) => sum + (item.transactions_count || 0), 0) / recent7Days.length;
@@ -2573,23 +2573,23 @@
         
         let html = `
             <div class="success-message">
-                載入了 ${filteredData.length} 天交易數量數據
+                Loaded ${filteredData.length} days of transaction count data
             </div>
             <div class="metric-grid">
                 <div class="metric-item">
-                    <div class="metric-label">最新日交易量</div>
+                    <div class="metric-label">Latest Daily Volume</div>
                     <div class="metric-value">${formatNumber(latest.transactions_count)}</div>
                 </div>
                 <div class="metric-item">
-                    <div class="metric-label">最新用戶交易量</div>
+                    <div class="metric-label">Latest User Volume</div>
                     <div class="metric-value">${formatNumber(latest.users_transactions_count)}</div>
                 </div>
                 <div class="metric-item">
-                    <div class="metric-label">平均日交易量</div>
+                    <div class="metric-label">Average Daily Volume</div>
                     <div class="metric-value">${formatNumber(avgDaily)}</div>
                 </div>
                 <div class="metric-item">
-                    <div class="metric-label">7日趨勢</div>
+                    <div class="metric-label">7-Day Trend</div>
                     <div class="metric-value ${trendPercent >= 0 ? 'trend-up' : 'trend-down'}">
                         ${trendPercent >= 0 ? '↗' : '↘'} ${formatNumber(Math.abs(recentAvg - previousAvg))}
                     </div>
@@ -2599,22 +2599,22 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>日期</th>
-                            <th>總交易數</th>
-                            <th>用戶交易數</th>
-                            <th>交易密度</th>
+                            <th>Date</th>
+                            <th>Total Transactions</th>
+                            <th>User Transactions</th>
+                            <th>Transaction Density</th>
                         </tr>
                     </thead>
                     <tbody>
         `;
         
         filteredData.reverse().forEach((day) => {
-            const date = new Date(day.date).toLocaleDateString('zh-TW');
+            const date = new Date(day.date).toLocaleDateString('en-US');
             const transactionCount = day.transactions_count || 0;
             const userCount = day.users_transactions_count || 0;
             const density = userCount > 0 ? (transactionCount / userCount).toFixed(2) : '0';
             
-            // 判斷是否為高交易日（超過平均值1.5倍）
+            // Determine if it's a high transaction day (exceeds 1.5x average)
             const isHighVolume = transactionCount > avgDaily * 1.5;
             
             html += `
@@ -2624,7 +2624,7 @@
                     <td>${formatNumber(userCount)}</td>
                     <td>
                         <span class="badge ${isHighVolume ? 'badge-warning' : 'badge-info'}">
-                            ${density} tx/用戶
+                            ${density} tx/user
                         </span>
                     </td>
                 </tr>
@@ -2633,15 +2633,15 @@
         
         html += '</tbody></table></div>';
         
-        // 添加統計摘要
+        // Add statistics summary
         html += `
             <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                <h4 style="margin: 0 0 10px 0; color: #333;">統計摘要 (${filteredData.length} 天)</h4>
+                <h4 style="margin: 0 0 10px 0; color: #333;">Statistics Summary (${filteredData.length} days)</h4>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
-                    <div>📊 總交易數: <strong>${formatNumber(totalTransactions)}</strong></div>
-                    <div>👥 總用戶交易: <strong>${formatNumber(totalUsers)}</strong></div>
-                    <div>📈 日均交易: <strong>${formatNumber(avgDaily)}</strong></div>
-                    <div>🎯 日均用戶: <strong>${formatNumber(avgUsers)}</strong></div>
+                    <div>📊 Total Transactions: <strong>${formatNumber(totalTransactions)}</strong></div>
+                    <div>👥 Total User Transactions: <strong>${formatNumber(totalUsers)}</strong></div>
+                    <div>📈 Daily Average: <strong>${formatNumber(avgDaily)}</strong></div>
+                    <div>🎯 Daily Average Users: <strong>${formatNumber(avgUsers)}</strong></div>
                 </div>
             </div>
         `;
@@ -2649,19 +2649,19 @@
         container.innerHTML = html;
     };
 
-    // 渲染收益數據
+    // Render yield data
     const renderYieldData = () => {
         const container = document.getElementById('yieldData');
         
         if (!apiData.yield || !Array.isArray(apiData.yield)) {
-            container.innerHTML = '<div class="error-message">收益數據載入失敗</div>';
+            container.innerHTML = '<div class="error-message">Failed to load yield data</div>';
             return;
         }
 
         const days = currentFilters.yield;
         const filteredData = apiData.yield.slice(-days);
         
-        // 計算統計
+        // Calculate statistics
         const yields = filteredData.map(item => parseFloat(item.annual_percent_yld) * 100);
         const avgYield = yields.reduce((sum, y) => sum + y, 0) / yields.length;
         const maxYield = Math.max(...yields);
@@ -2670,23 +2670,23 @@
         
         let html = `
             <div class="success-message">
-                載入了 ${filteredData.length} 條收益記錄
+                Loaded ${filteredData.length} yield records
             </div>
             <div class="metric-grid">
                 <div class="metric-item">
-                    <div class="metric-label">當前收益率</div>
+                    <div class="metric-label">Current Yield Rate</div>
                     <div class="metric-value">${latestYield.toFixed(2)}%</div>
                 </div>
                 <div class="metric-item">
-                    <div class="metric-label">平均收益率 (${days}天)</div>
+                    <div class="metric-label">Average Yield Rate (${days} days)</div>
                     <div class="metric-value">${avgYield.toFixed(2)}%</div>
                 </div>
                 <div class="metric-item">
-                    <div class="metric-label">最高收益率</div>
+                    <div class="metric-label">Highest Yield Rate</div>
                     <div class="metric-value">${maxYield.toFixed(2)}%</div>
                 </div>
                 <div class="metric-item">
-                    <div class="metric-label">最低收益率</div>
+                    <div class="metric-label">Lowest Yield Rate</div>
                     <div class="metric-value">${minYield.toFixed(2)}%</div>
                 </div>
             </div>
@@ -2694,10 +2694,10 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>日期</th>
-                            <th>質押量 (TON)</th>
-                            <th>獎勵 (TON)</th>
-                            <th>年化收益率</th>
+                            <th>Date</th>
+                            <th>Staked Amount (TON)</th>
+                            <th>Rewards (TON)</th>
+                            <th>Annual Yield Rate</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -2718,30 +2718,30 @@
         
         html += '</tbody></table></div>';
         
-        // 添加APY分析摘要
+        // Add APY analysis summary
         const yieldRange = maxYield - minYield;
         const yieldVariation = (yieldRange / avgYield * 100).toFixed(2);
-        const yieldTrend = latestYield > avgYield ? '上升' : latestYield < avgYield ? '下降' : '穩定';
+        const yieldTrend = latestYield > avgYield ? 'Rising' : latestYield < avgYield ? 'Falling' : 'Stable';
         const trendEmoji = latestYield > avgYield ? '📈' : latestYield < avgYield ? '📉' : '➡️';
         
         html += `
             <div class="chart-info">
-                <h4>📈 APY 收益率分析 (${days}天)</h4>
-                <p><strong>數據範圍:</strong> ${minYield.toFixed(2)}% - ${maxYield.toFixed(2)}%</p>
-                <p><strong>平均值:</strong> ${avgYield.toFixed(2)}%</p>
-                <p><strong>變化幅度:</strong> ${yieldRange.toFixed(2)}%</p>
-                <p><strong>當前趨勢:</strong> ${trendEmoji} ${yieldTrend} (當前: ${latestYield.toFixed(2)}% vs 平均: ${avgYield.toFixed(2)}%)</p>
-                <p><strong>穩定性:</strong> ${yieldVariation < 5 ? '🟢 非常穩定' : yieldVariation < 15 ? '🟡 適度波動' : '🔴 大幅波動'}</p>
+                <h4>📈 APY Yield Rate Analysis (${days} days)</h4>
+                <p><strong>Data Range:</strong> ${minYield.toFixed(2)}% - ${maxYield.toFixed(2)}%</p>
+                <p><strong>Average:</strong> ${avgYield.toFixed(2)}%</p>
+                <p><strong>Change Range:</strong> ${yieldRange.toFixed(2)}%</p>
+                <p><strong>Current Trend:</strong> ${trendEmoji} ${yieldTrend} (Current: ${latestYield.toFixed(2)}% vs Average: ${avgYield.toFixed(2)}%)</p>
+                <p><strong>Stability:</strong> ${yieldVariation < 5 ? '🟢 Very Stable' : yieldVariation < 15 ? '🟡 Moderate Fluctuation' : '🔴 High Volatility'}</p>
             </div>
         `;
         
         container.innerHTML = html;
         
-        // 渲染圖表
+        // Render chart
         renderYieldChart();
     };
 
-    // 渲染收益圖表
+    // Render yield chart
     const renderYieldChart = () => {
         if (!apiData.yield || !Array.isArray(apiData.yield)) return;
         
@@ -2751,14 +2751,14 @@
         const labels = filteredData.map(item => formatDateTime(item.date));
         const datasets = [
             {
-                label: '年化收益率 (%)',
+                label: 'Annual Yield Rate (%)',
                 data: filteredData.map(item => parseFloat(item.annual_percent_yld) * 100),
                 borderColor: '#FF9500',
                 backgroundColor: 'rgba(255, 149, 0, 0.1)',
                 tension: 0.4
             },
             {
-                label: '質押量 (TON)',
+                label: 'Staked Amount (TON)',
                 data: filteredData.map(item => parseFloat(item.staked) / 1e9),
                 borderColor: '#20c997',
                 backgroundColor: 'rgba(32, 201, 151, 0.1)',
@@ -2770,38 +2770,38 @@
         updateChart('yield', null, labels, datasets);
     };
 
-    // 渲染選舉數據
+    // Render election data
     const renderElectionData = () => {
         const container = document.getElementById('electionData');
         
         if (!apiData.elections) {
-            container.innerHTML = '<div class="error-message">選舉數據載入失敗 - API 無響應或暫時不可用</div>';
+            container.innerHTML = '<div class="error-message">Failed to load election data - API no response or temporarily unavailable</div>';
             return;
         }
         
         if (!Array.isArray(apiData.elections) || apiData.elections.length === 0) {
-            container.innerHTML = '<div class="error-message">選舉數據為空或格式不正確</div>';
+            container.innerHTML = '<div class="error-message">Election data is empty or format is incorrect</div>';
             return;
         }
 
         const count = currentFilters.elections;
         const filteredData = apiData.elections.slice(-count);
         
-        // 分析數據結構
+        // Analyze data structure
         const firstItem = filteredData[0];
-        console.log('選舉數據結構:', firstItem);
+        console.log('Election data structure:', firstItem);
         
         let html = `
             <div class="success-message">
-                載入了 ${filteredData.length} 條選舉記錄
+                Loaded ${filteredData.length} election records
             </div>
             <div class="metric-grid">
                 <div class="metric-item">
-                    <div class="metric-label">總選舉次數</div>
+                    <div class="metric-label">Total Elections</div>
                     <div class="metric-value">${apiData.elections.length}</div>
                 </div>
                 <div class="metric-item">
-                    <div class="metric-label">顯示記錄</div>
+                    <div class="metric-label">Displayed Records</div>
                     <div class="metric-value">${filteredData.length}</div>
                 </div>
             </div>
@@ -2809,28 +2809,28 @@
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>選舉 ID</th>
-                            <th>時間</th>
-                            <th>狀態</th>
-                            <th>詳細信息</th>
+                            <th>Election ID</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                            <th>Details</th>
                         </tr>
                     </thead>
                     <tbody>
         `;
         
         filteredData.reverse().forEach((election, index) => {
-            // 嘗試從不同的字段獲取信息
+            // Try to get information from different fields
             const electionId = election.id || election.election_id || election.cycle_id || `#${filteredData.length - index}`;
             const date = election.date || election.timestamp || election.time || 'Unknown';
             const status = election.status || election.state || 'Active';
             
-            // 嘗試獲取更多信息
+            // Try to get more information
             const validators = election.validators || election.validator_count || election.participants;
             const stakes = election.total_stake || election.stake_sum || election.stakes;
             
             let details = [];
-            if (validators) details.push(`驗證器: ${formatNumber(validators)}`);
-            if (stakes) details.push(`總質押: ${formatTON(stakes)} TON`);
+            if (validators) details.push(`Validators: ${formatNumber(validators)}`);
+            if (stakes) details.push(`Total Stake: ${formatTON(stakes)} TON`);
             
             const detailText = details.length > 0 ? details.join(' | ') : 'N/A';
             
@@ -2846,17 +2846,17 @@
         
         html += '</tbody></table></div>';
         
-        // 如果數據結構未知，顯示原始數據
+        // If data structure is unknown, show raw data
         if (filteredData.length > 0) {
             html += `
                 <details style="margin-top: 20px;">
-                    <summary style="cursor: pointer; font-weight: bold;">顯示原始數據結構 (調試用)</summary>
+                    <summary style="cursor: pointer; font-weight: bold;">Show Raw Data Structure (Debug)</summary>
                     <pre style="background: #f8f9fa; padding: 15px; border-radius: 8px; overflow-x: auto; margin-top: 10px;">${JSON.stringify(filteredData[0], null, 2)}</pre>
                 </details>
             `;
         }
         
-        // 添加重要數據摘要
+        // Add important data summary
         if (filteredData.length > 0) {
             const validatorData = filteredData.map(item => item.validators || 0).filter(v => v > 0);
             const stakeData = filteredData.map(item => parseFloat(item.total_stake || 0) / 1e9).filter(s => s > 0);
@@ -2869,11 +2869,11 @@
                 
                 html += `
                     <div class="chart-info">
-                        <h4>📊 驗證器數量分析 (${currentFilters.elections}天)</h4>
-                        <p><strong>數據範圍:</strong> ${minValidators} - ${maxValidators} 個驗證器</p>
-                        <p><strong>平均值:</strong> ${avgValidators} 個驗證器</p>
-                        <p><strong>變化幅度:</strong> ${validatorRange} 個驗證器</p>
-                        <p><strong>穩定性:</strong> ${validatorRange < 10 ? '🟢 非常穩定' : validatorRange < 20 ? '🟡 較為穩定' : '🔴 變化較大'}</p>
+                        <h4>📊 Validator Count Analysis (${currentFilters.elections} days)</h4>
+                        <p><strong>Data Range:</strong> ${minValidators} - ${maxValidators} validators</p>
+                        <p><strong>Average:</strong> ${avgValidators} validators</p>
+                                        <p><strong>Change Range:</strong> ${validatorRange} validators</p>
+                <p><strong>Stability:</strong> ${validatorRange < 10 ? '🟢 Very Stable' : validatorRange < 20 ? '🟡 Moderately Stable' : '🔴 High Variation'}</p>
                     </div>
                 `;
             }
@@ -2887,11 +2887,11 @@
                 
                 html += `
                     <div class="chart-info">
-                        <h4>💰 總質押量分析 (${currentFilters.elections}天)</h4>
-                        <p><strong>數據範圍:</strong> ${formatTON(minStake)} - ${formatTON(maxStake)} TON</p>
-                        <p><strong>平均值:</strong> ${formatTON(avgStake)} TON</p>
-                        <p><strong>變化幅度:</strong> ${formatTON(stakeRange)} TON</p>
-                        <p><strong>趨勢:</strong> ${stakeVariation < 5 ? '🟢 穩定增長' : stakeVariation < 10 ? '🟡 適度波動' : '🔴 大幅波動'}</p>
+                        <h4>💰 Total Stake Analysis (${currentFilters.elections} days)</h4>
+                        <p><strong>Data Range:</strong> ${formatTON(minStake)} - ${formatTON(maxStake)} TON</p>
+                        <p><strong>Average:</strong> ${formatTON(avgStake)} TON</p>
+                        <p><strong>Change Range:</strong> ${formatTON(stakeRange)} TON</p>
+                        <p><strong>Trend:</strong> ${stakeVariation < 5 ? '🟢 Stable Growth' : stakeVariation < 10 ? '🟡 Moderate Fluctuation' : '🔴 High Volatility'}</p>
                     </div>
                 `;
             }
@@ -2910,16 +2910,16 @@
         const count = currentFilters.elections;
         const filteredData = apiData.elections.slice(-count);
         
-        // 嘗試提取有用的數據
-        const labels = filteredData.map((item, index) => `選舉 #${index + 1}`);
+        // Try to extract useful data
+        const labels = filteredData.map((item, index) => `Election #${index + 1}`);
         
-        // 根據數據結構動態創建數據集
+        // Dynamically create datasets based on data structure
         const datasets = [];
         
-        // 嘗試提取驗證器數量
+        // Try to extract validator count
         if (filteredData[0] && filteredData[0].validators !== undefined) {
             datasets.push({
-                label: '驗證器數量',
+                label: 'Validator Count',
                 data: filteredData.map(item => item.validators || 0),
                 borderColor: '#e83e8c',
                 backgroundColor: 'rgba(232, 62, 140, 0.1)',
@@ -2927,10 +2927,10 @@
             });
         }
         
-        // 嘗試提取質押量
+        // Try to extract stake amount
         if (filteredData[0] && filteredData[0].total_stake !== undefined) {
             datasets.push({
-                label: '總質押量',
+                label: 'Total Stake',
                 data: filteredData.map(item => parseFloat(item.total_stake || 0) / 1e9),
                 borderColor: '#6c757d',
                 backgroundColor: 'rgba(108, 117, 125, 0.1)',
@@ -2938,10 +2938,10 @@
             });
         }
         
-        // 如果沒有找到特定字段，使用索引作為數據
+        // If no specific fields found, use index as data
         if (datasets.length === 0) {
             datasets.push({
-                label: '選舉索引',
+                label: 'Election Index',
                 data: filteredData.map((item, index) => index + 1),
                 borderColor: '#007bff',
                 backgroundColor: 'rgba(0, 123, 255, 0.1)',
@@ -2952,17 +2952,17 @@
         updateChart('elections', null, labels, datasets);
     };
 
-    // 過濾數據
+    // Filter data
     const filterData = (type, period) => {
-        // 更新按鈕狀態
+        // Update button status
         const buttons = document.querySelectorAll(`[onclick*="${type}"]`);
         buttons.forEach(btn => btn.classList.remove('active'));
         event.target.classList.add('active');
         
-        // 更新過濾器
+        // Update filter
         currentFilters[type] = period;
         
-        // 重新渲染對應的數據
+        // Re-render corresponding data
         switch(type) {
             case 'status':
                 renderStatusData();
@@ -2982,7 +2982,7 @@
         }
     };
 
-    // 渲染所有數據
+    // Render all data
     const renderAllData = () => {
         renderStatsCards();
         renderNetworkStats();
@@ -2993,23 +2993,23 @@
         renderElectionData();
     };
 
-    // 初始化應用
+    // Initialize application
     const initializeApp = async () => {
-        console.log('🚀 初始化 TON Tech Dashboard...');
+        console.log('🚀 Initializing TON Tech Dashboard...');
         
         try {
             await loadAllApiData();
-            console.log('✅ TON Tech Dashboard 初始化完成');
+            console.log('✅ TON Tech Dashboard initialization completed');
         } catch (error) {
-            console.error('❌ 初始化失敗:', error);
-            showApiStatus('初始化失敗: ' + error.message, true);
+            console.error('❌ Initialization failed:', error);
+            showApiStatus('Initialization failed: ' + error.message, true);
         }
     };
 
-    // 頁面載入完成後初始化
+    // Initialize after page load
     document.addEventListener('DOMContentLoaded', initializeApp);
 
-    // 定期更新數據（每 5 分鐘）
+    // Update data periodically (every 5 minutes)
     setInterval(loadAllApiData, 5 * 60 * 1000);
 </script>
 

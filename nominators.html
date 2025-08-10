@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-TW" translate="no">
+<html lang="en" translate="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
           content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
-    <title>Nominator Pool 1.0 資金提供者 - TON Dashboard</title>
+    <title>Nominator Pool 1.0 Providers - TON Dashboard</title>
 
     <style>
         * {
@@ -23,7 +23,7 @@
             scroll-behavior: smooth;
         }
         
-        /* macOS 風格滾動條 */
+        /* macOS style scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -286,11 +286,11 @@
             background: transparent;
         }
         
-        /* 表格列寬優化 */
+        /* Table column width optimization */
         th:nth-child(1), td:nth-child(1) { width: 60px; } /* ID */
-        th:nth-child(2), td:nth-child(2) { width: 400px; } /* 地址 */
-        th:nth-child(3), td:nth-child(3) { width: 150px; } /* 質押量 */
-        th:nth-child(4), td:nth-child(4) { width: 100px; } /* 操作 */
+        th:nth-child(2), td:nth-child(2) { width: 400px; } /* Address */
+        th:nth-child(3), td:nth-child(3) { width: 150px; } /* Stake */
+        th:nth-child(4), td:nth-child(4) { width: 100px; } /* Actions */
 
         thead {
             background: rgba(248, 249, 250, 0.8);
@@ -341,7 +341,7 @@
             vertical-align: top;
         }
         
-        /* 地址列特殊處理 */
+        /* Address column special handling */
         td:nth-child(2) {
             white-space: normal;
             word-break: break-all;
@@ -350,7 +350,7 @@
             line-height: 1.3;
         }
         
-        /* 其他列保持不換行 */
+        /* Other columns keep no line break */
         td:nth-child(1), td:nth-child(3), td:nth-child(4) {
             white-space: nowrap;
         }
@@ -359,7 +359,7 @@
             background-color: rgba(0, 122, 255, 0.02);
         }
         
-        /* 表格行交替背景 */
+        /* Table row alternating background */
         tbody tr:nth-child(even) {
             background-color: rgba(248, 249, 250, 0.3);
         }
@@ -368,14 +368,14 @@
             background-color: rgba(0, 122, 255, 0.04);
         }
         
-        /* 表格邊框優化 */
+        /* Table border optimization */
         table {
             border: 1px solid rgba(0, 0, 0, 0.08);
             border-radius: 12px;
             overflow: hidden;
         }
         
-        /* 表格容器優化 */
+        /* Table container optimization */
         #tableContainer {
             padding: 20px;
         }
@@ -385,7 +385,7 @@
             font-size: 11px;
         }
         
-        /* 地址顯示優化 */
+        /* Address display optimization */
         .address-cell {
             font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
             font-size: 11px;
@@ -394,7 +394,7 @@
             overflow-wrap: break-word;
         }
         
-        /* 操作按鈕樣式 */
+        /* Action button styles */
         .detail-link {
             background: linear-gradient(135deg, #007AFF, #5856D6);
             color: white;
@@ -527,7 +527,7 @@
             color: #0056CC;
         }
 
-        /* 響應式設計優化 */
+        /* Responsive design optimization */
         @media (max-width: 1500px) {
             .container {
                 max-width: 1200px;
@@ -552,7 +552,7 @@
             body {
                 padding: 0;
                 background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-                /* iPhone 安全區域支援 */
+                /* iPhone safe area support */
                 padding-left: env(safe-area-inset-left);
                 padding-right: env(safe-area-inset-right);
                 padding-bottom: env(safe-area-inset-bottom);
@@ -564,7 +564,7 @@
                 border-radius: 0;
                 box-shadow: none;
                 background: rgba(255, 255, 255, 0.95);
-                /* iPhone 安全區域支援 */
+                /* iPhone safe area support */
                 padding-top: env(safe-area-inset-top);
             }
             
@@ -572,7 +572,7 @@
                 padding: 24px 20px;
                 position: relative;
                 border-radius: 0;
-                /* 改善 iPhone 上的視覺效果 */
+                /* Improve visual effects on iPhone */
                 background: linear-gradient(135deg, rgba(0, 122, 255, 0.95) 0%, rgba(88, 86, 214, 0.95) 100%);
             }
             
@@ -609,7 +609,7 @@
                 align-items: center;
                 justify-content: center;
                 font-weight: 600;
-                /* 改善觸控反饋 */
+                /* Improve touch feedback */
                 transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             }
             
@@ -629,7 +629,7 @@
                 padding: 20px;
                 min-height: 120px;
                 border-radius: 16px;
-                /* 改善觸控體驗 */
+                /* Improve touch experience */
                 touch-action: manipulation;
             }
             
@@ -671,9 +671,9 @@
                 font-size: 16px;
                 border-radius: 16px;
                 touch-action: manipulation;
-                /* 防止 iOS 縮放 */
+                /* Prevent iOS zoom */
                 font-size: 16px;
-                /* 改善觸控體驗 */
+                /* Improve touch experience */
                 transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             }
             
@@ -689,7 +689,7 @@
                 border-radius: 12px;
             }
             
-            /* 表格在手機上使用卡片布局 */
+            /* Use card layout for tables on mobile */
             #tableContainer {
                 padding: 20px;
                 background: rgba(255, 255, 255, 0.95);
@@ -703,13 +703,13 @@
                 display: block;
             }
             
-            /* 隱藏桌面版表格，顯示移動端卡片 */
+            /* Hide desktop table, show mobile cards */
             .mobile-card {
                 display: block;
             }
         }
         
-        /* 桌面端隱藏移動端卡片 */
+                    /* Hide mobile cards on desktop */
         @media (min-width: 769px) {
             .mobile-table {
                 display: none;
@@ -731,7 +731,7 @@
             border: 1px solid rgba(255, 255, 255, 0.3);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             touch-action: manipulation;
-            /* 改善觸控體驗 */
+                            /* Improve touch experience */
             position: relative;
             overflow: hidden;
         }
@@ -948,7 +948,7 @@
             }
         }
         
-        /* iPhone 安全區域支援 - 更完整的實現 */
+        /* iPhone safe area support - more complete implementation */
         @supports (padding: max(0px)) {
             @media (max-width: 768px) {
                 body {
@@ -961,22 +961,22 @@
                     padding-top: max(0px, env(safe-area-inset-top));
                 }
                 
-                /* 確保內容不被安全區域遮擋 */
+                /* Ensure content is not blocked by safe area */
                 .header {
                     padding-top: max(24px, env(safe-area-inset-top) + 12px);
                     padding-bottom: max(24px, env(safe-area-inset-bottom) + 12px);
                 }
                 
-                /* 底部按鈕區域的安全區域支援 */
+                /* Safe area support for bottom button area */
                 .nav-buttons {
                     padding-bottom: max(0px, env(safe-area-inset-bottom));
                 }
             }
         }
         
-        /* 觸控優化 - 更完整的實現 */
+        /* Touch optimization - more complete implementation */
         @media (max-width: 768px) {
-            /* 確保所有可點擊元素都有足夠的觸控區域 */
+            /* Ensure all clickable elements have sufficient touch area */
             .start {
                 min-height: 48px;
                 min-width: 48px;
@@ -1009,38 +1009,38 @@
             .nav-button {
                 min-height: 52px;
                 touch-action: manipulation;
-                /* 防止雙擊縮放 */
+                /* Prevent double-tap zoom */
                 -webkit-tap-highlight-color: transparent;
             }
             
-            /* 改善滾動體驗 */
+            /* Improve scrolling experience */
             .container {
                 -webkit-overflow-scrolling: touch;
                 scroll-behavior: smooth;
             }
             
-            /* 改善輸入框體驗 */
+            /* Improve input field experience */
             .search-input, .filter-select, .cycle-selector {
                 -webkit-appearance: none;
                 -webkit-tap-highlight-color: transparent;
-                /* 防止 iOS 自動縮放 */
+                /* Prevent iOS auto-zoom */
                 font-size: 16px;
             }
             
-            /* 改善表格滾動 */
+            /* Improve table scrolling */
             #tableContainer {
                 -webkit-overflow-scrolling: touch;
                 scroll-behavior: smooth;
             }
         }
         
-        /* 載入動畫優化 */
+        /* Loading animation optimization */
         .loading-overlay {
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
         }
         
-        /* 改善載入動畫在移動端的顯示 */
+        /* Improve loading animation display on mobile */
         @media (max-width: 768px) {
             .loading-overlay {
                 background: rgba(255, 255, 255, 0.95);
@@ -1127,17 +1127,17 @@
 
 <div class="container">
     <div class="header">
-        <h1>Nominator Pool 1.0 資金提供者</h1>
-        <div class="subtitle">TON 網絡質押池資金提供者總覽</div>
+        <h1>Nominator Pool 1.0 Providers</h1>
+        <div class="subtitle">TON Network Staking Pool Providers Overview</div>
         <div class="nav-buttons">
             <a href="index.html" class="nav-button">
-                🏠 驗證器儀表板
+                🏠 Validator Dashboard
             </a>
             <a href="nominators.html" class="nav-button active">
-                📊 Nominator Pool 資金提供者
+                📊 Nominator Pool Providers
             </a>
             <a href="tontech.html" class="nav-button">
-                🔬 TON 技術數據分析
+                🔬 TON Technical Data Analysis
             </a>
             <a href="ktonviewer.html" class="nav-button">
                 🔍 LST Viewer
@@ -1150,12 +1150,12 @@
 
     <div class="controls">
         <div class="search-container">
-            <input id="searchInput" class="search-input" placeholder="搜尋地址或 ID...">
+            <input id="searchInput" class="search-input" placeholder="Search address or ID...">
             <select id="sortSelect" class="filter-select">
-                <option value="total_stake_desc">按質押量排序 (高到低)</option>
-                <option value="total_stake_asc">按質押量排序 (低到高)</option>
-                <option value="address">按地址排序</option>
-                <option value="id">按 ID 排序</option>
+                <option value="total_stake_desc">Sort by Stake (High to Low)</option>
+                <option value="total_stake_asc">Sort by Stake (Low to High)</option>
+                <option value="address">Sort by Address</option>
+                <option value="id">Sort by ID</option>
             </select>
         </div>
     </div>
@@ -1169,7 +1169,7 @@
 </div>
 
 <div class="api-status" id="apiStatus">
-    <div>數據來源: <span class="api-name" id="apiName">載入中...</span></div>
+    <div>Data Source: <span class="api-name" id="apiName">Loading...</span></div>
     <div class="api-performance" id="apiPerformance"></div>
 </div>
 
@@ -1182,7 +1182,7 @@
 </div>
 
 <script>
-    // 輔助函數
+    // Helper functions
     const fromNano = (nano) => {
         return BigInt(nano) / BigInt(1e9);
     }
@@ -1212,26 +1212,26 @@
         document.getElementById('loadingOverlay').style.display = 'none';
     }
 
-    // 全局變量
+    // Global variables
     let nominatorsData = [];
     let filteredData = [];
     let searchText = '';
     let currentSort = 'total_stake_desc';
 
-    // API 狀態更新
+    // API status update
     function updateApiStatus(apiName, responseTime = null) {
         const apiStatus = document.getElementById('apiStatus');
         const apiNameElement = document.getElementById('apiName');
         const apiPerformance = document.getElementById('apiPerformance');
 
-        // 顯示 API 名稱
+        // Display API name
         const displayNames = {
             'getaruai': 'GetAruAI'
         };
         
         apiNameElement.textContent = displayNames[apiName] || apiName;
         
-        // 顯示性能信息
+        // Display performance information
         let performanceText = '';
         if (responseTime !== null) {
             performanceText = `${responseTime.toFixed(0)}ms`;
@@ -1239,16 +1239,16 @@
         
         apiPerformance.textContent = performanceText;
         
-        // 顯示狀態指示器
+        // Display status indicator
         apiStatus.classList.add('show');
         
-        // 3秒後自動隱藏
+        // Auto-hide after 3 seconds
         setTimeout(() => {
             apiStatus.classList.remove('show');
         }, 3000);
     }
 
-    // API 請求
+    // API requests
     async function fetchNominators() {
         const startTime = performance.now();
         try {
@@ -1260,13 +1260,13 @@
                 throw new Error(`API 錯誤: ${response.status}`);
             }
             
-            // 更新 API 狀態
+            // Update API status
             updateApiStatus('getaruai', responseTime);
             
             const data = await response.json();
             return data.nominators || [];
         } catch (error) {
-            console.error('載入 nominators 數據失敗:', error);
+            console.error('Failed to load nominators data:', error);
             throw error;
         }
     }
@@ -1279,12 +1279,12 @@
             }
             return await response.json();
         } catch (error) {
-            console.error('載入 nominator 詳細信息失敗:', error);
+            console.error('Failed to load nominator details:', error);
             throw error;
         }
     }
 
-    // 渲染統計信息
+    // Render statistics
     function renderStats() {
         const totalNominators = nominatorsData.length;
         const totalStake = nominatorsData.reduce((sum, nominator) => sum + BigInt(nominator.total_stake), BigInt(0));
@@ -1296,29 +1296,29 @@
 
         document.getElementById('statsContainer').innerHTML = `
             <div class="stat-card">
-                <h3>總資金提供者數量</h3>
+                <h3>Total Providers</h3>
                 <p class="value">${totalNominators}</p>
             </div>
             <div class="stat-card">
-                <h3>活躍資金提供者</h3>
+                <h3>Active Providers</h3>
                 <p class="value">${activeNominators}</p>
             </div>
             <div class="stat-card">
-                <h3>總質押量</h3>
+                <h3>Total Staked Amount</h3>
                 <p class="value">${toMillionsShort(fromNano(totalStake))} TON</p>
             </div>
             <div class="stat-card">
-                <h3>平均質押量</h3>
+                <h3>Average Stake</h3>
                 <p class="value">${toMillionsShort(fromNano(averageStake))} TON</p>
             </div>
             <div class="stat-card">
-                <h3>最大單筆質押</h3>
+                <h3>Largest Single Stake</h3>
                 <p class="value">${toMillionsShort(fromNano(largestStake))} TON</p>
             </div>
         `;
     }
 
-    // 排序函數
+    // Sorting functions
     function sortNominators(data, sortType) {
         const sorted = [...data];
         
@@ -1336,7 +1336,7 @@
         }
     }
 
-    // 過濾函數
+    // Filter functions
     function filterNominators() {
         let filtered = nominatorsData;
 
@@ -1351,32 +1351,32 @@
         renderTable();
     }
 
-    // 渲染表格
+    // Render table
     function renderTable() {
         const container = document.getElementById('tableContainer');
         
-        // 桌面版表格
+        // Desktop table
         let desktopHtml = `
             <table>
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>地址</th>
-                        <th>質押量 (TON)</th>
-                        <th>操作</th>
+                        <th>Address</th>
+                        <th>Stake (TON)</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
         `;
 
-        // 移動端卡片
+        // Mobile cards
         let mobileHtml = '<div class="mobile-table">';
 
         filteredData.forEach(nominator => {
             const stakeAmount = fromNano(nominator.total_stake);
             const stakeDisplay = Number(stakeAmount) === 0 ? '0' : toMillions(stakeAmount);
             
-            // 桌面版表格行
+            // Desktop table row
             desktopHtml += `
                 <tr>
                     <td>${nominator.nominator_id}</td>
@@ -1384,13 +1384,13 @@
                     <td>${stakeDisplay} TON</td>
                     <td>
                         <a href="#" class="detail-link" onclick="showNominatorDetail('${nominator.nominator_address}'); return false;">
-                            查看詳細
+                            View Details
                         </a>
                     </td>
                 </tr>
             `;
 
-            // 移動端卡片
+            // Mobile card
             mobileHtml += `
                 <div class="mobile-card">
                     <div class="mobile-card-header">
@@ -1401,18 +1401,18 @@
                     </div>
                     <div class="mobile-card-content">
                         <div class="mobile-card-row">
-                            <span class="mobile-card-label">質押量:</span>
+                            <span class="mobile-card-label">Stake:</span>
                             <span class="mobile-card-value">${stakeDisplay} TON</span>
                         </div>
                         <div class="mobile-card-row">
-                            <span class="mobile-card-label">地址:</span>
+                            <span class="mobile-card-label">Address:</span>
                             <span class="mobile-card-value mono">${makeAddressUrl(nominator.nominator_address)}</span>
                         </div>
                         <div class="mobile-card-row">
-                            <span class="mobile-card-label">操作:</span>
+                            <span class="mobile-card-label">Actions:</span>
                             <span class="mobile-card-value">
                                 <button class="detail-btn" onclick="showNominatorDetail('${nominator.nominator_address}')">
-                                    查看詳細
+                                    View Details
                                 </button>
                             </span>
                         </div>
@@ -1431,42 +1431,42 @@
         container.innerHTML = desktopHtml + mobileHtml;
     }
 
-    // 顯示 nominator 詳細信息
+    // Show nominator details
     async function showNominatorDetail(address) {
         showLoading();
         try {
             const detail = await fetchNominatorDetail(address);
             renderNominatorDetail(detail);
         } catch (error) {
-            alert(`載入詳細信息失敗: ${error.message}`);
+            alert(`Failed to load details: ${error.message}`);
         } finally {
             hideLoading();
         }
     }
 
-    // 渲染 nominator 詳細信息
+    // Render nominator details
     function renderNominatorDetail(detail) {
         const modal = document.getElementById('detailModal');
         const content = document.getElementById('modalContent');
 
-        // 計算總質押量和驗證器數量
+        // Calculate total stake and validator count
         const totalStake = detail.rewards ? detail.rewards.reduce((sum, reward) => sum + BigInt(reward.nom_stake), BigInt(0)) : BigInt(0);
         const validatorCount = detail.rewards ? detail.rewards.length : 0;
 
         let html = `
-            <h2>資金提供者詳細信息</h2>
+            <h2>Provider Details</h2>
             <div class="stake-item">
-                <h3>基本信息</h3>
-                <p><strong>地址:</strong> ${makeAddressUrl(detail.nominator_address)}</p>
-                <p><strong>總質押量:</strong> ${toMillions(fromNano(totalStake))} TON</p>
-                <p><strong>分配到驗證器數量:</strong> ${validatorCount}</p>
+                <h3>Basic Information</h3>
+                <p><strong>Address:</strong> ${makeAddressUrl(detail.nominator_address)}</p>
+                <p><strong>Total Stake:</strong> ${toMillions(fromNano(totalStake))} TON</p>
+                <p><strong>Allocated to Validators:</strong> ${validatorCount}</p>
             </div>
         `;
 
         if (detail.rewards && detail.rewards.length > 0) {
             html += `
                 <div class="stake-breakdown">
-                    <h3>質押分配詳情</h3>
+                    <h3>Stake Allocation Details</h3>
             `;
 
             detail.rewards.forEach((reward, index) => {
@@ -1475,37 +1475,37 @@
                 
                 html += `
                     <div class="stake-item">
-                        <h4>驗證器 #${index + 1}</h4>
-                        <p><strong>驗證器地址:</strong> ${makeAddressUrl(reward.val_account_address)}</p>
-                        <p><strong>質押量:</strong> ${toMillions(stakeAmount)} TON</p>
-                        <p><strong>週期 ID:</strong> ${reward.cycle_id}</p>
+                        <h4>Validator #${index + 1}</h4>
+                        <p><strong>Validator Address:</strong> ${makeAddressUrl(reward.val_account_address)}</p>
+                        <p><strong>Stake Amount:</strong> ${toMillions(stakeAmount)} TON</p>
+                        <p><strong>Cycle ID:</strong> ${reward.cycle_id}</p>
                         ${cycleBonus ? `
-                            <p><strong>解凍時間:</strong> ${new Date(cycleBonus.unfreezes_at * 1000).toLocaleString()}</p>
-                            <p><strong>總池質押:</strong> ${toMillions(fromNano(cycleBonus.total_stake))} TON</p>
-                            <p><strong>池獎勵:</strong> ${toMillions(fromNano(cycleBonus.bonuses))} TON</p>
-                            <p><strong>投訴數量:</strong> ${cycleBonus.number_of_complaints}</p>
+                            <p><strong>Unfreeze Time:</strong> ${new Date(cycleBonus.unfreezes_at * 1000).toLocaleString()}</p>
+                            <p><strong>Total Pool Stake:</strong> ${toMillions(fromNano(cycleBonus.total_stake))} TON</p>
+                            <p><strong>Pool Rewards:</strong> ${toMillions(fromNano(cycleBonus.bonuses))} TON</p>
+                            <p><strong>Complaint Count:</strong> ${cycleBonus.number_of_complaints}</p>
                         ` : ''}
-                        ${reward.pending_deposit_amount > 0 ? `<p><strong>待存款:</strong> ${toMillions(fromNano(reward.pending_deposit_amount))} TON</p>` : ''}
-                        ${reward.withdraw_requested > 0 ? `<p><strong>提取請求:</strong> ${toMillions(fromNano(reward.withdraw_requested))} TON</p>` : ''}
+                        ${reward.pending_deposit_amount > 0 ? `<p><strong>Pending Deposit:</strong> ${toMillions(fromNano(reward.pending_deposit_amount))} TON</p>` : ''}
+                        ${reward.withdraw_requested > 0 ? `<p><strong>Withdrawal Request:</strong> ${toMillions(fromNano(reward.withdraw_requested))} TON</p>` : ''}
                     </div>
                 `;
             });
 
             html += `</div>`;
         } else {
-            html += `<p>目前沒有質押分配信息。</p>`;
+            html += `<p>No stake allocation information available.</p>`;
         }
 
         content.innerHTML = html;
         modal.style.display = 'flex';
     }
 
-    // 關閉詳細信息模態框
+    // Close details modal
     function closeDetailModal() {
         document.getElementById('detailModal').style.display = 'none';
     }
 
-    // 事件監聽器
+    // Event listeners
     document.getElementById('searchInput').addEventListener('input', (e) => {
         searchText = e.target.value;
         filterNominators();
@@ -1516,14 +1516,14 @@
         filterNominators();
     });
 
-    // 點擊模態框外部關閉
+    // Close modal when clicking outside
     document.getElementById('detailModal').addEventListener('click', (e) => {
         if (e.target === e.currentTarget) {
             closeDetailModal();
         }
     });
 
-    // 初始化
+    // Initialize
     async function init() {
         showLoading();
         try {
@@ -1531,13 +1531,13 @@
             renderStats();
             filterNominators();
         } catch (error) {
-            alert(`載入數據失敗: ${error.message}`);
+            alert(`Failed to load data: ${error.message}`);
         } finally {
             hideLoading();
         }
     }
 
-    // 啟動應用
+    // Start application
     init();
 </script>
 

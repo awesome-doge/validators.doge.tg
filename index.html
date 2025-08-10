@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-TW" translate="no">
+<html lang="en" translate="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
@@ -23,7 +23,7 @@
             scroll-behavior: smooth;
         }
         
-        /* macOS 風格滾動條 */
+        /* macOS style scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -222,7 +222,7 @@
             align-items: center;
         }
         
-        /* 長數字的特殊處理 */
+        /* Special handling for long numbers */
         .stat-card .value.long-number {
             font-size: 1.8em;
         }
@@ -292,7 +292,7 @@
             letter-spacing: 0.5px;
         }
         
-        /* 驗證週期區域特殊樣式 */
+        /* Special styles for validation cycle area */
         .cycle-group {
             display: flex;
             flex-direction: column;
@@ -361,7 +361,7 @@
             background: rgba(255, 255, 255, 0.95);
         }
         
-        /* iPhone 移動端優化 - 驗證週期和過濾器區域 */
+        /* iPhone mobile optimization - validation cycle and filter areas */
         @media (max-width: 768px) {
             .controls {
                 padding: 20px;
@@ -379,9 +379,9 @@
                 padding: 18px 20px;
                 font-size: 16px;
                 border-radius: 16px;
-                /* 防止 iOS 縮放 */
+                /* Prevent iOS zoom */
                 font-size: 16px;
-                /* 改善觸控體驗 */
+                /* Improve touch experience */
                 transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             }
             
@@ -416,9 +416,9 @@
                 padding: 18px 20px;
                 font-size: 16px;
                 border-radius: 16px;
-                /* 防止 iOS 縮放 */
+                /* Prevent iOS zoom */
                 font-size: 16px;
-                /* 改善觸控體驗 */
+                /* Improve touch experience */
                 transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
                 background: rgba(248, 249, 250, 0.9);
                 border: 2px solid rgba(0, 0, 0, 0.08);
@@ -443,7 +443,7 @@
                 line-height: 1.5;
             }
             
-            /* 改善選擇器在移動端的視覺效果 */
+            /* Improve selector visual effects on mobile */
             .cycle-selector, .filter-select {
                 position: relative;
                 overflow: hidden;
@@ -465,14 +465,14 @@
                 color: #007AFF;
             }
             
-            /* 改善觸控體驗 */
+            /* Improve touch experience */
             .cycle-selector, .filter-select {
                 -webkit-appearance: none;
                 -webkit-tap-highlight-color: transparent;
                 touch-action: manipulation;
             }
             
-            /* 改善選項的顯示 */
+            /* Improve option display */
             .cycle-selector option, .filter-select option {
                 padding: 12px;
                 font-size: 16px;
@@ -616,21 +616,21 @@
             background-color: rgba(0, 122, 255, 0.02);
         }
 
-        /* 優化列寬 */
-        th:nth-child(1), td:nth-child(1) { width: 35px; } /* 星號 */
-        th:nth-child(2), td:nth-child(2) { width: 50px; } /* 索引 */
-        th:nth-child(3), td:nth-child(3) { width: 120px; } /* 標籤 */
-        th:nth-child(4), td:nth-child(4) { width: 80px; } /* 效率 */
-        th:nth-child(5), td:nth-child(5) { width: 70px; } /* 權重 */
-        th:nth-child(6), td:nth-child(6) { width: 90px; } /* 質押 */
-        th:nth-child(7), td:nth-child(7) { width: 70px; } /* 地理 */
-        th:nth-child(8), td:nth-child(8) { width: 70px; } /* 節點版本 */
-        th:nth-child(9), td:nth-child(9) { width: 80px; } /* MyTonCtrl版本 */
-        th:nth-child(10), td:nth-child(10) { width: 100px; } /* 類型 */
-        th:nth-child(11), td:nth-child(11) { width: 50px; } /* 投訴 */
-        th:nth-child(12), td:nth-child(12) { width: 150px; } /* ADNL地址 */
-        th:nth-child(13), td:nth-child(13) { width: 150px; } /* 錢包地址 */
-        th:nth-child(14), td:nth-child(14) { width: 80px; } /* 詳細信息 */
+        /* Optimize column width */
+        th:nth-child(1), td:nth-child(1) { width: 35px; } /* Star */
+        th:nth-child(2), td:nth-child(2) { width: 50px; } /* Index */
+        th:nth-child(3), td:nth-child(3) { width: 120px; } /* Label */
+        th:nth-child(4), td:nth-child(4) { width: 80px; } /* Efficiency */
+        th:nth-child(5), td:nth-child(5) { width: 70px; } /* Weight */
+        th:nth-child(6), td:nth-child(6) { width: 90px; } /* Stake */
+        th:nth-child(7), td:nth-child(7) { width: 70px; } /* Geography */
+        th:nth-child(8), td:nth-child(8) { width: 70px; } /* Node Version */
+        th:nth-child(9), td:nth-child(9) { width: 80px; } /* MyTonCtrl Version */
+        th:nth-child(10), td:nth-child(10) { width: 100px; } /* Type */
+        th:nth-child(11), td:nth-child(11) { width: 50px; } /* Complaints */
+        th:nth-child(12), td:nth-child(12) { width: 150px; } /* ADNL Address */
+        th:nth-child(13), td:nth-child(13) { width: 150px; } /* Wallet Address */
+        th:nth-child(14), td:nth-child(14) { width: 80px; } /* Details */
 
         .green {
             color: #34C759;
@@ -925,7 +925,7 @@
             word-break: break-word;
         }
 
-        /* 響應式設計優化 */
+        /* Responsive Design Optimization */
         @media (max-width: 1500px) {
             .container {
                 max-width: 1200px;
@@ -950,7 +950,7 @@
             body {
                 padding: 0;
                 background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-                /* iPhone 安全區域支援 */
+                /* iPhone Safe Area Support */
                 padding-left: env(safe-area-inset-left);
                 padding-right: env(safe-area-inset-right);
                 padding-bottom: env(safe-area-inset-bottom);
@@ -962,7 +962,7 @@
                 border-radius: 0;
                 box-shadow: none;
                 background: rgba(255, 255, 255, 0.95);
-                /* iPhone 安全區域支援 */
+                /* iPhone Safe Area Support */
                 padding-top: env(safe-area-inset-top);
             }
             
@@ -970,7 +970,7 @@
                 padding: 24px 20px;
                 position: relative;
                 border-radius: 0;
-                /* 改善 iPhone 上的視覺效果 */
+                /* Improve Visual Effects on iPhone */
                 background: linear-gradient(135deg, rgba(0, 122, 255, 0.95) 0%, rgba(88, 86, 214, 0.95) 100%);
             }
             
@@ -1007,7 +1007,7 @@
                 align-items: center;
                 justify-content: center;
                 font-weight: 600;
-                /* 改善觸控反饋 */
+                /* Improve Touch Feedback */
                 transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             }
             
@@ -1027,7 +1027,7 @@
                 padding: 20px;
                 min-height: 120px;
                 border-radius: 16px;
-                /* 改善觸控體驗 */
+                /* Improve Touch Experience */
                 touch-action: manipulation;
             }
             
@@ -1069,9 +1069,9 @@
                 font-size: 16px;
                 border-radius: 16px;
                 touch-action: manipulation;
-                /* 防止 iOS 縮放 */
+                /* Prevent iOS Zoom */
                 font-size: 16px;
-                /* 改善觸控體驗 */
+                /* Improve Touch Experience */
                 transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             }
             
@@ -1087,7 +1087,7 @@
                 border-radius: 12px;
             }
             
-            /* 表格在手機上使用卡片布局 */
+            /* Use Card Layout for Tables on Mobile */
             #tableContainer {
                 padding: 20px;
                 background: rgba(255, 255, 255, 0.95);
@@ -1101,13 +1101,13 @@
                 display: block;
             }
             
-            /* 隱藏桌面版表格，顯示移動端卡片 */
+            /* Hide Desktop Table, Show Mobile Cards */
             .mobile-card {
                 display: block;
             }
         }
         
-        /* 桌面端隱藏移動端卡片 */
+        /* Hide Mobile Cards on Desktop */
         @media (min-width: 769px) {
             .mobile-table {
                 display: none;
@@ -1129,7 +1129,7 @@
             border: 1px solid rgba(255, 255, 255, 0.3);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             touch-action: manipulation;
-            /* 改善觸控體驗 */
+            /* Improve Touch Experience */
             position: relative;
             overflow: hidden;
         }
@@ -1346,7 +1346,7 @@
             }
         }
         
-        /* iPhone 安全區域支援 - 更完整的實現 */
+        /* iPhone Safe Area Support - More Complete Implementation */
         @supports (padding: max(0px)) {
             @media (max-width: 768px) {
                 body {
@@ -1359,20 +1359,20 @@
                     padding-top: max(0px, env(safe-area-inset-top));
                 }
                 
-                /* 確保內容不被安全區域遮擋 */
+                /* Ensure content is not blocked by safe area */
                 .header {
                     padding-top: max(24px, env(safe-area-inset-top) + 12px);
                     padding-bottom: max(24px, env(safe-area-inset-bottom) + 12px);
                 }
                 
-                /* 底部按鈕區域的安全區域支援 */
+                /* Safe area support for bottom button area */
                 .nav-buttons {
                     padding-bottom: max(0px, env(safe-area-inset-bottom));
                 }
             }
         }
         
-        /* 觸控優化 - 更完整的實現 */
+        /* Touch Optimization - More Complete Implementation */
         @media (max-width: 768px) {
             /* 確保所有可點擊元素都有足夠的觸控區域 */
             .start {
@@ -1432,13 +1432,13 @@
             }
         }
         
-        /* 載入動畫優化 */
+        /* Loading animation optimization */
         .loading-overlay {
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
         }
         
-        /* 改善載入動畫在移動端的顯示 */
+        /* Improve loading animation display on mobile */
         @media (max-width: 768px) {
             .loading-overlay {
                 background: rgba(255, 255, 255, 0.95);
@@ -1479,22 +1479,19 @@
 <div class="container">
     <div class="header">
         <h1>TON Validators Dashboard</h1>
-        <div class="subtitle">實時監控 TON 網絡驗證器狀態與性能</div>
+        <div class="subtitle">Real-time monitoring of TON network validator status and performance</div>
         <div class="nav-buttons">
             <a href="index.html" class="nav-button active">
-                🏠 驗證器儀表板
+                🏠 Validator Dashboard
             </a>
             <a href="nominators.html" class="nav-button">
-                📊 Nominator Pool 資金提供者
+                📊 Nominator Pool Providers
             </a>
             <a href="tontech.html" class="nav-button">
-                🔬 TON 技術數據分析
+                🔬 TON Technical Data Analysis
             </a>
             <a href="ktonviewer.html" class="nav-button">
                 🔍 LST Viewer
-            </a>
-            <a href="elector.html" class="nav-button">
-                🗳️ Elector 選舉器
             </a>
         </div>
     </div>
@@ -1504,47 +1501,47 @@
 
     <div class="controls">
         <div class="search-container">
-            <input id="searchInput" class="search-input" placeholder="搜尋 ADNL、錢包地址、公鑰或標籤...">
+            <input id="searchInput" class="search-input" placeholder="Search ADNL, wallet address, public key or label...">
         </div>
         
         <div class="filter-row">
             <div class="cycle-group">
-                <label>驗證週期</label>
+                <label>Validation Cycle</label>
                 <select id="cycleSelector" class="cycle-selector">
-                    <option value="">載入中...</option>
+                    <option value="">Loading...</option>
                 </select>
                 <div id="cycleInfo" class="cycle-info"></div>
             </div>
             
             <div class="filter-group">
-                <label>效率過濾</label>
+                <label>Efficiency Filter</label>
                 <select id="efficiencyFilter" class="filter-select">
-                    <option value="">所有效率</option>
-                    <option value="high">高效率 (≥95%)</option>
-                    <option value="good">良好 (90-95%)</option>
-                    <option value="poor">需改善 (<90%)</option>
+                    <option value="">All Efficiency</option>
+                    <option value="high">High Efficiency (≥95%)</option>
+                    <option value="good">Good (90-95%)</option>
+                    <option value="poor">Needs Improvement (<90%)</option>
                 </select>
             </div>
             
             <div class="filter-group">
-                <label>驗證器類型</label>
+                <label>Validator Type</label>
                 <select id="typeFilter" class="filter-select">
-                    <option value="">所有類型</option>
+                    <option value="">All Types</option>
                 </select>
             </div>
             
             <div class="filter-group">
-                <label>地理位置</label>
+                <label>Geographic Location</label>
                 <select id="geoFilter" class="filter-select">
-                    <option value="">所有地區</option>
+                    <option value="">All Regions</option>
                 </select>
             </div>
             
             <div class="filter-group">
-                <label>顯示已收藏</label>
+                <label>Show Favorites</label>
                 <select id="savedFilter" class="filter-select">
-                    <option value="">全部</option>
-                    <option value="saved">僅收藏</option>
+                    <option value="">All</option>
+                    <option value="saved">Favorites Only</option>
                 </select>
             </div>
         </div>
@@ -1559,7 +1556,7 @@
 </div>
 
 <div class="api-status" id="apiStatus">
-    <div>數據來源: <span class="api-name" id="apiName">載入中...</span></div>
+    <div>Data Source: <span class="api-name" id="apiName">Loading...</span></div>
     <div class="api-performance" id="apiPerformance"></div>
 </div>
 
@@ -1572,8 +1569,8 @@
 </div>
 
 <script>
-    // 本地時區
-    const timestampToDate = (timestamp) => {
+            // Local timezone
+        const timestampToDate = (timestamp) => {
         const date = new Date(timestamp * 1000);
         return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
     }
@@ -1609,13 +1606,13 @@
         const m = Math.floor(delta % 3600 / 60);
 
         let result = '';
-        if (h !== 0) result += h + ' 小時 ';
-        result += m + ' 分鐘'
+        if (h !== 0) result += h + ' hours ';
+        result += m + ' minutes'
 
         if (isNegative) {
-            return `${result}前`
+            return `${result} ago`
         } else {
-            return `${result}後`
+            return `in ${result}`
         }
     }
 
@@ -1685,8 +1682,8 @@
         saved: ''
     };
 
-    // API 配置和性能監控
-    const API_ENDPOINTS = {
+            // API configuration and performance monitoring
+        const API_ENDPOINTS = {
         toncenter: {
             cycles: "https://elections.toncenter.com/getValidationCycles",
             qos: "https://toncenter.com/api/qos/cycleScoreboard/",
@@ -1747,8 +1744,8 @@
         }
     }
 
-    // 性能監控的 API 請求函數
-    async function apiWithPerformanceTracking(url, endpointName) {
+            // API request function with performance monitoring
+        async function apiWithPerformanceTracking(url, endpointName) {
         const startTime = performance.now();
         try {
             const response = await fetch(url);
@@ -1762,7 +1759,7 @@
             if (!response.ok) {
                 API_ENDPOINTS[endpointName].errorCount++;
                 console.error(`API 錯誤 (${endpointName}):`, response);
-                throw new Error(`無法載入數據 - ${response.status}`);
+                throw new Error(`Unable to load data - ${response.status}`);
             }
 
             console.log(`API 響應時間 (${endpointName}): ${responseTime.toFixed(2)}ms`);
@@ -1775,7 +1772,7 @@
             const endTime = performance.now();
             API_ENDPOINTS[endpointName].lastResponseTime = endTime - startTime;
             API_ENDPOINTS[endpointName].errorCount++;
-            console.error(`API 請求失敗 (${endpointName}):`, error);
+            console.error(`API request failed (${endpointName}):`, error);
             throw error;
         }
     }
@@ -1855,23 +1852,23 @@
 
     async function loadAvailableCycles() {
         try {
-            // 嘗試從多個 API 端點獲取數據
+            // Try to get data from multiple API endpoints
             let response = null;
             let usedEndpoint = null;
 
-            // 首先嘗試使用選擇的最佳端點
+            // First try to use the selected best endpoint
             currentApiEndpoint = selectBestApiEndpoint();
             
             try {
                 if (currentApiEndpoint === 'getaruai') {
-                    // GetAruAI API 返回單個週期數據，需要包裝成數組
+                    // GetAruAI API returns single cycle data, need to wrap in array
                     const cycleResponse = await apiWithPerformanceTracking(
                         API_ENDPOINTS.getaruai.cycles, 
                         'getaruai'
                     );
                     response = Array.isArray(cycleResponse) ? cycleResponse : [cycleResponse];
                 } else {
-                    // TON Center API 返回多個週期
+                    // TON Center API returns multiple cycles
                     response = await apiWithPerformanceTracking(
                         API_ENDPOINTS.toncenter.cycles + "?limit=50", 
                         'toncenter'
@@ -1879,9 +1876,9 @@
                 }
                 usedEndpoint = currentApiEndpoint;
             } catch (error) {
-                console.warn(`主要 API (${currentApiEndpoint}) 失敗，嘗試備用 API:`, error);
+                console.warn(`Primary API (${currentApiEndpoint}) failed, trying backup API:`, error);
                 
-                // 如果主要 API 失敗，嘗試備用 API
+                // If primary API fails, try backup API
                 const backupEndpoint = currentApiEndpoint === 'toncenter' ? 'getaruai' : 'toncenter';
                 
                 try {
@@ -1900,21 +1897,21 @@
                     usedEndpoint = backupEndpoint;
                     currentApiEndpoint = backupEndpoint;
                 } catch (backupError) {
-                    throw new Error(`所有 API 端點都失敗了: ${error.message}, ${backupError.message}`);
+                    throw new Error(`All API endpoints failed: ${error.message}, ${backupError.message}`);
                 }
             }
 
             availableCycles = response;
             renderCycleSelector();
             
-            // 顯示使用的 API 信息
-            console.log(`成功載入 ${availableCycles.length} 個驗證週期，使用的 API: ${usedEndpoint}`);
+            // Show used API information
+            console.log(`Successfully loaded ${availableCycles.length} validation cycles, using API: ${usedEndpoint}`);
             
         } catch (error) {
-            console.error('無法載入驗證週期列表:', error);
-            // 顯示錯誤信息給用戶
+            console.error('Failed to load validation cycle list:', error);
+            // Show error message to user
             const cycleSelector = document.getElementById('cycleSelector');
-            cycleSelector.innerHTML = '<option value="">載入失敗 - 請重試</option>';
+            cycleSelector.innerHTML = '<option value="">Loading failed - please retry</option>';
         }
     }
 
@@ -1922,27 +1919,27 @@
         const cycleSelector = document.getElementById('cycleSelector');
         cycleSelector.innerHTML = '';
 
-        // 添加當前週期選項
+        // Add current cycle option
         const currentOption = document.createElement('option');
         currentOption.value = '';
-        currentOption.textContent = '當前週期 (自動)';
+        currentOption.textContent = 'Current Cycle (Auto)';
         cycleSelector.appendChild(currentOption);
 
-        // 添加所有可用週期
+        // Add all available cycles
         availableCycles.forEach(cycle => {
             const option = document.createElement('option');
             option.value = cycle.cycle_id;
             const cycleInfo = cycle.cycle_info;
             const startDate = new Date(cycleInfo.utime_since * 1000).toLocaleDateString();
             const endDate = new Date(cycleInfo.utime_until * 1000).toLocaleDateString();
-            const status = cycleInfo.utime_until < Date.now() / 1000 ? '已完成' : 
-                          cycleInfo.utime_since > Date.now() / 1000 ? '未開始' : '進行中';
+            const status = cycleInfo.utime_until < Date.now() / 1000 ? 'Completed' : 
+                          cycleInfo.utime_since > Date.now() / 1000 ? 'Not Started' : 'In Progress';
             
-            option.textContent = `週期 #${cycle.cycle_id} (${startDate} - ${endDate}) [${status}]`;
+            option.textContent = `Cycle #${cycle.cycle_id} (${startDate} - ${endDate}) [${status}]`;
             cycleSelector.appendChild(option);
         });
 
-        // 設定當前選中的週期
+        // Set current selected cycle
         if (currentCycleId) {
             cycleSelector.value = currentCycleId;
         } else {
@@ -1956,14 +1953,14 @@
             let response = null;
             let usedEndpoint = null;
 
-            // 嘗試使用選擇的最佳端點
+            // Try to use the selected best endpoint
             currentApiEndpoint = selectBestApiEndpoint();
 
-            // 如果有指定週期ID，使用指定的週期
+            // If cycle ID is specified, use the specified cycle
             if (selectedCycleId) {
                 try {
                     if (currentApiEndpoint === 'getaruai') {
-                        // GetAruAI 可能不支持特定週期ID查詢，回退到 toncenter
+                        // GetAruAI may not support specific cycle ID queries, fallback to toncenter
                         response = await apiWithPerformanceTracking(
                             `${API_ENDPOINTS.toncenter.cycles}?cycle_id=${selectedCycleId}`, 
                             'toncenter'
@@ -1981,13 +1978,13 @@
                         cycleData = response[0];
                         currentCycleId = selectedCycleId;
                     } else {
-                        throw new Error('找不到指定的驗證週期');
+                        throw new Error('Specified validation cycle not found');
                     }
                 } catch (error) {
-                    throw new Error(`載入指定週期失敗: ${error.message}`);
+                    throw new Error(`Failed to load specified cycle: ${error.message}`);
                 }
             } 
-            // 如果URL有cycle_id參數，使用URL中的週期
+            // If URL has cycle_id parameter, use the cycle from URL
             else if (cycleIdFromUrl) {
                 try {
                     response = await apiWithPerformanceTracking(
@@ -2000,17 +1997,17 @@
                         cycleData = response[0];
                         currentCycleId = cycleIdFromUrl;
                     } else {
-                        throw new Error('找不到URL指定的驗證週期');
+                        throw new Error('Validation cycle specified in URL not found');
                     }
                 } catch (error) {
-                    throw new Error(`載入URL指定週期失敗: ${error.message}`);
+                    throw new Error(`Failed to load cycle specified in URL: ${error.message}`);
                 }
             } 
-            // 否則使用當前週期 - 這裡可以使用新的 API
+            // Otherwise use current cycle - can use new API here
             else {
                 try {
                     if (currentApiEndpoint === 'getaruai') {
-                        // GetAruAI API 返回當前週期
+                        // GetAruAI API returns current cycle
                         const cycleResponse = await apiWithPerformanceTracking(
                             API_ENDPOINTS.getaruai.cycles, 
                             'getaruai'
@@ -2031,11 +2028,11 @@
                         }
                         usedEndpoint = 'toncenter';
                     }
-                    currentCycleId = null; // 表示使用當前週期
+                    currentCycleId = null; // Indicates using current cycle
                 } catch (error) {
-                    console.warn(`主要 API (${currentApiEndpoint}) 失敗，嘗試備用 API:`, error);
+                    console.warn(`Primary API (${currentApiEndpoint}) failed, trying backup API:`, error);
                     
-                    // 嘗試備用 API
+                    // Try backup API
                     const backupEndpoint = currentApiEndpoint === 'toncenter' ? 'getaruai' : 'toncenter';
                     
                     try {
@@ -2060,17 +2057,17 @@
                         usedEndpoint = backupEndpoint;
                         currentApiEndpoint = backupEndpoint;
                     } catch (backupError) {
-                        throw new Error(`所有 API 端點都失敗了: ${error.message}, ${backupError.message}`);
+                        throw new Error(`All API endpoints failed: ${error.message}, ${backupError.message}`);
                     }
                 }
             }
 
-            console.log(`載入的週期數據 (使用 ${usedEndpoint} API):`, cycleData);
+            console.log(`Loaded cycle data (using ${usedEndpoint} API):`, cycleData);
 
             // 更新URL
             updateUrlParams();
 
-            // 載入QoS數據
+            // Load QoS data
             await getQosCycleData(cycleData.cycle_info.utime_since, cycleData.cycle_info.utime_until);
             await wait(1000);
             await getQosCycleDataByCycleId(cycleData.cycle_id);
@@ -2081,8 +2078,8 @@
             updateCycleInfo();
             
         } catch (error) {
-            console.error('載入驗證週期數據失敗:', error);
-            alert(`載入驗證週期數據失敗: ${error.message}`);
+                    console.error('Failed to load validation cycle data:', error);
+        alert(`Failed to load validation cycle data: ${error.message}`);
         } finally {
             hideLoading();
         }
@@ -2110,11 +2107,11 @@
         let status;
         
         if (cycleInfo.utime_until < now) {
-            status = '<span style="color: #6c757d;">已完成</span>';
+            status = '<span style="color: #6c757d;">Completed</span>';
         } else if (cycleInfo.utime_since > now) {
-            status = '<span style="color: #ffc107;">未開始</span>';
+            status = '<span style="color: #ffc107;">Not Started</span>';
         } else {
-            status = '<span style="color: #28a745;">進行中</span>';
+            status = '<span style="color: #28a745;">In Progress</span>';
         }
 
         const startDate = new Date(cycleInfo.utime_since * 1000).toLocaleDateString() + ' ' + new Date(cycleInfo.utime_since * 1000).toLocaleTimeString('zh-TW', {hour: '2-digit', minute: '2-digit'});
@@ -2123,7 +2120,7 @@
         cycleInfoDiv.innerHTML = `
             <div style="margin-bottom: 4px;">
                 <span style="color: #34C759; font-weight: 600;">${status}</span> | 
-                <span style="font-weight: 500;">${cycleInfo.validators.length} 個驗證器</span>
+                <span style="font-weight: 500;">${cycleInfo.validators.length} Validators</span>
             </div>
             <div style="font-size: 11px; color: #6e6e73;">
                 ${startDate} - ${endDate}
@@ -2226,35 +2223,35 @@
 
         document.getElementById('statsContainer').innerHTML = `
             <div class="stat-card">
-                <h3>驗證週期</h3>
+                <h3>Validation Cycle</h3>
                 <p class="value long-number">#${cycleData.cycle_id}</p>
             </div>
             <div class="stat-card">
-                <h3>驗證器數量</h3>
+                <h3>Validator Count</h3>
                 <p class="value">${cycleInfo.validators.length} / ${cycleData.config16.max_validators}</p>
             </div>
             <div class="stat-card">
-                <h3>總質押量</h3>
+                <h3>Total Staked Amount</h3>
                 <p class="value">${toMillionsShort(fromNano(totalStake))} TON</p>
             </div>
             <div class="stat-card">
-                <h3>週期開始</h3>
+                <h3>Cycle Start</h3>
                 <p class="value">${timeRange(cycleInfo.utime_since)}</p>
             </div>
             <div class="stat-card">
-                <h3>週期結束</h3>
+                <h3>Cycle End</h3>
                 <p class="value">${timeRange(cycleInfo.utime_until)}</p>
             </div>
             <div class="stat-card">
-                <h3>質押解凍</h3>
+                <h3>Stake Unfreeze</h3>
                 <p class="value">${timeRange(stakesUnfreezeAt)}</p>
             </div>
             <div class="stat-card">
-                <h3>高效率節點</h3>
+                <h3>High Efficiency Nodes</h3>
                 <p class="value">${efficiencyStats.high}</p>
             </div>
             <div class="stat-card">
-                <h3>投訴總數</h3>
+                <h3>Total Complaints</h3>
                 <p class="value">${complaintsCount}</p>
             </div>
         `;
@@ -2277,19 +2274,19 @@
             '<thead>' +
             '<tr>' +
             '<th></th>' +
-            '<th class="sortable" onclick="sortTable(\'index\')">索引</th>' +
-            '<th>標籤</th>' +
-            '<th class="sortable" onclick="sortTable(\'efficiency\')">效率</th>' +
-            '<th class="sortable" onclick="sortTable(\'weight\')">權重</th>' +
-            '<th class="sortable" onclick="sortTable(\'stake\')">質押</th>' +
-            '<th>地理</th>' +
-            '<th>節點版本</th>' +
-            '<th>MyTonCtrl版本</th>' +
-            '<th>類型</th>' +
-            '<th>投訴</th>' +
-            '<th>ADNL地址</th>' +
-            '<th>錢包地址</th>' +
-            '<th>詳細信息</th>' +
+            '<th class="sortable" onclick="sortTable(\'index\')">Index</th>' +
+            '<th>Label</th>' +
+            '<th class="sortable" onclick="sortTable(\'efficiency\')">Efficiency</th>' +
+            '<th class="sortable" onclick="sortTable(\'weight\')">Weight</th>' +
+            '<th class="sortable" onclick="sortTable(\'stake\')">Stake</th>' +
+            '<th>Geography</th>' +
+            '<th>Node Version</th>' +
+            '<th>MyTonCtrl Version</th>' +
+            '<th>Type</th>' +
+            '<th>Complaints</th>' +
+            '<th>ADNL Address</th>' +
+            '<th>Wallet Address</th>' +
+            '<th>Details</th>' +
             '</tr>' +
             '</thead>';
 
@@ -2442,7 +2439,7 @@
             s += `<td>${complaintsDisplay}</td>`;
             s += `<td class="mono">${v.adnl_addr}</td>`;
             s += `<td class="mono">${makeAddressUrl(v.wallet_address)}</td>`;
-            s += `<td><button class="detail-btn" onclick="showValidatorDetail('${v.adnl_addr}')">查看詳細</button></td>`;
+            s += `<td><button class="detail-btn" onclick="showValidatorDetail('${v.adnl_addr}')">View Details</button></td>`;
             s += '</tr>';
 
             // Mobile card
@@ -2451,39 +2448,39 @@
                     <div class="mobile-card-header">
                         <div class="mobile-card-title">
                             <span class="start ${starClass}" onclick="saveAdnl('${v.adnl_addr}')" style="margin-right: 8px;">★</span>
-                            ${label || `驗證器 #${v.index}`}
+                            ${label || `Validator #${v.index}`}
                         </div>
                         <div class="mobile-card-index">#${v.index}</div>
                     </div>
                     <div class="mobile-card-content">
                         <div class="mobile-card-row">
-                            <span class="mobile-card-label">效率:</span>
+                            <span class="mobile-card-label">Efficiency:</span>
                             <span class="mobile-card-value ${efficiencyClass}">${efficiency}</span>
                         </div>
                         <div class="mobile-card-row">
-                            <span class="mobile-card-label">權重:</span>
+                            <span class="mobile-card-label">Weight:</span>
                             <span class="mobile-card-value">${toPercent(v.stake / totalStake)}</span>
                         </div>
                         <div class="mobile-card-row">
-                            <span class="mobile-card-label">質押:</span>
+                            <span class="mobile-card-label">Stake:</span>
                             <span class="mobile-card-value">${toMillions(fromNano(v.stake))} TON</span>
                         </div>
                         <div class="mobile-card-row">
-                            <span class="mobile-card-label">地理:</span>
+                            <span class="mobile-card-label">Geography:</span>
                             <span class="mobile-card-value">${countryFlag} ${geolocation}</span>
                         </div>
                         <div class="mobile-card-row">
-                            <span class="mobile-card-label">類型:</span>
+                            <span class="mobile-card-label">Type:</span>
                             <span class="mobile-card-value">${formatType(walletVersion)}</span>
                         </div>
                         ${complaintsCount > 0 ? `
                         <div class="mobile-card-row">
-                            <span class="mobile-card-label">投訴:</span>
+                            <span class="mobile-card-label">Complaints:</span>
                             <span class="mobile-card-value">${complaintsDisplay}</span>
                         </div>
                         ` : ''}
                         <div class="mobile-card-row">
-                            <span class="mobile-card-label">錢包地址:</span>
+                            <span class="mobile-card-label">Wallet Address:</span>
                             <span class="mobile-card-value mono">${makeAddressUrl(v.wallet_address)}</span>
                         </div>
                         <div class="mobile-card-row">
@@ -2515,7 +2512,7 @@
 
         // Update type filter
         const currentTypeValue = typeFilter.value;
-        typeFilter.innerHTML = '<option value="">所有類型</option>';
+                    typeFilter.innerHTML = '<option value="">All Types</option>';
         [...types].sort().forEach(type => {
             if (type && type !== 'N/A') {
                 const option = document.createElement('option');
@@ -2528,7 +2525,7 @@
 
         // Update geo filter
         const currentGeoValue = geoFilter.value;
-        geoFilter.innerHTML = '<option value="">所有地區</option>';
+        geoFilter.innerHTML = '<option value="">All Regions</option>';
         [...geos].sort().forEach(geo => {
             if (geo && geo !== 'N/A') {
                 const option = document.createElement('option');
@@ -2573,7 +2570,7 @@
         }
     }
 
-    // 顯示驗證器詳細信息
+            // Display validator details
     function showValidatorDetail(adnlAddr) {
         const validator = cycleData.cycle_info.validators.find(v => v.adnl_addr === adnlAddr);
         if (!validator) return;
@@ -2583,31 +2580,31 @@
         const content = document.getElementById('validatorModalContent');
 
         let html = `
-            <h2>驗證器詳細信息</h2>
+            <h2>Validator Details</h2>
             <div class="validator-detail-item">
-                <h4>基本信息</h4>
-                <p><strong>索引:</strong> ${validator.index}</p>
-                <p><strong>標籤:</strong> ${label || '無標籤'}</p>
-                <p><strong>權重:</strong> ${toPercent(validator.stake / cycleData.cycle_info.total_stake)}</p>
-                <p><strong>質押量:</strong> ${toMillions(fromNano(validator.stake))} TON</p>
-                <p><strong>最大因子:</strong> ${validator.max_factor || 'N/A'}</p>
+                <h4>Basic Information</h4>
+                <p><strong>Index:</strong> ${validator.index}</p>
+                <p><strong>Label:</strong> ${label || 'No Label'}</p>
+                <p><strong>Weight:</strong> ${toPercent(validator.stake / cycleData.cycle_info.total_stake)}</p>
+                <p><strong>Stake Amount:</strong> ${toMillions(fromNano(validator.stake))} TON</p>
+                <p><strong>Max Factor:</strong> ${validator.max_factor || 'N/A'}</p>
             </div>
             <div class="validator-detail-item">
-                <h4>地址信息</h4>
-                <p><strong>錢包地址:</strong> ${makeAddressUrl(validator.wallet_address)}</p>
-                <p><strong>ADNL地址:</strong> <span class="mono">${validator.adnl_addr}</span></p>
-                <p><strong>公鑰:</strong> <span class="mono">${validator.pubkey}</span></p>
+                <h4>Address Information</h4>
+                <p><strong>Wallet Address:</strong> ${makeAddressUrl(validator.wallet_address)}</p>
+                <p><strong>ADNL Address:</strong> <span class="mono">${validator.adnl_addr}</span></p>
+                <p><strong>Public Key:</strong> <span class="mono">${validator.pubkey}</span></p>
             </div>
         `;
 
-        // 添加投訴信息
+        // Add complaint information
         if (validator.complaints && validator.complaints.length > 0) {
             html += `
                 <div class="validator-detail-item">
-                    <h4>投訴信息</h4>
-                    <p><strong>投訴數量:</strong> ${validator.complaints.length}</p>
+                    <h4>Complaint Information</h4>
+                    <p><strong>Complaint Count:</strong> ${validator.complaints.length}</p>
                     ${validator.complaints.map((complaint, index) => `
-                        <p><strong>投訴 #${index + 1}:</strong> ${complaint}</p>
+                        <p><strong>Complaint #${index + 1}:</strong> ${complaint}</p>
                     `).join('')}
                 </div>
             `;
@@ -2617,7 +2614,7 @@
         modal.style.display = 'flex';
     }
 
-    // 關閉驗證器詳細信息模態框
+            // Close validator details modal
     function closeValidatorDetailModal() {
         document.getElementById('validatorDetailModal').style.display = 'none';
     }

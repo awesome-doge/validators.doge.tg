@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-TW" translate="no">
+<html lang="en" translate="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
@@ -24,7 +24,7 @@
             scroll-behavior: smooth;
         }
 
-        /* macOS 風格滾動條 */
+        /* macOS style scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -159,13 +159,13 @@
             padding: 20px;
         }
 
-        /* React 應用樣式重寫以匹配設計語言 */
+        /* React app style overrides to match design language */
         #root {
             width: 100%;
             min-height: 600px;
         }
 
-        /* 覆蓋 Tailwind 樣式以匹配現有設計 */
+        /* Override Tailwind styles to match existing design */
         .bg-gray-100, .bg-gradient-to-br {
             background: transparent !important;
         }
@@ -229,7 +229,7 @@
             color: white !important;
         }
 
-        /* 數據卡片樣式 */
+        /* Data card styles */
         .bg-white {
             background: rgba(255, 255, 255, 0.95) !important;
             backdrop-filter: blur(20px);
@@ -245,7 +245,7 @@
             border-color: rgba(0, 0, 0, 0.05) !important;
         }
 
-        /* 狀態徽章樣式 */
+        /* Status badge styles */
         .bg-green-100 {
             background: rgba(52, 199, 89, 0.1) !important;
             backdrop-filter: blur(10px);
@@ -270,7 +270,7 @@
             -webkit-backdrop-filter: blur(10px);
         }
 
-        /* 文字顏色 */
+        /* Text colors */
         .text-green-800 { color: #1e7e34 !important; }
         .text-yellow-800 { color: #856404 !important; }
         .text-red-800 { color: #721c24 !important; }
@@ -283,18 +283,18 @@
         .text-gray-500 { color: #a1a1aa !important; }
         .text-gray-900 { color: #000000 !important; }
 
-        /* 邊框樣式 */
+        /* Border styles */
         .border-green-200 { border-color: rgba(52, 199, 89, 0.2) !important; }
         .border-yellow-200 { border-color: rgba(255, 193, 7, 0.2) !important; }
         .border-red-200 { border-color: rgba(220, 53, 69, 0.2) !important; }
         .border-blue-200 { border-color: rgba(0, 122, 255, 0.2) !important; }
 
-        /* 字體樣式 */
+        /* Font styles */
         .font-mono {
             font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace !important;
         }
 
-        /* 過渡動畫 */
+        /* Transition animations */
         .transition-colors {
             transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out !important;
         }
@@ -303,7 +303,7 @@
             transition: all 0.2s ease-in-out !important;
         }
 
-        /* JSON viewer 優化 */
+        /* JSON viewer optimization */
         .react-json-view {
             background: rgba(248, 249, 250, 0.8) !important;
             border-radius: 12px !important;
@@ -313,7 +313,7 @@
             border: 1px solid rgba(0, 0, 0, 0.08) !important;
         }
 
-        /* 響應式設計 */
+        /* Responsive design */
         @media (max-width: 768px) {
             body {
                 padding: 0;
@@ -382,7 +382,7 @@
                 padding: 10px;
             }
 
-            /* 讓 React 應用在移動端更友好 */
+            /* Make React app more mobile-friendly */
             .grid {
                 grid-template-columns: 1fr !important;
                 gap: 10px !important;
@@ -400,7 +400,7 @@
             .flex > input {
                 width: 100% !important;
                 padding: 14px 16px !important;
-                font-size: 16px !important; /* 防止 iOS 縮放 */
+                font-size: 16px !important; /* Prevent iOS zoom */
             }
 
             .flex > button {
@@ -430,7 +430,7 @@
             }
         }
 
-        /* iPhone 安全區域支援 */
+        /* iPhone safe area support */
         @supports (padding: max(0px)) {
             @media (max-width: 768px) {
                 body {
@@ -455,7 +455,7 @@
         }
     </style>
     
-    <!-- 載入 React 應用的 CSS -->
+    <!-- Load React app CSS -->
     <link rel="stylesheet" crossorigin href="./ktonviewer-dist/assets/index-CrmaECJT.css">
 </head>
 <body>
@@ -463,16 +463,16 @@
 <div class="container">
     <div class="header">
         <h1>LST Viewer</h1>
-<div class="subtitle">TON 網絡流動質押代幣查看器與分析工具</div>
+        <div class="subtitle">TON Network Liquid Staking Token Viewer and Analysis Tool</div>
         <div class="nav-buttons">
             <a href="index.html" class="nav-button">
-                🏠 驗證器儀表板
+                🏠 Validator Dashboard
             </a>
             <a href="nominators.html" class="nav-button">
-                📊 Nominator Pool 資金提供者
+                📊 Nominator Pool Providers
             </a>
             <a href="tontech.html" class="nav-button">
-                🔬 TON 技術數據分析
+                🔬 TON Technical Data Analysis
             </a>
             <a href="ktonviewer.html" class="nav-button active">
                 🔍 LST Viewer
@@ -481,13 +481,13 @@
     </div>
 
     <div class="ktonviewer-container">
-        <!-- React 應用將在此處渲染 -->
+        <!-- React app will render here -->
         <div id="root"></div>
     </div>
 </div>
 
-<!-- 載入 React 應用的 JavaScript -->
-<script type="module" crossorigin src="./ktonviewer-dist/assets/index-CMhD9-Uf.js"></script>
+<!-- Load React app JavaScript -->
+<script type="module" crossorigin src="./ktonviewer-dist/assets/index-C7gz6KOR.js"></script>
 
 </body>
 </html>

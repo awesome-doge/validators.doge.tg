@@ -42,7 +42,7 @@ const StatusBadge = ({ status, type = "info" }: {
   );
 };
 
-// 通用信息行組件
+// General information line component
 const InfoLine = ({ label, value, type = "text", copyable = false }: {
   label: string;
   value: any;
@@ -58,7 +58,7 @@ const InfoLine = ({ label, value, type = "text", copyable = false }: {
         return `${value.substring(0, 8)}...${value.slice(-6)}`;
       case "time":
         if (!value || value === 0) return "N/A";
-        return new Date(value * 1000).toLocaleDateString('zh-TW');
+        return new Date(value * 1000).toLocaleDateString('en-US');
       case "percent":
         return `${(value / 1000000).toFixed(2)}%`;
       default:
@@ -90,7 +90,7 @@ const InfoLine = ({ label, value, type = "text", copyable = false }: {
   );
 };
 
-// Controller 狀態展示組件
+// Controller status display component
 const ControllerDisplay = ({ data }: { data: any }) => {
   if (!data || Object.keys(data).length === 0) {
     return (
@@ -98,7 +98,7 @@ const ControllerDisplay = ({ data }: { data: any }) => {
         <div className="text-gray-400 mb-2">
           <Shield size={24} className="mx-auto" />
         </div>
-        <p className="text-gray-500 text-sm">載入中...</p>
+        <p className="text-gray-500 text-sm">Loading...</p>
       </div>
     );
   }
@@ -118,21 +118,21 @@ const ControllerDisplay = ({ data }: { data: any }) => {
 
   return (
     <div className="space-y-3">
-      {/* 狀態總覽 */}
+      {/* Status Overview */}
       <div className="bg-blue-50 rounded-lg p-3">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-700">控制器狀態</span>
+          <span className="text-sm font-medium text-gray-700">Controller Status</span>
           <StatusBadge status={parsedData.state} type="info" />
         </div>
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div className="flex justify-between">
-            <span className="text-gray-600">已批准</span>
+            <span className="text-gray-600">Approved</span>
             <span className={parsedData.approved ? "text-green-600" : "text-red-600"}>
               {parsedData.approved ? "✓" : "✗"}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">已暫停</span>
+            <span className="text-gray-600">Halted</span>
             <span className={parsedData.halted ? "text-red-600" : "text-green-600"}>
               {parsedData.halted ? "✓" : "✗"}
             </span>
@@ -140,30 +140,30 @@ const ControllerDisplay = ({ data }: { data: any }) => {
         </div>
       </div>
 
-      {/* 質押信息 */}
+      {/* Staking Information */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-2">質押信息</h4>
+        <h4 className="text-sm font-medium text-gray-700 mb-2">Staking Information</h4>
         <div className="space-y-1">
-          <InfoLine label="控制器 ID" value={parsedData.controller_id} />
-          <InfoLine label="質押金額" value={parsedData.stake_amount_sent} type="amount" />
-          <InfoLine label="質押時間" value={parsedData.stake_at} type="time" />
-          <InfoLine label="質押持有期" value={`${parsedData.stake_held_for}秒`} />
+          <InfoLine label="Controller ID" value={parsedData.controller_id} />
+          <InfoLine label="Stake Amount" value={parsedData.stake_amount_sent} type="amount" />
+          <InfoLine label="Stake Time" value={parsedData.stake_at} type="time" />
+          <InfoLine label="Stake Hold Period" value={`${parsedData.stake_held_for} seconds`} />
         </div>
       </div>
 
-      {/* 借貸信息 */}
+      {/* Borrowing Information */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-2">借貸信息</h4>
+        <h4 className="text-sm font-medium text-gray-700 mb-2">Borrowing Information</h4>
         <div className="bg-yellow-50 rounded-lg p-3 space-y-1">
-          <InfoLine label="借貸金額" value={parsedData.borrowed_amount} type="amount" />
-          <InfoLine label="借貸時間" value={parsedData.borrowing_time} type="time" />
-          <InfoLine label="借貸利率" value={parsedData.borrowing_interest} type="percent" />
-          <InfoLine label="允許借貸開始時間" value={`選舉結束前 ${parsedData.allowed_borrow_start_prior_elections_end} 秒`} />
+                      <InfoLine label="Borrowed Amount" value={parsedData.borrowed_amount} type="amount" />
+            <InfoLine label="Borrowing Time" value={parsedData.borrowing_time} type="time" />
+            <InfoLine label="Borrowing Interest" value={parsedData.borrowing_interest} type="percent" />
+            <InfoLine label="Allowed Borrow Start Time" value={`${parsedData.allowed_borrow_start_prior_elections_end} seconds before elections end`} />
           
-          {/* 計算預期收益 */}
+          {/* Calculate Expected Interest */}
           {parsedData.borrowed_amount && parsedData.borrowing_interest > 0 && (
             <div className="flex justify-between items-center text-xs py-1 border-t border-yellow-200 pt-2 mt-2">
-              <span className="text-gray-600">預期利息</span>
+              <span className="text-gray-600">Expected Interest</span>
               <span className="font-mono text-green-600 font-medium">
                 {(parseFloat(parsedData.borrowed_amount) * (parsedData.borrowing_interest / 1000000)).toFixed(4)} TON
               </span>
@@ -172,44 +172,44 @@ const ControllerDisplay = ({ data }: { data: any }) => {
         </div>
       </div>
 
-      {/* 利潤分配 */}
+              {/* Profit Distribution */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-2">利潤分配</h4>
+        <h4 className="text-sm font-medium text-gray-700 mb-2">Profit Distribution</h4>
         <div className="space-y-1">
-          <InfoLine label="批准者設定分成" value={parsedData.approver_set_profit_share} type="percent" />
-          <InfoLine label="可接受分成" value={parsedData.acceptable_profit_share} type="percent" />
-          <InfoLine label="額外利潤分配" value={parsedData.additional_profit_allocation} type="amount" />
+                      <InfoLine label="Approver Set Profit Share" value={parsedData.approver_set_profit_share} type="percent" />
+          <InfoLine label="Acceptable Profit Share" value={parsedData.acceptable_profit_share} type="percent" />
+          <InfoLine label="Additional Profit Allocation" value={parsedData.additional_profit_allocation} type="amount" />
         </div>
       </div>
 
-      {/* 治理地址 */}
+              {/* Governance Address */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-2">治理地址</h4>
+        <h4 className="text-sm font-medium text-gray-700 mb-2">Governance Addresses</h4>
         <div className="space-y-1">
-          <InfoLine label="驗證器" value={parsedData.validator} type="address" copyable />
-          <InfoLine label="資金池" value={parsedData.pool} type="address" copyable />
-          <InfoLine label="治理者" value={parsedData.governor} type="address" copyable />
-          <InfoLine label="批准者" value={parsedData.approver} type="address" copyable />
-          <InfoLine label="暫停者" value={parsedData.halter} type="address" copyable />
+          <InfoLine label="Validator" value={parsedData.validator} type="address" copyable />
+          <InfoLine label="Pool" value={parsedData.pool} type="address" copyable />
+          <InfoLine label="Governor" value={parsedData.governor} type="address" copyable />
+          <InfoLine label="Approver" value={parsedData.approver} type="address" copyable />
+          <InfoLine label="Halter" value={parsedData.halter} type="address" copyable />
           {parsedData.sudoer && (
-            <InfoLine label="超級用戶" value={parsedData.sudoer} type="address" copyable />
+            <InfoLine label="Super User" value={parsedData.sudoer} type="address" copyable />
           )}
         </div>
       </div>
 
-      {/* 驗證器集信息 */}
+      {/* Validator Set Information */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-2">驗證器集</h4>
+        <h4 className="text-sm font-medium text-gray-700 mb-2">Validator Set</h4>
         <div className="space-y-1">
-          <InfoLine label="更改次數" value={parsedData.validator_set_changes_count} />
-          <InfoLine label="更改時間" value={parsedData.validator_set_change_time} type="time" />
+          <InfoLine label="Change Count" value={parsedData.validator_set_changes_count} />
+          <InfoLine label="Change Time" value={parsedData.validator_set_change_time} type="time" />
         </div>
       </div>
     </div>
   );
 };
 
-// Pool 狀態展示組件  
+// Pool status display component  
 const PoolDisplay = ({ data }: { data: any }) => {
   if (!data || Object.keys(data).length === 0) {
     return (
@@ -217,7 +217,7 @@ const PoolDisplay = ({ data }: { data: any }) => {
         <div className="text-gray-400 mb-2">
           <Users size={24} className="mx-auto" />
         </div>
-        <p className="text-gray-500 text-sm">載入中...</p>
+        <p className="text-gray-500 text-sm">Loading...</p>
       </div>
     );
   }
@@ -237,10 +237,10 @@ const PoolDisplay = ({ data }: { data: any }) => {
 
   return (
     <div className="space-y-3">
-      {/* 狀態總覽 */}
+      {/* Status Overview */}
       <div className="bg-green-50 rounded-lg p-3">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-700">資金池狀態</span>
+          <span className="text-sm font-medium text-gray-700">Pool Status</span>
           <StatusBadge 
             status={parsedData.state} 
             type={parsedData.state === "NORMAL" ? "success" : "warning"}
@@ -248,13 +248,13 @@ const PoolDisplay = ({ data }: { data: any }) => {
         </div>
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div className="flex justify-between">
-            <span className="text-gray-600">已暫停</span>
+            <span className="text-gray-600">Halted</span>
             <span className={parsedData.halted ? "text-red-600" : "text-green-600"}>
               {parsedData.halted ? "✓" : "✗"}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">存款開放</span>
+            <span className="text-gray-600">Deposits Open</span>
             <span className={parsedData.deposit_withdrawal_parameters.deposits_open ? "text-green-600" : "text-red-600"}>
               {parsedData.deposit_withdrawal_parameters.deposits_open ? "✓" : "✗"}
             </span>
@@ -262,39 +262,39 @@ const PoolDisplay = ({ data }: { data: any }) => {
         </div>
       </div>
 
-      {/* 資金信息 */}
+      {/* Fund Information */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-2">資金信息</h4>
+        <h4 className="text-sm font-medium text-gray-700 mb-2">Fund Information</h4>
         <div className="space-y-1">
-          <InfoLine label="總餘額" value={parsedData.total_balance} type="amount" />
-          <InfoLine label="利率" value={parsedData.interest_rate} type="percent" />
-          <InfoLine label="治理費用份額" value={parsedData.governance_fee_share} type="percent" />
-          <InfoLine label="累計治理費用" value={parsedData.accrued_governance_fee} type="amount" />
+          <InfoLine label="Total Balance" value={parsedData.total_balance} type="amount" />
+          <InfoLine label="Interest Rate" value={parsedData.interest_rate} type="percent" />
+          <InfoLine label="Governance Fee Share" value={parsedData.governance_fee_share} type="percent" />
+          <InfoLine label="Accrued Governance Fee" value={parsedData.accrued_governance_fee} type="amount" />
         </div>
       </div>
 
-      {/* 代幣信息 */}
+      {/* Token Information */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-2">代幣信息</h4>
+        <h4 className="text-sm font-medium text-gray-700 mb-2">Token Information</h4>
         <div className="space-y-1">
-          <InfoLine label="Jetton 鑄造器" value={parsedData.minters_data.jetton_minter} type="address" copyable />
-          <InfoLine label="供應量" value={`${parsedData.minters_data.supply} Token`} />
-          <InfoLine label="存款請求" value={parsedData.minters_data.requested_for_deposit} type="amount" />
-          <InfoLine label="提款請求" value={parsedData.minters_data.requested_for_withdraw} type="amount" />
+                      <InfoLine label="Jetton Minter" value={parsedData.minters_data.jetton_minter} type="address" copyable />
+          <InfoLine label="Supply" value={`${parsedData.minters_data.supply} Token`} />
+          <InfoLine label="Deposit Requests" value={parsedData.minters_data.requested_for_deposit} type="amount" />
+          <InfoLine label="Withdrawal Requests" value={parsedData.minters_data.requested_for_withdraw} type="amount" />
         </div>
       </div>
 
-      {/* 當前輪次 */}
+      {/* Current Round */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-2">當前輪次 #{parsedData.round_data.current_round_borrowers.round_id}</h4>
+        <h4 className="text-sm font-medium text-gray-700 mb-2">Current Round #{parsedData.round_data.current_round_borrowers.round_id}</h4>
         <div className="bg-blue-50 rounded-lg p-3 mb-3">
         <div className="space-y-1">
-          <InfoLine label="活躍借款人" value={parsedData.round_data.current_round_borrowers.active_borrowers} />
-          <InfoLine label="已借出" value={parsedData.round_data.current_round_borrowers.borrowed} type="amount" />
-          <InfoLine label="預期收益" value={parsedData.round_data.current_round_borrowers.expected} type="amount" />
-          <InfoLine label="已返還" value={parsedData.round_data.current_round_borrowers.returned} type="amount" />
-          <div className="flex justify-between items-center text-xs py-1">
-            <span className="text-gray-600">當前利潤</span>
+          <InfoLine label="Active Borrowers" value={parsedData.round_data.current_round_borrowers.active_borrowers} />
+          <InfoLine label="Borrowed" value={parsedData.round_data.current_round_borrowers.borrowed} type="amount" />
+          <InfoLine label="Expected Return" value={parsedData.round_data.current_round_borrowers.expected} type="amount" />
+          <InfoLine label="Returned" value={parsedData.round_data.current_round_borrowers.returned} type="amount" />
+                      <div className="flex justify-between items-center text-xs py-1">
+              <span className="text-gray-600">Current Profit</span>
               <span className={`font-mono font-medium ${parseFloat(parsedData.round_data.current_round_borrowers.profit) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {parsedData.round_data.current_round_borrowers.profit} TON
               </span>
@@ -302,10 +302,10 @@ const PoolDisplay = ({ data }: { data: any }) => {
           </div>
         </div>
 
-        {/* 借款人列表 */}
+        {/* Borrower List */}
         {Object.keys(parsedData.round_data.current_round_borrowers.borrowers || {}).length > 0 && (
           <div>
-            <div className="text-xs font-medium text-gray-700 mb-2">當前借款人</div>
+            <div className="text-xs font-medium text-gray-700 mb-2">Current Borrowers</div>
             <div className="space-y-1">
               {Object.entries(parsedData.round_data.current_round_borrowers.borrowers).slice(0, 3).map(([address, borrowData]: [string, any]) => (
                 <div key={address} className="flex justify-between items-center text-xs bg-gray-50 p-2 rounded">
@@ -324,7 +324,7 @@ const PoolDisplay = ({ data }: { data: any }) => {
               ))}
               {Object.keys(parsedData.round_data.current_round_borrowers.borrowers).length > 3 && (
                 <div className="text-center text-xs text-gray-500 pt-1">
-                  還有 {Object.keys(parsedData.round_data.current_round_borrowers.borrowers).length - 3} 個借款人
+                  And {Object.keys(parsedData.round_data.current_round_borrowers.borrowers).length - 3} more borrowers
                 </div>
               )}
             </div>
@@ -332,16 +332,16 @@ const PoolDisplay = ({ data }: { data: any }) => {
         )}
       </div>
 
-      {/* 上一輪次 */}
+      {/* Previous Round */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-2">上一輪次 #{parsedData.round_data.prev_round_borrowers.round_id}</h4>
+        <h4 className="text-sm font-medium text-gray-700 mb-2">Previous Round #{parsedData.round_data.prev_round_borrowers.round_id}</h4>
         <div className="bg-gray-50 rounded-lg p-3 space-y-1">
-          <InfoLine label="借款人數" value={parsedData.round_data.prev_round_borrowers.active_borrowers} />
-          <InfoLine label="借出金額" value={parsedData.round_data.prev_round_borrowers.borrowed} type="amount" />
-          <InfoLine label="預期收益" value={parsedData.round_data.prev_round_borrowers.expected} type="amount" />
-          <InfoLine label="已返還" value={parsedData.round_data.prev_round_borrowers.returned} type="amount" />
-          <div className="flex justify-between items-center text-xs py-1">
-            <span className="text-gray-600">實際利潤</span>
+          <InfoLine label="Borrower Count" value={parsedData.round_data.prev_round_borrowers.active_borrowers} />
+          <InfoLine label="Borrowed Amount" value={parsedData.round_data.prev_round_borrowers.borrowed} type="amount" />
+          <InfoLine label="Expected Return" value={parsedData.round_data.prev_round_borrowers.expected} type="amount" />
+          <InfoLine label="Returned Amount" value={parsedData.round_data.prev_round_borrowers.returned} type="amount" />
+                      <div className="flex justify-between items-center text-xs py-1">
+              <span className="text-gray-600">Actual Profit</span>
             <span className={`font-mono font-medium ${parseFloat(parsedData.round_data.prev_round_borrowers.profit) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {parsedData.round_data.prev_round_borrowers.profit} TON
             </span>
@@ -349,28 +349,28 @@ const PoolDisplay = ({ data }: { data: any }) => {
         </div>
       </div>
 
-      {/* 質押參數 */}
+      {/* Staking Parameters */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-2">質押參數</h4>
+        <h4 className="text-sm font-medium text-gray-700 mb-2">Staking Parameters</h4>
         <div className="space-y-1">
-          <InfoLine label="最小貸款" value={parsedData.loan_params_per_validator.min_loan} type="amount" />
-          <InfoLine label="最大貸款" value={parsedData.loan_params_per_validator.max_loan} type="amount" />
-          <InfoLine label="不平衡容忍度" value={`${parsedData.disbalance_tolerance}%`} />
-          <InfoLine label="貸款開始時間" value={`提前 ${parsedData.credit_start_prior_elections_end} 秒`} />
+          <InfoLine label="Minimum Loan" value={parsedData.loan_params_per_validator.min_loan} type="amount" />
+          <InfoLine label="Maximum Loan" value={parsedData.loan_params_per_validator.max_loan} type="amount" />
+          <InfoLine label="Imbalance Tolerance" value={`${parsedData.disbalance_tolerance}%`} />
+          <InfoLine label="Loan Start Time" value={`${parsedData.credit_start_prior_elections_end} seconds before elections end`} />
         </div>
       </div>
 
-      {/* 治理地址 */}
+      {/* Governance Addresses */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-2">治理地址</h4>
+        <h4 className="text-sm font-medium text-gray-700 mb-2">Governance Addresses</h4>
         <div className="space-y-1">
-          <InfoLine label="治理者" value={parsedData.role_data.governor} type="address" copyable />
-          <InfoLine label="批准者" value={parsedData.role_data.approver} type="address" copyable />
-          <InfoLine label="暫停者" value={parsedData.role_data.halter} type="address" copyable />
-          <InfoLine label="財務" value={parsedData.role_data.treasury} type="address" copyable />
-          <InfoLine label="利率管理者" value={parsedData.role_data.interest_manager} type="address" copyable />
+          <InfoLine label="Governor" value={parsedData.role_data.governor} type="address" copyable />
+          <InfoLine label="Approver" value={parsedData.role_data.approver} type="address" copyable />
+          <InfoLine label="Halter" value={parsedData.role_data.halter} type="address" copyable />
+          <InfoLine label="Treasury" value={parsedData.role_data.treasury} type="address" copyable />
+          <InfoLine label="Interest Manager" value={parsedData.role_data.interest_manager} type="address" copyable />
           {parsedData.role_data.sudoer && (
-            <InfoLine label="超級用戶" value={parsedData.role_data.sudoer} type="address" copyable />
+            <InfoLine label="Super User" value={parsedData.role_data.sudoer} type="address" copyable />
           )}
         </div>
       </div>
@@ -384,7 +384,7 @@ function App() {
   const urlParams = new URLSearchParams(window.location.search);
   const isTestnet = urlParams.get("testnet") !== null;
 
-  // 預設地址
+  // Default addresses
   const [controllerAddress, setControllerAddress] = useState("Ef9GOR1wqJFPVpbHOxObSATkdbfTizRTmDi6DdjJFYaRKhoK"); // KTON Validator Controller
 
   const [poolAddress, setPoolAddress] = useState("EQA9HwEZD_tONfVz6lJS0PVKR5viEiEGyj9AuQewGQVnXPg0"); // KTON Pool
@@ -392,32 +392,32 @@ function App() {
   const [controllerData, setControllerData] = useState<any>({});
 
   const [poolData, setPoolData] = useState<any>({});
-  const [poolControllers, setPoolControllers] = useState<any[]>([]); // Pool相關的Controllers
+  const [poolControllers, setPoolControllers] = useState<any[]>([]); // Pool-related Controllers
   const [isControllerLoading, setIsControllerLoading] = useState(false);
 
   const [isPoolLoading, setIsPoolLoading] = useState(false);
   const [isPoolControllersLoading, setIsPoolControllersLoading] = useState(false);
 
-  // 延遲函數
+  // Delay function
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-  // 帶重試機制的API調用函數
+  // API call function with retry mechanism
   const apiCallWithRetry = async (apiCall: () => Promise<any>, maxRetries: number = 3, baseDelay: number = 1000) => {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const result = await apiCall();
         return result;
       } catch (error: any) {
-        console.log(`API 調用錯誤 (嘗試 ${attempt}/${maxRetries}):`, error);
+        console.log(`API call error (attempt ${attempt}/${maxRetries}):`, error);
         
-        // 檢查是否是速率限制錯誤
+        // Check if it's a rate limit error
         const isRateLimited = 
           (error.message && error.message.includes('429')) ||
           (error.toString && error.toString().includes('429')) ||
           (error.response && error.response.status === 429) ||
-          // 檢查fetch response狀態
+          // Check fetch response status
           (error.status === 429) ||
-          // 檢查錯誤消息中的關鍵詞
+          // Check error message keywords
           (error.message && (
             error.message.includes('Too Many Requests') ||
             error.message.includes('rate limit') ||
@@ -425,21 +425,21 @@ function App() {
           ));
         
         if (isRateLimited && attempt < maxRetries) {
-          const delayTime = baseDelay * Math.pow(2, attempt - 1); // 指數退避
-          console.log(`API 速率限制，第 ${attempt} 次重試，等待 ${delayTime}ms...`);
+          const delayTime = baseDelay * Math.pow(2, attempt - 1); // Exponential backoff
+          console.log(`API rate limited, ${attempt}th retry, waiting ${delayTime}ms...`);
           await delay(delayTime);
           continue;
         }
         
         if (attempt === maxRetries) {
-          console.error(`API 調用失敗，已達最大重試次數 ${maxRetries}`, error);
+          console.error(`API call failed, reached maximum retry count ${maxRetries}`, error);
           throw error;
         }
       }
     }
   };
 
-  // 批量API調用函數（串行執行，避免速率限制）
+  // Batch API call function (serial execution to avoid rate limiting)
   const batchApiCalls = async (
     calls: Array<() => Promise<any>>, 
     delayBetweenCalls: number = 1500,
@@ -448,32 +448,32 @@ function App() {
     const results: any[] = [];
     
     for (let i = 0; i < calls.length; i++) {
-      try {
-        console.log(`執行 API 調用 ${i + 1}/${calls.length}`);
+              try {
+          console.log(`Executing API call ${i + 1}/${calls.length}`);
         const result = await apiCallWithRetry(calls[i]);
         results.push(result);
         
-        // 進度回調，包含當前結果
+                  // Progress callback with current result
         if (onProgress) {
           onProgress(i + 1, calls.length, result);
         }
         
-        // 延遲下一次調用（除了最後一次）
+        // Delay next call (except for the last one)
         if (i < calls.length - 1) {
           await delay(delayBetweenCalls);
         }
       } catch (error) {
-        console.error(`API 調用 ${i + 1} 失敗:`, error);
-        // 返回錯誤結果而不是拋出異常
+        console.error(`API call ${i + 1} failed:`, error);
+        // Return error result instead of throwing exception
         const errorResult = { error: "Failed to fetch data" };
         results.push(errorResult);
         
-        // 即使失敗也要調用進度回調
+        // Call progress callback even if failed
         if (onProgress) {
           onProgress(i + 1, calls.length, errorResult);
         }
         
-        // 延遲下一次調用（除了最後一次）
+        // Delay next call (except for the last one)
         if (i < calls.length - 1) {
           await delay(delayBetweenCalls);
         }
@@ -483,41 +483,41 @@ function App() {
     return results;
   };
 
-  // 獲取Pool相關Controllers的函數
+  // Function to get Pool-related Controllers
   const loadPoolControllers = async (poolData: any) => {
     if (!poolData || !poolData.round_data) return;
     
     setIsPoolControllersLoading(true);
     
     try {
-      // 從當前輪次獲取borrowers地址
+      // Get borrower addresses from current round
       const currentBorrowers = poolData.round_data.current_round_borrowers?.borrowers || {};
       const prevBorrowers = poolData.round_data.prev_round_borrowers?.borrowers || {};
       
-      // 合併所有借款人地址（去重）
+      // Merge all borrower addresses (deduplicate)
       const allBorrowerAddresses = Array.from(new Set([
         ...Object.keys(currentBorrowers),
         ...Object.keys(prevBorrowers)
       ]));
       
-      console.log(`開始載入 ${allBorrowerAddresses.length} 個 Controllers（串行模式，預計需要 ${Math.ceil(allBorrowerAddresses.length * 1.5)} 秒）`);
+      console.log(`Starting to load ${allBorrowerAddresses.length} Controllers (serial mode, estimated ${Math.ceil(allBorrowerAddresses.length * 1.5)} seconds)`);
       
-      // 創建API調用函數數組
+      // Create API call function array
       const apiCalls = allBorrowerAddresses.map(address => 
         () => loadControllerState(address, isTestnet)
       );
       
-      // 用於跟蹤即時結果
+      // For tracking real-time results
       const currentControllers: any[] = [];
       
-      // 使用批量API調用（串行執行）
+      // Use batch API calls (serial execution)
       const results = await batchApiCalls(
         apiCalls,
-        1500, // 每次調用間隔1.5秒
+        1500, // 1.5 second interval between calls
         (completed, total, currentResult) => {
-          console.log(`載入進度: ${completed}/${total} Controllers`);
+          console.log(`Loading progress: ${completed}/${total} Controllers`);
           
-          // 添加新結果到當前控制器列表
+          // Add new result to current controller list
           if (currentResult && completed <= allBorrowerAddresses.length) {
             const address = allBorrowerAddresses[completed - 1];
             currentControllers.push({
@@ -528,12 +528,12 @@ function App() {
             });
           }
           
-          // 即時更新UI顯示已載入的結果
+          // Update UI in real-time with loaded results
           setPoolControllers([...currentControllers]);
         }
       );
       
-      // 組合最終結果
+      // Combine final results
       const controllers = allBorrowerAddresses.map((address, index) => ({
         address,
         data: results[index] || { error: "Failed to fetch controller data" },
@@ -542,7 +542,7 @@ function App() {
       }));
       
       setPoolControllers(controllers);
-      console.log('所有 Controllers 載入完成');
+      console.log('All Controllers loaded');
       
     } catch (error) {
       console.error('Error loading pool controllers:', error);
@@ -552,7 +552,7 @@ function App() {
     }
   };
 
-  // 函數定義
+  // Function definitions
   const handleControllerSubmit = async () => {
     setIsControllerLoading(true);
     try {
@@ -570,12 +570,12 @@ function App() {
   const handlePoolSubmit = async () => {
     setIsPoolLoading(true);
     try {
-      console.log('載入 Pool 數據...');
+      console.log('Loading Pool data...');
       const data = await apiCallWithRetry(() => loadPoolState(poolAddress, isTestnet));
       setPoolData(data);
       
-      console.log('Pool 數據載入完成，開始載入相關 Controllers...');
-      // 自動載入Pool相關的Controllers（帶延遲，避免過快連續調用）
+      console.log('Pool data loaded, starting to load related Controllers...');
+      // Automatically load Pool-related Controllers (with delay to avoid too fast consecutive calls)
       await delay(800);
       await loadPoolControllers(data);
     } catch (error) {
@@ -586,7 +586,7 @@ function App() {
     }
   };
 
-  // 自動加載初始數據
+  // Auto-load initial data
   React.useEffect(() => {
     if (controllerAddress) {
       handleControllerSubmit();
@@ -600,46 +600,46 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* 統一的查詢面板 */}
+        {/* Unified Query Panel */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Controller 查詢 */}
-          <div className="bg-white rounded-xl p-4 shadow-lg border border-gray-100">
-            <div className="flex items-center gap-2 mb-3">
-              <Shield className="text-blue-600" size={20} />
-              <h3 className="text-lg font-semibold text-gray-800">Controller 合約</h3>
-            </div>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={controllerAddress}
-                onChange={(e) => setControllerAddress(e.target.value)}
-                placeholder="Controller 地址"
-                className="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button
-                onClick={handleControllerSubmit}
-                disabled={isControllerLoading}
-                className={`px-4 py-2 text-sm bg-blue-600 text-white rounded-lg transition-all ${
-                  isControllerLoading ? "opacity-50" : "hover:bg-blue-700"
-                }`}
-              >
-                {isControllerLoading ? "查詢中" : "查詢"}
-              </button>
+                      {/* Controller Query */}
+            <div className="bg-white rounded-xl p-4 shadow-lg border border-gray-100">
+              <div className="flex items-center gap-2 mb-3">
+                <Shield className="text-blue-600" size={20} />
+                <h3 className="text-lg font-semibold text-gray-800">Controller Contract</h3>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={controllerAddress}
+                  onChange={(e) => setControllerAddress(e.target.value)}
+                  placeholder="Controller Address"
+                  className="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  onClick={handleControllerSubmit}
+                  disabled={isControllerLoading}
+                  className={`px-4 py-2 text-sm bg-blue-600 text-white rounded-lg transition-all ${
+                    isControllerLoading ? "opacity-50" : "hover:bg-blue-700"
+                  }`}
+                >
+                  {isControllerLoading ? "Querying..." : "Query"}
+                </button>
             </div>
           </div>
 
-          {/* Pool 查詢 */}
+          {/* Pool Query */}
           <div className="bg-white rounded-xl p-4 shadow-lg border border-gray-100">
             <div className="flex items-center gap-2 mb-3">
               <Users className="text-green-600" size={20} />
-              <h3 className="text-lg font-semibold text-gray-800">Pool 合約</h3>
+              <h3 className="text-lg font-semibold text-gray-800">Pool Contract</h3>
             </div>
             <div className="flex gap-2">
               <input
                 type="text"
                 value={poolAddress}
                 onChange={(e) => setPoolAddress(e.target.value)}
-                placeholder="Pool 地址"
+                placeholder="Pool Address"
                 className="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
               <button
@@ -649,7 +649,7 @@ function App() {
                   isPoolLoading ? "opacity-50" : "hover:bg-green-700"
                 }`}
               >
-                {isPoolLoading ? "查詢中" : "查詢"}
+                {isPoolLoading ? "Querying..." : "Query"}
               </button>
             </div>
           </div>
@@ -657,24 +657,24 @@ function App() {
 
         </div>
 
-        {/* 主要數據展示面板 */}
+        {/* Main Data Display Panel */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-100">
           <div className="p-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Controller 數據 */}
+              {/* Controller Data */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2 mb-4">
                   <Shield className="text-blue-600" size={20} />
-                  <h3 className="text-lg font-semibold text-gray-800">Controller 數據</h3>
+                  <h3 className="text-lg font-semibold text-gray-800">Controller Data</h3>
                 </div>
                 <ControllerDisplay data={controllerData} />
               </div>
 
-              {/* Pool 數據 */}
+              {/* Pool Data */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2 mb-4">
                   <Users className="text-green-600" size={20} />
-                  <h3 className="text-lg font-semibold text-gray-800">Pool 數據</h3>
+                  <h3 className="text-lg font-semibold text-gray-800">Pool Data</h3>
                 </div>
                 <PoolDisplay data={poolData} />
               </div>
@@ -684,13 +684,13 @@ function App() {
           </div>
         </div>
 
-        {/* Pool 相關 Controllers 展示面板 */}
+        {/* Pool Related Controllers Display Panel */}
         {poolControllers.length > 0 && (
           <div className="bg-white rounded-xl shadow-lg border border-gray-100">
             <div className="p-6">
               <div className="flex items-center gap-2 mb-6">
                 <Users className="text-green-600" size={24} />
-                <h2 className="text-xl font-semibold text-gray-800">Pool 相關的 Controllers</h2>
+                <h2 className="text-xl font-semibold text-gray-800">Pool Related Controllers</h2>
                 {isPoolControllersLoading && (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-green-600"></div>
                 )}
@@ -704,9 +704,9 @@ function App() {
                       <h4 className="text-sm font-semibold text-gray-800">Controller #{index + 1}</h4>
                     </div>
                     
-                    {/* Controller 地址 */}
+                    {/* Controller Address */}
                     <div className="mb-3">
-                      <div className="text-xs text-gray-600 mb-1">地址</div>
+                      <div className="text-xs text-gray-600 mb-1">Address</div>
                       <button
                         onClick={() => navigator.clipboard.writeText(controller.address)}
                         className="font-mono text-xs text-blue-600 hover:text-blue-800 transition-colors break-all"
@@ -716,32 +716,32 @@ function App() {
                       </button>
                     </div>
 
-                    {/* 借貸信息 */}
+                    {/* Borrowing Information */}
                     {(controller.currentBorrow || controller.prevBorrow) && (
                       <div className="mb-3 p-2 bg-yellow-50 rounded">
-                        <div className="text-xs font-medium text-gray-700 mb-2">借貸狀況</div>
+                        <div className="text-xs font-medium text-gray-700 mb-2">Borrowing Status</div>
                         {controller.currentBorrow && (
                           <div className="space-y-1">
-                            <div className="text-xs text-green-700">
-                              <span className="font-medium">當前：</span>
-                              <div>貸款: {controller.currentBorrow.credit} TON</div>
-                              <div>利息: {controller.currentBorrow.interest} TON</div>
-                            </div>
+                                              <div className="text-xs text-green-700">
+                    <span className="font-medium">Current:</span>
+                    <div>Loan: {controller.currentBorrow.credit} TON</div>
+                    <div>Interest: {controller.currentBorrow.interest} TON</div>
+                  </div>
                           </div>
                         )}
                         {controller.prevBorrow && (
                           <div className="space-y-1 mt-2">
-                            <div className="text-xs text-gray-600">
-                              <span className="font-medium">上輪：</span>
-                              <div>貸款: {controller.prevBorrow.credit} TON</div>
-                              <div>利息: {controller.prevBorrow.interest} TON</div>
-                            </div>
+                                              <div className="text-xs text-gray-600">
+                    <span className="font-medium">Previous:</span>
+                    <div>Loan: {controller.prevBorrow.credit} TON</div>
+                    <div>Interest: {controller.prevBorrow.interest} TON</div>
+                  </div>
                           </div>
                         )}
                       </div>
                     )}
 
-                    {/* Controller 詳細數據 */}
+                    {/* Controller Detailed Data */}
                     <div className="text-xs">
                       <ControllerDisplay data={controller.data} />
                     </div>
@@ -752,9 +752,9 @@ function App() {
               {isPoolControllersLoading && poolControllers.length === 0 && (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
-                  <p className="text-gray-500">正在載入 Pool 相關的 Controllers...</p>
+                  <p className="text-gray-500">Loading Pool Related Controllers...</p>
                   <p className="text-xs text-gray-400 mt-2">
-                    串行載入中，每次間隔1.5秒以避免API限制
+                    Serial loading, 1.5 second intervals to avoid API limits
                   </p>
                 </div>
               )}
@@ -763,10 +763,10 @@ function App() {
                 <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                    <span className="text-sm font-medium text-blue-800">繼續載入中...</span>
+                    <span className="text-sm font-medium text-blue-800">Continuing to load...</span>
                   </div>
                   <p className="text-xs text-blue-600">
-                    已載入部分結果，剩餘數據將陸續更新
+                    Some results loaded, remaining data will be updated sequentially
                   </p>
                 </div>
               )}
@@ -774,61 +774,61 @@ function App() {
           </div>
         )}
 
-        {/* 數據概覽面板 */}
+                    {/* Data Overview Panel */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-100">
           <div className="p-6">
             <div className="flex items-center gap-2 mb-6">
               <DollarSign className="text-orange-600" size={24} />
-              <h2 className="text-xl font-semibold text-gray-800">LST 生態系統概覽</h2>
+              <h2 className="text-xl font-semibold text-gray-800">LST Ecosystem Overview</h2>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Pool 總量 */}
+                                {/* Pool Total */}
               {poolData && Object.keys(poolData).length > 0 && !poolData.error && (
                 <>
                   <div className="bg-green-50 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Users className="text-green-600" size={16} />
-                      <span className="text-sm font-medium text-gray-700">Pool 總餘額</span>
+                      <span className="text-sm font-medium text-gray-700">Pool Total Balance</span>
                     </div>
                     <div className="text-2xl font-bold text-green-600">
                       {JSON.parse(poolStateStringify(poolData)).total_balance} TON
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
-                      利率: {(JSON.parse(poolStateStringify(poolData)).interest_rate / 1000000 * 100).toFixed(2)}%
+                      Interest Rate: {(JSON.parse(poolStateStringify(poolData)).interest_rate / 1000000 * 100).toFixed(2)}%
                     </div>
                   </div>
 
                   <div className="bg-blue-50 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Shield className="text-blue-600" size={16} />
-                      <span className="text-sm font-medium text-gray-700">當前借款</span>
+                      <span className="text-sm font-medium text-gray-700">Current Borrowed</span>
                     </div>
                     <div className="text-2xl font-bold text-blue-600">
                       {JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.borrowed} TON
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
-                      活躍借款人: {JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.active_borrowers}
+                      Active Borrowers: {JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.active_borrowers}
                     </div>
                   </div>
 
                   <div className="bg-purple-50 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Clock className="text-purple-600" size={16} />
-                      <span className="text-sm font-medium text-gray-700">預期收益</span>
+                      <span className="text-sm font-medium text-gray-700">Expected Return</span>
                     </div>
                     <div className="text-2xl font-bold text-purple-600">
                       {JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.expected} TON
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
-                      輪次: #{JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.round_id}
+                      Round: #{JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.round_id}
                     </div>
                   </div>
 
                   <div className="bg-yellow-50 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <DollarSign className="text-yellow-600" size={16} />
-                      <span className="text-sm font-medium text-gray-700">LST 供應量</span>
+                      <span className="text-sm font-medium text-gray-700">LST Supply</span>
                     </div>
                     <div className="text-2xl font-bold text-yellow-600">
                       {JSON.parse(poolStateStringify(poolData)).minters_data.supply} LST
@@ -838,80 +838,80 @@ function App() {
                     </div>
                   </div>
 
-                  {/* 新增：Pool 利用率卡片 */}
+                  {/* New: Pool Utilization Card */}
                   <div className="bg-indigo-50 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Shield className="text-indigo-600" size={16} />
-                      <span className="text-sm font-medium text-gray-700">資金利用率</span>
+                      <span className="text-sm font-medium text-gray-700">Fund Utilization</span>
                     </div>
                     <div className="text-2xl font-bold text-indigo-600">
                       {(parseFloat(JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.borrowed) / parseFloat(JSON.parse(poolStateStringify(poolData)).total_balance) * 100).toFixed(1)}%
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
-                      借出/總餘額
+                      Borrowed/Total Balance
                     </div>
                   </div>
 
-                  {/* 新增：實際 vs 預期收益 */}
+                  {/* New: Actual vs Expected Return */}
                   <div className="bg-rose-50 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Clock className="text-rose-600" size={16} />
-                      <span className="text-sm font-medium text-gray-700">上輪收益率</span>
+                      <span className="text-sm font-medium text-gray-700">Previous Round Yield</span>
                     </div>
                     <div className="text-2xl font-bold text-rose-600">
                       {parseFloat(JSON.parse(poolStateStringify(poolData)).round_data.prev_round_borrowers.borrowed) > 0 ? 
                         (parseFloat(JSON.parse(poolStateStringify(poolData)).round_data.prev_round_borrowers.profit) / parseFloat(JSON.parse(poolStateStringify(poolData)).round_data.prev_round_borrowers.borrowed) * 100).toFixed(2) : '0.00'}%
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
-                      實際利潤/借出金額
+                      Actual Profit/Borrowed Amount
                     </div>
                   </div>
 
-                  {/* 新增：治理費用累積 */}
+                  {/* New: Governance Fees Accumulation */}
                   <div className="bg-emerald-50 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Users className="text-emerald-600" size={16} />
-                      <span className="text-sm font-medium text-gray-700">治理費用</span>
+                      <span className="text-sm font-medium text-gray-700">Governance Fees</span>
                     </div>
                     <div className="text-2xl font-bold text-emerald-600">
                       {JSON.parse(poolStateStringify(poolData)).accrued_governance_fee} TON
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
-                      累積費用 ({(JSON.parse(poolStateStringify(poolData)).governance_fee_share / 1000000 * 100).toFixed(2)}%)
+                      Accumulated Fees ({(JSON.parse(poolStateStringify(poolData)).governance_fee_share / 1000000 * 100).toFixed(2)}%)
                     </div>
                   </div>
                 </>
               )}
             </div>
 
-            {/* 系統狀態指示器 - 優化版 */}
+            {/* System Status Indicators - Optimized */}
             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Pool 狀態 */}
+              {/* Pool Status */}
               {poolData && Object.keys(poolData).length > 0 && !poolData.error && (
                 <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-100">
                   <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
                     <Users className="text-green-600" size={16} />
-                    Pool 系統狀態
+                    Pool System Status
                   </h3>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Pool 狀態</span>
+                      <span className="text-sm text-gray-600">Pool Status</span>
                       <StatusBadge 
                         status={JSON.parse(poolStateStringify(poolData)).state} 
                         type={JSON.parse(poolStateStringify(poolData)).state === "NORMAL" ? "success" : "warning"}
                       />
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">存款狀態</span>
+                      <span className="text-sm text-gray-600">Deposit Status</span>
                       <StatusBadge 
-                        status={JSON.parse(poolStateStringify(poolData)).deposit_withdrawal_parameters.deposits_open ? "開放" : "關閉"} 
+                        status={JSON.parse(poolStateStringify(poolData)).deposit_withdrawal_parameters.deposits_open ? "Open" : "Closed"} 
                         type={JSON.parse(poolStateStringify(poolData)).deposit_withdrawal_parameters.deposits_open ? "success" : "error"}
                       />
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Pool 是否暫停</span>
+                      <span className="text-sm text-gray-600">Is Pool Halted</span>
                       <StatusBadge 
-                        status={JSON.parse(poolStateStringify(poolData)).halted ? "已暫停" : "正常"} 
+                        status={JSON.parse(poolStateStringify(poolData)).halted ? "Halted" : "Normal"} 
                         type={JSON.parse(poolStateStringify(poolData)).halted ? "error" : "success"}
                       />
                     </div>
@@ -919,32 +919,32 @@ function App() {
                 </div>
               )}
               
-              {/* Controller 狀態 */}
+              {/* Controller Status */}
               {controllerData && Object.keys(controllerData).length > 0 && !controllerData.error && (
                 <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100">
                   <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
                     <Shield className="text-blue-600" size={16} />
-                    Controller 狀態
+                    Controller Status
                   </h3>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Controller 狀態</span>
+                      <span className="text-sm text-gray-600">Controller Status</span>
                       <StatusBadge 
                         status={JSON.parse(controllerStateStringify(controllerData)).state} 
                         type="info"
                       />
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">是否已批准</span>
+                      <span className="text-sm text-gray-600">Is Approved</span>
                       <StatusBadge 
-                        status={JSON.parse(controllerStateStringify(controllerData)).approved ? "已批准" : "未批准"} 
+                        status={JSON.parse(controllerStateStringify(controllerData)).approved ? "Approved" : "Not Approved"} 
                         type={JSON.parse(controllerStateStringify(controllerData)).approved ? "success" : "warning"}
                       />
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">是否暫停</span>
+                      <span className="text-sm text-gray-600">Is Halted</span>
                       <StatusBadge 
-                        status={JSON.parse(controllerStateStringify(controllerData)).halted ? "已暫停" : "正常"} 
+                        status={JSON.parse(controllerStateStringify(controllerData)).halted ? "Halted" : "Normal"} 
                         type={JSON.parse(controllerStateStringify(controllerData)).halted ? "error" : "success"}
                       />
                     </div>
