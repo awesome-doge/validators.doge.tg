@@ -1005,6 +1005,9 @@
             <a href="nominators.html" class="nav-button active">
                 📊 Nominators
             </a>
+            <a href="vesting.html" class="nav-button">
+                💰 Vesting
+            </a>
             <a href="tontech.html" class="nav-button">
                 🔬 TON Data
             </a>
@@ -1017,17 +1020,7 @@
     <div id="statsContainer" class="stats-grid">
     </div>
 
-    <div class="controls">
-        <div class="search-container">
-            <input id="searchInput" class="search-input" placeholder="Search address or ID...">
-            <select id="sortSelect" class="filter-select">
-                <option value="total_stake_desc">Sort by Stake (High to Low)</option>
-                <option value="total_stake_asc">Sort by Stake (Low to High)</option>
-                <option value="address">Sort by Address</option>
-                <option value="id">Sort by ID</option>
-            </select>
-        </div>
-    </div>
+
 
     <div id="tableContainer">
     </div>
@@ -1091,8 +1084,6 @@
     // Global variables
     let nominatorsData = [];
     let filteredData = [];
-    let searchText = '';
-    let currentSort = 'total_stake_desc';
 
     // API status update
     function updateApiStatus(apiName, responseTime = null) {
@@ -1194,36 +1185,12 @@
         `;
     }
 
-    // Sorting functions
-    function sortNominators(data, sortType) {
-        const sorted = [...data];
-        
-        switch (sortType) {
-            case 'total_stake_desc':
-                return sorted.sort((a, b) => BigInt(b.total_stake) > BigInt(a.total_stake) ? 1 : -1);
-            case 'total_stake_asc':
-                return sorted.sort((a, b) => BigInt(a.total_stake) > BigInt(b.total_stake) ? 1 : -1);
-            case 'address':
-                return sorted.sort((a, b) => a.nominator_address.localeCompare(b.nominator_address));
-            case 'id':
-                return sorted.sort((a, b) => a.nominator_id - b.nominator_id);
-            default:
-                return sorted;
-        }
-    }
-
-    // Filter functions
-    function filterNominators() {
-        let filtered = nominatorsData;
-
-        if (searchText) {
-            filtered = filtered.filter(nominator => 
-                nominator.nominator_address.toLowerCase().includes(searchText.toLowerCase()) ||
-                nominator.nominator_id.toString().includes(searchText)
-            );
-        }
-
-        filteredData = sortNominators(filtered, currentSort);
+    // Prepare data for rendering  
+    function prepareData() {
+        // 預設按總質押量降序排序
+        filteredData = [...nominatorsData].sort((a, b) => 
+            BigInt(b.total_stake) > BigInt(a.total_stake) ? 1 : -1
+        );
         renderTable();
     }
 
@@ -1382,15 +1349,6 @@
     }
 
     // Event listeners
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-        searchText = e.target.value;
-        filterNominators();
-    });
-
-    document.getElementById('sortSelect').addEventListener('change', (e) => {
-        currentSort = e.target.value;
-        filterNominators();
-    });
 
     // Close modal when clicking outside
     document.getElementById('detailModal').addEventListener('click', (e) => {
@@ -1405,7 +1363,7 @@
         try {
             nominatorsData = await fetchNominators();
             renderStats();
-            filterNominators();
+            prepareData();
         } catch (error) {
             alert(`Failed to load data: ${error.message}`);
         } finally {

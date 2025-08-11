@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
+    <title>TON Vesting Contracts - Validators Dashboard</title>
+    <link rel="stylesheet" href="assets/validators.css">
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>TON Vesting Contracts</h1>
+        <div class="subtitle">All Vesting contracts with sorting functionality</div>
+        <div class="nav-buttons">
+            <a href="index.html" class="nav-button">
+                🏠 Validators
+            </a>
+            <a href="nominators.html" class="nav-button">
+                📊 Nominators
+            </a>
+            <a href="vesting.html" class="nav-button active">
+                💰 Vesting
+            </a>
+            <a href="tontech.html" class="nav-button">
+                🔬 TON Data
+            </a>
+            <a href="ktonviewer.html" class="nav-button">
+                🔍 LST Tool
+            </a>
+        </div>
+    </div>
+
+    <div id="statsContainer" class="stats-grid">
+    </div>
+
+
+
+    <div id="tableContainer">
+    </div>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+</div>
+
+<div class="api-status" id="apiStatus">
+    <div>Data Source: <span class="api-name" id="apiName">Tonscan API</span></div>
+    <div class="api-performance" id="apiPerformance"></div>
+</div>
+
+<script>
+    // 工具函數
+    const fromNano = (nano) => {
+        return BigInt(nano) / BigInt(1e9);
+    }
+
+    const toMillions = (n) => {
+        return (Number(n) / 1e6).toFixed(3) + 'M';
+    }
+
+    const toMillionsShort = (n) => {
+        let s = (Number(n) / 1e6).toFixed(3);
+        for (let i = 0; i < 3; i++) {
+            if (s.endsWith('0')) s = s.substring(0, s.length - 1);
+        }
+        if (s.endsWith('.')) s = s.substring(0, s.length - 1);
+        return s + 'M';
+    }
+
+    const withCommas = (n) => {
+        try {
+            const num = typeof n === 'bigint' ? Number(n) : Number(n);
+            if (Number.isNaN(num)) return n;
+            return num.toLocaleString('en-US');
+        } catch {
+            return n;
+        }
+    }
+
+    const makeAddressUrl = (address) => {
+        return `<a href="https://tonscan.org/address/${address}" target="_blank">${address}</a>`;
+    }
+
+    const showLoading = () => {
+        document.getElementById('loadingOverlay').style.display = 'flex';
+    }
+
+    const hideLoading = () => {
+        document.getElementById('loadingOverlay').style.display = 'none';
+    }
+
+    const timestampToDate = (timestamp) => {
+        const date = new Date(timestamp * 1000);
+        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+    }
+
+    // 全域變數
+    let vestingData = [];
+    let filteredData = [];
+    let sortColumn = 'balance'; // 預設按餘額排序
+    let sortDirection = 'desc'; // 預設降序
+
+    // API 狀態更新
+    function updateApiStatus(apiName, responseTime = null) {
+        const apiStatus = document.getElementById('apiStatus');
+        const apiNameElement = document.getElementById('apiName');
+        const apiPerformance = document.getElementById('apiPerformance');
+
+        apiNameElement.textContent = apiName;
+        
+        let performanceText = '';
+        if (responseTime !== null) {
+            performanceText = `${responseTime.toFixed(0)}ms`;
+        }
+        
+        apiPerformance.textContent = performanceText;
+        apiStatus.classList.add('show');
+        
+        setTimeout(() => {
+            apiStatus.classList.remove('show');
+        }, 3000);
+    }
+
+    // 獲取所有 Vesting 合約地址
+    async function fetchAllVestingAddresses() {
+        const CODE_HASH = 'tItTGr7DtxRjgpH3137W3J9qJynvyiBHcTc3TUrotZA=';
+        const BATCH_SIZE = 50;
+        let allAddresses = [];
+        let offset = 0;
+        let hasMore = true;
+
+        while (hasMore && allAddresses.length < 500) {
+            try {
+                const url = `https://api.tonscan.com/api/bt/getAddressesForContract?code_hash=${encodeURIComponent(CODE_HASH)}&limit=${BATCH_SIZE}&offset=${offset}`;
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`API 錯誤: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // 檢查 API 響應結構
+                if (!data.json || !data.json.data) {
+                    console.warn('API 響應格式異常:', data);
+                    hasMore = false;
+                    break;
+                }
+                
+                const addresses = data.json.data;
+                
+                if (!Array.isArray(addresses) || addresses.length === 0) {
+                    console.log(`在 offset ${offset} 處無更多數據，結束獲取`);
+                    hasMore = false;
+                } else {
+                    allAddresses = allAddresses.concat(addresses);
+                    offset += BATCH_SIZE;
+                    
+                    // 顯示進度
+                    console.log(`已獲取 ${allAddresses.length} 個 Vesting 合約地址...`);
+                }
+                
+                // 避免請求過於頻繁
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+            } catch (error) {
+                console.error(`獲取地址列表失敗 (offset: ${offset}):`, error);
+                hasMore = false;
+                break;
+            }
+        }
+
+        console.log(`總共獲取 ${allAddresses.length} 個 Vesting 合約地址`);
+
+        // 過濾無效數據並按餘額排序
+        const validAddresses = allAddresses.filter(addr => 
+            addr && addr.address && typeof addr.balance !== 'undefined'
+        );
+        
+        validAddresses.sort((a, b) => {
+            try {
+                return BigInt(b.balance) - BigInt(a.balance) > 0 ? 1 : -1;
+            } catch (e) {
+                console.warn('排序時遇到無效餘額:', a.balance, b.balance);
+                return 0;
+            }
+        });
+        
+        return validAddresses; // 返回所有地址，不限制數量
+    }
+
+    // 渲染統計資料
+    function renderStats() {
+        if (!vestingData || vestingData.length === 0) {
+            document.getElementById('statsContainer').innerHTML = `
+                <div class="stat-card">
+                    <h3>Loading...</h3>
+                    <p class="value">-</p>
+                </div>
+            `;
+            return;
+        }
+
+        const totalContracts = vestingData.length;
+        const totalBalance = vestingData.reduce((sum, contract) => {
+            try {
+                return sum + BigInt(contract.balance || 0);
+            } catch (e) {
+                console.warn('無效的餘額數據:', contract.balance);
+                return sum;
+            }
+        }, BigInt(0));
+        
+        const activeContracts = vestingData.filter(c => c.balance && Number(c.balance) > 0).length;
+        const averageBalance = totalContracts > 0 ? totalBalance / BigInt(totalContracts) : BigInt(0);
+
+        const oldestContract = vestingData.reduce((oldest, contract) => {
+            if (!contract.created_utime) return oldest;
+            if (!oldest.created_utime) return contract;
+            return contract.created_utime < oldest.created_utime ? contract : oldest;
+        }, {created_utime: Date.now() / 1000});
+
+        document.getElementById('statsContainer').innerHTML = `
+            <div class="stat-card">
+                <h3>Total Contracts</h3>
+                <p class="value">${withCommas(totalContracts)}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Active Contracts</h3>
+                <p class="value">${withCommas(activeContracts)}</p>
+            </div>
+            <div class="stat-card">
+                <h3>Total Balance</h3>
+                <p class="value">${toMillionsShort(fromNano(totalBalance))} TON</p>
+            </div>
+            <div class="stat-card">
+                <h3>Average Balance</h3>
+                <p class="value">${toMillionsShort(fromNano(averageBalance))} TON</p>
+            </div>
+            <div class="stat-card">
+                <h3>Oldest Contract</h3>
+                <p class="value">${oldestContract.created_utime ? new Date(oldestContract.created_utime * 1000).toLocaleDateString() : 'N/A'}</p>
+            </div>
+        `;
+    }
+
+    // 排序函數
+    function sortData(column) {
+        if (sortColumn === column) {
+            // 如果點擊同一列，則切換排序方向
+            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            // 如果點擊不同列，則設為新列並使用預設排序方向
+            sortColumn = column;
+            sortDirection = column === 'balance' ? 'desc' : 'asc';
+        }
+        
+        filterData();
+    }
+
+    // 排序數據
+    function filterData() {
+        let filtered = [...vestingData]; // 複製所有數據
+
+        // 排序邏輯
+        filtered.sort((a, b) => {
+            let valueA, valueB;
+            
+            switch (sortColumn) {
+                case 'rank':
+                    valueA = vestingData.indexOf(a) + 1;
+                    valueB = vestingData.indexOf(b) + 1;
+                    break;
+                case 'address':
+                    valueA = a.address.toLowerCase();
+                    valueB = b.address.toLowerCase();
+                    break;
+                case 'balance':
+                    valueA = BigInt(a.balance || 0);
+                    valueB = BigInt(b.balance || 0);
+                    break;
+                case 'created':
+                    valueA = a.created_utime || 0;
+                    valueB = b.created_utime || 0;
+                    break;
+                case 'lastTx':
+                    valueA = a.latest_transaction_time || 0;
+                    valueB = b.latest_transaction_time || 0;
+                    break;
+                default:
+                    return 0;
+            }
+            
+            if (sortColumn === 'balance') {
+                // BigInt 比較
+                const result = valueA - valueB;
+                return sortDirection === 'asc' ? 
+                    (result > 0 ? 1 : result < 0 ? -1 : 0) : 
+                    (result > 0 ? -1 : result < 0 ? 1 : 0);
+            } else {
+                // 一般比較
+                if (valueA < valueB) return sortDirection === 'asc' ? -1 : 1;
+                if (valueA > valueB) return sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            }
+        });
+
+        filteredData = filtered;
+        renderTable();
+    }
+
+    // 獲取排序圖標
+    function getSortIcon(column) {
+        if (sortColumn !== column) {
+            return '<span class="sort-icon">↕️</span>';
+        }
+        return sortDirection === 'asc' ? 
+            '<span class="sort-icon active">↑</span>' : 
+            '<span class="sort-icon active">↓</span>';
+    }
+
+    // 渲染表格
+    function renderTable() {
+        const container = document.getElementById('tableContainer');
+        
+        // 桌面版表格
+        let desktopHtml = `
+            <table>
+                <thead>
+                    <tr>
+                        <th onclick="sortData('rank')">
+                            Rank ${getSortIcon('rank')}
+                        </th>
+                        <th onclick="sortData('address')">
+                            Address ${getSortIcon('address')}
+                        </th>
+                        <th onclick="sortData('balance')">
+                            Balance (TON) ${getSortIcon('balance')}
+                        </th>
+                        <th onclick="sortData('created')">
+                            Created ${getSortIcon('created')}
+                        </th>
+                        <th onclick="sortData('lastTx')">
+                            Last Transaction ${getSortIcon('lastTx')}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        // 手機版卡片
+        let mobileHtml = '<div class="mobile-table">';
+
+        filteredData.forEach((contract, index) => {
+            const balance = fromNano(contract.balance);
+            const balanceDisplay = Number(balance) === 0 ? '0' : toMillions(balance);
+            const rank = vestingData.indexOf(contract) + 1;
+            
+            // 桌面版表格行
+            desktopHtml += `
+                <tr>
+                    <td><span class="badge badge-info">#${rank}</span></td>
+                    <td class="mono">${makeAddressUrl(contract.address)}</td>
+                    <td><strong>${balanceDisplay} TON</strong></td>
+                    <td>${timestampToDate(contract.created_utime)}</td>
+                    <td>${timestampToDate(contract.latest_transaction_time)}</td>
+                </tr>
+            `;
+
+            // 手機版卡片
+            mobileHtml += `
+                <div class="mobile-card">
+                    <div class="mobile-card-header">
+                        <div class="mobile-card-title">
+                            Vesting Contract #${rank}
+                        </div>
+                        <div class="mobile-card-index">#${rank}</div>
+                    </div>
+                    <div class="mobile-card-content">
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">Balance:</span>
+                            <span class="mobile-card-value"><strong>${balanceDisplay} TON</strong></span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">Address:</span>
+                            <span class="mobile-card-value mono">${makeAddressUrl(contract.address)}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">Created:</span>
+                            <span class="mobile-card-value">${timestampToDate(contract.created_utime)}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">Last Tx:</span>
+                            <span class="mobile-card-value">${timestampToDate(contract.latest_transaction_time)}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        desktopHtml += `
+                </tbody>
+            </table>
+        `;
+
+        mobileHtml += '</div>';
+
+        container.innerHTML = desktopHtml + mobileHtml;
+    }
+
+    // 載入數據
+    async function loadVestingData() {
+        showLoading();
+        try {
+            console.log('開始獲取 Vesting 合約數據...');
+            updateApiStatus('Tonscan API', null);
+            
+            const startTime = performance.now();
+            const newData = await fetchAllVestingAddresses();
+            const endTime = performance.now();
+            
+            if (!newData || newData.length === 0) {
+                throw new Error('未能獲取到任何 Vesting 合約數據');
+            }
+            
+            vestingData = newData;
+            console.log(`成功獲取並處理 ${vestingData.length} 個 Vesting 合約`);
+            updateApiStatus('Tonscan API', endTime - startTime);
+            
+            renderStats();
+            filterData();
+            
+        } catch (error) {
+            console.error('載入 Vesting 數據失敗:', error);
+            
+            // 顯示更友好的錯誤信息
+            document.getElementById('statsContainer').innerHTML = `
+                <div class="stat-card" style="grid-column: 1 / -1;">
+                    <h3>載入失敗</h3>
+                    <p class="value" style="color: #FF3B30; font-size: 16px;">
+                        ${error.message || '無法載入 Vesting 合約數據'}
+                    </p>
+                    <button onclick="loadVestingData()" style="margin-top: 10px; padding: 8px 16px; background: #007AFF; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        重新嘗試
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('tableContainer').innerHTML = '';
+        } finally {
+            hideLoading();
+        }
+    }
+
+    // 事件監聽器
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', () => {
+        loadVestingData();
+    });
+
+</script>
+
+<style>
+    .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        text-align: center;
+        min-width: 30px;
+    }
+
+    .badge-info {
+        background: linear-gradient(135deg, #007AFF, #5856D6);
+        color: white;
+    }
+
+    .api-status {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        color: white;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 12px;
+        z-index: 1001;
+        display: none;
+        width: 200px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .api-status.show {
+        display: block;
+        animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .api-status .api-name {
+        font-weight: 600;
+        color: #34C759;
+    }
+
+    .api-status .api-performance {
+        font-size: 11px;
+        opacity: 0.8;
+        margin-top: 4px;
+    }
+
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .loading-spinner {
+        border: 3px solid rgba(0, 122, 255, 0.1);
+        border-top: 3px solid #007AFF;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* 表格容器樣式 - 符合主題 */
+    #tableContainer {
+        overflow-x: auto;
+        margin: 0;
+        box-shadow: none;
+        border: none;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+    }
+
+    /* 表格基本樣式 - 符合主題 */
+    table {
+        width: 100%;
+        min-width: 1200px;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 13px;
+        background: transparent;
+    }
+
+    /* 表格頭部樣式 - 符合主題 */
+    thead {
+        background: rgba(248, 249, 250, 0.8);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    /* 表格標題樣式 - 符合主題 */
+    th {
+        padding: 18px 12px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 12px;
+        color: #1d1d1f;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        white-space: nowrap;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        user-select: none;
+        position: relative;
+    }
+
+    th:hover {
+        background: rgba(0, 122, 255, 0.05);
+    }
+
+    /* 排序圖標樣式 - 符合主題 */
+    .sort-icon {
+        margin-left: 8px;
+        font-size: 12px;
+        color: #8E8E93;
+        transition: color 0.2s ease;
+    }
+
+    .sort-icon.active {
+        color: #007AFF;
+        font-weight: bold;
+    }
+
+    /* 表格資料行樣式 - 符合主題 */
+    td {
+        padding: 16px 12px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+        white-space: nowrap;
+        font-size: 13px;
+        color: #1d1d1f;
+    }
+
+    tr:hover td {
+        background-color: rgba(0, 122, 255, 0.02);
+    }
+
+    /* 響應式設計 - 符合主題 */
+    @media (max-width: 768px) {
+        #tableContainer {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+        }
+        
+        table {
+            display: none;
+        }
+        
+        .mobile-table {
+            display: block;
+        }
+    }
+
+    @media (min-width: 769px) {
+        .mobile-table {
+            display: none;
+        }
+    }
+</style>
+
+</body>
+</html>
