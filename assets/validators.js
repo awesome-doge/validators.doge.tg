@@ -25,6 +25,16 @@ const toMillionsShort = (n) => {
   return s + 'M';
 };
 
+const withCommas = (n) => {
+  try {
+    const num = typeof n === 'bigint' ? Number(n) : Number(n);
+    if (Number.isNaN(num)) return n;
+    return num.toLocaleString('en-US');
+  } catch {
+    return n;
+  }
+};
+
 const timeRange = (timestamp) => {
   const now = Math.floor(Date.now() / 1000);
   let delta = timestamp - now;
@@ -272,35 +282,64 @@ function selectBestApiEndpoint() {
 }
 
 // 更新 API 狀態顯示
-function updateApiStatus(endpointName, responseTime = null) {
+function updateApiStatus(endpointName, responseTime = null, progressText = null, keepVisible = false) {
   const apiStatus = document.getElementById('apiStatus');
   const apiName = document.getElementById('apiName');
   const apiPerformance = document.getElementById('apiPerformance');
 
-  // 顯示 API 名稱
+  // Display API name
   const displayNames = {
     toncenter: 'TON Center',
-    getaruai: 'GetAruAI'
+    getaruai: 'GetAruAI',
+    'Loading': 'Loading',
+    'Loading Failed': 'Loading Failed'
   };
 
   apiName.textContent = displayNames[endpointName] || endpointName;
 
-  // 顯示性能信息
+  // Display performance information or progress text
   let performanceText = '';
-  if (responseTime !== null) {
+  if (progressText) {
+    performanceText = progressText;
+  } else if (responseTime !== null) {
     performanceText = `${responseTime.toFixed(0)}ms`;
   }
 
   apiPerformance.textContent = performanceText;
 
-  // 顯示狀態指示器
+  // Show status indicator
   apiStatus.classList.add('show');
 
-  // 3秒後自動隱藏
-  setTimeout(() => {
-    apiStatus.classList.remove('show');
-  }, 3000);
+  // Clear previous timer
+  if (window.apiStatusTimeout) {
+    clearTimeout(window.apiStatusTimeout);
+  }
+
+  // Hide after 3 seconds if not keeping visible
+  if (!keepVisible && !progressText) {
+    window.apiStatusTimeout = setTimeout(() => {
+      apiStatus.classList.remove('show');
+    }, 3000);
+  }
 }
+
+// Hide API status
+function hideApiStatus() {
+  const apiStatus = document.getElementById('apiStatus');
+  if (window.apiStatusTimeout) {
+    clearTimeout(window.apiStatusTimeout);
+  }
+  apiStatus.classList.remove('show');
+}
+
+// Update progress using API status panel
+const updateProgress = (percentage, text = null) => {
+  if (text) {
+    const progressText = `${Math.round(percentage)}% - ${text}`;
+    updateApiStatus('Loading', null, progressText, true);
+    console.log(`Loading progress: ${Math.round(percentage)}% - ${text}`);
+  }
+};
 
 async function loadAvailableCycles() {
   try {

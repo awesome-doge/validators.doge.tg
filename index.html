@@ -103,112 +103,20 @@
     </div>
 </div>
 
+<script src="assets/validators.js"></script>
 <script>
-            // Local timezone
-        const timestampToDate = (timestamp) => {
-        const date = new Date(timestamp * 1000);
-        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-    }
+            // Utility functions are loaded from validators.js
 
-    const makeAddressUrl = (address) => {
-        return `<a href="https://tonscan.org/address/${address}" target="_blank">${address}</a>`;
-    }
 
-    const fromNano = (nano) => {
-        return BigInt(nano) / BigInt(1e9);
-    }
 
-    const toMillions = (n) => {
-        return (Number(n) / 1e6).toFixed(3) + 'M';
-    }
 
-    const toMillionsShort = (n) => {
-        let s = (Number(n) / 1e6).toFixed(3);
-        for (let i = 0; i < 3; i++) {
-            if (s.endsWith('0')) s = s.substring(0, s.length - 1);
-        }
-        if (s.endsWith('.')) s = s.substring(0, s.length - 1);
-        return s + 'M';
-    }
-
-    const timeRange = (timestamp) => {
-        const now = Math.floor(Date.now() / 1000);
-        let delta = timestamp - now;
-        const isNegative = delta < 0;
-        delta = Math.abs(delta);
-
-        const h = Math.floor(delta / 3600);
-        const m = Math.floor(delta % 3600 / 60);
-
-        let result = '';
-        if (h !== 0) result += h + ' hours ';
-        result += m + ' minutes'
-
-        if (isNegative) {
-            return `${result} ago`
-        } else {
-            return `in ${result}`
-        }
-    }
-
-    const formatCommit = (s) => {
-        if (!s) return 'N/A';
-        return s.substring(0, 7);
-    }
-
-    const formatType = (s) => {
-        if (!s) return 'N/A';
-        switch (s) {
-            case 'single_nominator_v1': return 'Single Nominator 1.0';
-            case 'single_nominator_v1.1': return 'Single Nominator 1.1';
-            case 'nominator_pool_v1': return 'Nominator Pool 1.0';
-            case 'liquid_staking_controller': return 'Liquid Staking';
-            case 'whales_proxy': return 'TON Whales';
-            case 'vesting_lockup': return 'Lockup';
-            case 'wallet_v1_r3': return 'Wallet 1.3';
-            case 'hipo_controller': return 'HIPO';
-            case 'bemo_nominator': return 'BEMO';
-            case 'other': return 'Other';
-        }
-        return s;
-    }
-
-    const toPercent = (n) => {
-        return (Number(n) * 100).toFixed(2) + '%';
-    }
 
     // Add thousands separators for readability
-    const withCommas = (n) => {
-        try {
-            const num = typeof n === 'bigint' ? Number(n) : Number(n);
-            if (Number.isNaN(num)) return n;
-            return num.toLocaleString('en-US');
-        } catch {
-            return n;
-        }
-    }
 
-    const getCountryFlag = (countryCode) => {
-        if (!countryCode || countryCode === 'N/A') return '🌐';
-        try {
-            return String.fromCodePoint(...countryCode.toUpperCase().split('').map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
-        } catch {
-            return '🌐';
-        }
-    }
 
-    const wait = (millis) => {
-        return new Promise((resolve) => {
-            setTimeout(resolve, millis);
-        })
-    }
 
-    const showLoading = () => {}
 
-    const hideLoading = () => {}
 
-    const urlParams = new URLSearchParams(document.location.search);
-    const cycleIdFromUrl = urlParams.get("cycle_id");
 
     let cycleData;
     let qosData;
@@ -361,63 +269,7 @@
         return bestEndpoint;
     }
 
-    // 更新 API 狀態顯示
-    function updateApiStatus(endpointName, responseTime = null, progressText = null, keepVisible = false) {
-        const apiStatus = document.getElementById('apiStatus');
-        const apiName = document.getElementById('apiName');
-        const apiPerformance = document.getElementById('apiPerformance');
 
-        // Display API name
-        const displayNames = {
-            'toncenter': 'TON Center',
-            'getaruai': 'GetAruAI'
-        };
-        
-        apiName.textContent = displayNames[endpointName] || endpointName;
-        
-        // Display performance information or progress text
-        let performanceText = '';
-        if (progressText) {
-            performanceText = progressText;
-        } else if (responseTime !== null) {
-            performanceText = `${responseTime.toFixed(0)}ms`;
-        }
-        
-        apiPerformance.textContent = performanceText;
-        
-        // Show status indicator
-        apiStatus.classList.add('show');
-        
-        // Clear previous timer
-        if (window.apiStatusTimeout) {
-            clearTimeout(window.apiStatusTimeout);
-        }
-        
-        // Hide after 3 seconds if not keeping visible
-        if (!keepVisible && !progressText) {
-            window.apiStatusTimeout = setTimeout(() => {
-                apiStatus.classList.remove('show');
-            }, 3000);
-        }
-    }
-
-    // Hide API status
-    function hideApiStatus() {
-        const apiStatus = document.getElementById('apiStatus');
-        if (window.apiStatusTimeout) {
-            clearTimeout(window.apiStatusTimeout);
-        }
-        apiStatus.classList.remove('show');
-    }
-
-    // Update progress using API status panel
-    const updateProgress = (percentage, text = null) => {
-        if (text) {
-            const progressText = `${Math.round(percentage)}% - ${text}`;
-            updateApiStatus('Loading', null, progressText, true);
-            console.log(`Loading progress: ${Math.round(percentage)}% - ${text}`);
-        }
-    }
 
     async function loadAvailableCycles() {
         try {
@@ -1271,9 +1123,8 @@
             closeValidatorDetailModal();
         }
     });
-    // 改為載入外部腳本
+    // External script loaded at the top
 </script>
-<script src="assets/validators.js"></script>
 
 </body>
 </html>
