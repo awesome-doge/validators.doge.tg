@@ -381,20 +381,24 @@
             -webkit-backdrop-filter: blur(10px);
         }
 
+        .table-scroll {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            margin-top: 20px;
+        }
+
         .data-table {
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
-            margin-top: 20px;
             font-size: 14px;
-            overflow-x: auto;
-            display: block;
-            white-space: nowrap;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            min-width: 700px;
         }
 
         .data-table thead,
@@ -2277,7 +2281,7 @@
                     <div class="metric-value">${((parseFloat(latest.circulating_supply) / parseFloat(latest.total_supply)) * 100).toFixed(1)}%</div>
                 </div>
             </div>
-            <div class="chart-container">
+            <div class="chart-container table-scroll">
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -2382,7 +2386,7 @@
                     <div class="metric-value">${formatTON(maxDaily)} TON</div>
                 </div>
             </div>
-            <div class="chart-container">
+            <div class="chart-container table-scroll">
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -2490,7 +2494,7 @@
                     </div>
                 </div>
             </div>
-            <div class="chart-container">
+            <div class="chart-container table-scroll">
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -2585,7 +2589,7 @@
                     <div class="metric-value">${minYield.toFixed(2)}%</div>
                 </div>
             </div>
-            <div class="chart-container">
+            <div class="chart-container table-scroll">
                 <table class="data-table">
                     <thead>
                         <tr>
@@ -2700,7 +2704,7 @@
                     <div class="metric-value">${formatNumber(filteredData.length)}</div>
                 </div>
             </div>
-            <div class="chart-container">
+            <div class="chart-container table-scroll">
                 <table class="data-table">
                     <thead>
                         <tr>

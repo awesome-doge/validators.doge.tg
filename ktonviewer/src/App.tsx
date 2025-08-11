@@ -38,6 +38,40 @@ function addressDisplay(addr: string, isTestnet: boolean = false) {
 
 
 
+// Metric card for macOS/iOS style numeric presentation
+const MetricCard = ({
+  title,
+  value,
+  footer,
+  color = "blue",
+}: {
+  title: string;
+  value: string | number;
+  footer?: string;
+  color?: "blue" | "green" | "purple" | "yellow" | "indigo" | "rose" | "emerald";
+}) => {
+  const textColorMap: Record<string, string> = {
+    blue: "text-blue-600",
+    green: "text-green-600",
+    purple: "text-purple-600",
+    yellow: "text-amber-600",
+    indigo: "text-indigo-600",
+    rose: "text-rose-600",
+    emerald: "text-emerald-600",
+  };
+  const textColor = textColorMap[color] || textColorMap.blue;
+
+  const valueText = typeof value === "number" ? formatWithCommas(value) : value;
+
+  return (
+    <div className="rounded-xl border border-white/60 bg-white/70 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.08)] p-4 hover:translate-y-[-2px] transition-all duration-200">
+      <div className="text-[13px] font-medium text-gray-700 mb-2">{title}</div>
+      <div className={`text-3xl md:text-4xl font-extrabold leading-tight ${textColor}`}>{valueText}</div>
+      {footer && <div className="text-xs text-gray-500 mt-2">{footer}</div>}
+    </div>
+  );
+};
+
 const StatusBadge = ({ status, type = "info" }: { 
   status: string; 
   type?: "success" | "warning" | "error" | "info";
@@ -676,36 +710,67 @@ function App() {
 
         </div>
 
-        {/* Main Data Display Panel */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-100">
+        {/* Main Data Display Panel with macOS/iOS style metrics */}
+        <div className="rounded-2xl border border-white/60 bg-white/70 backdrop-blur-xl shadow-[0_12px_48px_rgba(0,0,0,0.08)]">
           <div className="p-6">
+            {/* Top metrics row */}
+            {poolData && Object.keys(poolData).length > 0 && !poolData.error ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <MetricCard
+                  title="Pool Total Balance"
+                  value={`${formatWithCommas(JSON.parse(poolStateStringify(poolData)).total_balance)} TON`}
+                  color="green"
+                />
+                <MetricCard
+                  title="Current Borrowed"
+                  value={`${formatWithCommas(JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.borrowed)} TON`}
+                  color="indigo"
+                />
+                <MetricCard
+                  title="Expected Return"
+                  value={`${formatWithCommas(JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.expected)} TON`}
+                  color="purple"
+                />
+                <MetricCard
+                  title="Active Borrowers"
+                  value={formatWithCommas(JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.active_borrowers)}
+                  color="emerald"
+                />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <MetricCard title="Pool Total Balance" value="–" color="green" />
+                <MetricCard title="Current Borrowed" value="–" color="indigo" />
+                <MetricCard title="Expected Return" value="–" color="purple" />
+                <MetricCard title="Active Borrowers" value="–" color="emerald" />
+              </div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Controller Data */}
               <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <Shield className="text-blue-600" size={20} />
-                  <h3 className="text-lg font-semibold text-gray-800">Controller Data</h3>
+                <div className="flex items-center gap-2 mb-2">
+                  <Shield className="text-blue-600" size={18} />
+                  <h3 className="text-base font-semibold text-gray-800">Controller Data</h3>
                 </div>
                 <ControllerDisplay data={controllerData} />
               </div>
 
               {/* Pool Data */}
               <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <Users className="text-green-600" size={20} />
-                  <h3 className="text-lg font-semibold text-gray-800">Pool Data</h3>
+                <div className="flex items-center gap-2 mb-2">
+                  <Users className="text-green-600" size={18} />
+                  <h3 className="text-base font-semibold text-gray-800">Pool Data</h3>
                 </div>
                 <PoolDisplay data={poolData} />
               </div>
-
-
             </div>
           </div>
         </div>
 
         {/* Pool Related Controllers Display Panel */}
         {poolControllers.length > 0 && (
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100">
+          <div className="rounded-2xl border border-white/60 bg-white/70 backdrop-blur-xl shadow-[0_12px_48px_rgba(0,0,0,0.08)]">
             <div className="p-6">
               <div className="flex items-center gap-2 mb-6">
                 <Users className="text-green-600" size={24} />
@@ -717,7 +782,7 @@ function App() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {poolControllers.map((controller, index) => (
-                  <div key={controller.address} className="border border-gray-200 rounded-lg p-4">
+                  <div key={controller.address} className="rounded-xl border border-white/60 bg-white/80 backdrop-blur-xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.06)]">
                     <div className="flex items-center gap-2 mb-3">
                       <Shield className="text-blue-600" size={16} />
                       <h4 className="text-sm font-semibold text-gray-800">Controller #{index + 1}</h4>
@@ -737,14 +802,14 @@ function App() {
 
                     {/* Borrowing Information */}
                     {(controller.currentBorrow || controller.prevBorrow) && (
-                      <div className="mb-3 p-2 bg-yellow-50 rounded">
-                        <div className="text-xs font-medium text-gray-700 mb-2">Borrowing Status</div>
+                      <div className="mb-3 p-3 rounded-lg bg-gradient-to-br from-yellow-50 to-amber-50 border border-amber-100">
+                        <div className="text-xs font-semibold text-gray-800 mb-2">Borrowing Status</div>
                         {controller.currentBorrow && (
                           <div className="space-y-1">
                                               <div className="text-xs text-green-700">
                     <span className="font-medium">Current:</span>
-                    <div>Loan: {controller.currentBorrow.credit} TON</div>
-                    <div>Interest: {controller.currentBorrow.interest} TON</div>
+                              <div>Loan: {formatWithCommas(controller.currentBorrow.credit)} TON</div>
+                              <div>Interest: {formatWithCommas(controller.currentBorrow.interest)} TON</div>
                   </div>
                           </div>
                         )}
@@ -752,8 +817,8 @@ function App() {
                           <div className="space-y-1 mt-2">
                                               <div className="text-xs text-gray-600">
                     <span className="font-medium">Previous:</span>
-                    <div>Loan: {controller.prevBorrow.credit} TON</div>
-                    <div>Interest: {controller.prevBorrow.interest} TON</div>
+                              <div>Loan: {formatWithCommas(controller.prevBorrow.credit)} TON</div>
+                              <div>Interest: {formatWithCommas(controller.prevBorrow.interest)} TON</div>
                   </div>
                           </div>
                         )}
@@ -793,8 +858,8 @@ function App() {
           </div>
         )}
 
-                    {/* Data Overview Panel */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-100">
+        {/* Data Overview Panel */}
+        <div className="rounded-2xl border border-white/60 bg-white/70 backdrop-blur-xl shadow-[0_12px_48px_rgba(0,0,0,0.08)]">
           <div className="p-6">
             <div className="flex items-center gap-2 mb-6">
               <DollarSign className="text-orange-600" size={24} />
