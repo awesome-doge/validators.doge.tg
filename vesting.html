@@ -48,7 +48,7 @@
 </div>
 
 <script>
-    // 工具函數
+    // Utility functions
     const fromNano = (nano) => {
         return BigInt(nano) / BigInt(1e9);
     }
@@ -89,9 +89,11 @@
     }
 
     const updateProgress = (percentage, text = null) => {
-        // 進度更新已移除，僅保留 console.log 用於調試
+        // Use API status panel to display progress
         if (text) {
-            console.log(`載入進度: ${Math.round(percentage)}% - ${text}`);
+            const progressText = `${Math.round(percentage)}% - ${text}`;
+            updateApiStatus('Tonscan API', null, progressText, true);
+            console.log(`Loading progress: ${Math.round(percentage)}% - ${text}`);
         }
     }
 
@@ -100,14 +102,14 @@
         return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
     }
 
-    // 全域變數
+    // Global variables
     let vestingData = [];
     let filteredData = [];
-    let sortColumn = 'balance'; // 預設按餘額排序
-    let sortDirection = 'desc'; // 預設降序
+    let sortColumn = 'balance'; // Default sort by balance
+    let sortDirection = 'desc'; // Default descending
 
-    // API 狀態更新
-    function updateApiStatus(apiName, responseTime = null) {
+    // API status updates
+    function updateApiStatus(apiName, responseTime = null, progressText = null, keepVisible = false) {
         const apiStatus = document.getElementById('apiStatus');
         const apiNameElement = document.getElementById('apiName');
         const apiPerformance = document.getElementById('apiPerformance');
@@ -115,26 +117,45 @@
         apiNameElement.textContent = apiName;
         
         let performanceText = '';
-        if (responseTime !== null) {
+        if (progressText) {
+            performanceText = progressText;
+        } else if (responseTime !== null) {
             performanceText = `${responseTime.toFixed(0)}ms`;
         }
         
         apiPerformance.textContent = performanceText;
         apiStatus.classList.add('show');
         
-        setTimeout(() => {
-            apiStatus.classList.remove('show');
-        }, 3000);
+        // Clear previous timer
+        if (window.apiStatusTimeout) {
+            clearTimeout(window.apiStatusTimeout);
+        }
+        
+        // Hide after 3 seconds if not keeping visible
+        if (!keepVisible && !progressText) {
+            window.apiStatusTimeout = setTimeout(() => {
+                apiStatus.classList.remove('show');
+            }, 3000);
+        }
     }
 
-    // 獲取所有 Vesting 合約地址
+    // Hide API status
+    function hideApiStatus() {
+        const apiStatus = document.getElementById('apiStatus');
+        if (window.apiStatusTimeout) {
+            clearTimeout(window.apiStatusTimeout);
+        }
+        apiStatus.classList.remove('show');
+    }
+
+    // Fetch all Vesting contract addresses
     async function fetchAllVestingAddresses() {
         const CODE_HASH = 'tItTGr7DtxRjgpH3137W3J9qJynvyiBHcTc3TUrotZA=';
         const BATCH_SIZE = 50;
         let allAddresses = [];
         let offset = 0;
         let hasMore = true;
-        const maxEstimated = 500; // 預估最大數量用於進度計算
+        const maxEstimated = 500; // Estimated maximum count for progress calculation
 
         updateProgress(10, 'Fetching Vesting contract list...');
 
@@ -144,14 +165,14 @@
                 const response = await fetch(url);
                 
                 if (!response.ok) {
-                    throw new Error(`API 錯誤: ${response.status}`);
+                    throw new Error(`API Error: ${response.status}`);
                 }
                 
                 const data = await response.json();
                 
-                // 檢查 API 響應結構
+                // Check API response structure
                 if (!data.json || !data.json.data) {
-                    console.warn('API 響應格式異常:', data);
+                    console.warn('Unusual API response format:', data);
                     hasMore = false;
                     break;
                 }
@@ -159,54 +180,54 @@
                 const addresses = data.json.data;
                 
                 if (!Array.isArray(addresses) || addresses.length === 0) {
-                    console.log(`在 offset ${offset} 處無更多數據，結束獲取`);
+                    console.log(`No more data at offset ${offset}, ending fetch`);
                     hasMore = false;
                 } else {
                     allAddresses = allAddresses.concat(addresses);
                     offset += BATCH_SIZE;
                     
-                    // 更新進度 (10% - 70%)
+                    // Update progress (10% - 70%)
                     const fetchProgress = Math.min(70, 10 + (allAddresses.length / maxEstimated) * 60);
-                    updateProgress(fetchProgress, `已獲取 ${allAddresses.length} 個 Vesting 合約地址...`);
+                    updateProgress(fetchProgress, `Fetched ${allAddresses.length} Vesting contract addresses...`);
                     
-                    console.log(`已獲取 ${allAddresses.length} 個 Vesting 合約地址...`);
+                    console.log(`Fetched ${allAddresses.length} Vesting contract addresses...`);
                 }
                 
-                // 避免請求過於頻繁
+                // Avoid too frequent requests
                 await new Promise(resolve => setTimeout(resolve, 100));
                 
             } catch (error) {
-                console.error(`獲取地址列表失敗 (offset: ${offset}):`, error);
+                console.error(`Failed to fetch address list (offset: ${offset}):`, error);
                 hasMore = false;
                 break;
             }
         }
 
-        updateProgress(80, '正在處理和排序數據...');
-        console.log(`總共獲取 ${allAddresses.length} 個 Vesting 合約地址`);
+        updateProgress(80, 'Processing and sorting data...');
+        console.log(`Total fetched ${allAddresses.length} Vesting contract addresses`);
 
-        // 過濾無效數據並按餘額排序
+        // Filter invalid data and sort by balance
         const validAddresses = allAddresses.filter(addr => 
             addr && addr.address && typeof addr.balance !== 'undefined'
         );
         
-        updateProgress(90, '正在排序合約...');
+        updateProgress(90, 'Sorting contracts...');
         
         validAddresses.sort((a, b) => {
             try {
                 return BigInt(b.balance) - BigInt(a.balance) > 0 ? 1 : -1;
             } catch (e) {
-                console.warn('排序時遇到無效餘額:', a.balance, b.balance);
+                console.warn('Invalid balance encountered during sorting:', a.balance, b.balance);
                 return 0;
             }
         });
         
-        updateProgress(100, '載入完成！');
+        updateProgress(100, 'Loading complete!');
         
-        return validAddresses; // 返回所有地址，不限制數量
+        return validAddresses; // Return all addresses, no limit
     }
 
-    // 渲染統計資料
+    // Render statistics
     function renderStats() {
         if (!vestingData || vestingData.length === 0) {
             document.getElementById('statsContainer').innerHTML = `
@@ -223,7 +244,7 @@
             try {
                 return sum + BigInt(contract.balance || 0);
             } catch (e) {
-                console.warn('無效的餘額數據:', contract.balance);
+                console.warn('Invalid balance data:', contract.balance);
                 return sum;
             }
         }, BigInt(0));
@@ -261,13 +282,13 @@
         `;
     }
 
-    // 排序函數
+    // Sort function
     function sortData(column) {
         if (sortColumn === column) {
-            // 如果點擊同一列，則切換排序方向
+            // If clicking the same column, toggle sort direction
             sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
         } else {
-            // 如果點擊不同列，則設為新列並使用預設排序方向
+            // If clicking different column, set new column and use default sort direction
             sortColumn = column;
             sortDirection = column === 'balance' ? 'desc' : 'asc';
         }
@@ -275,11 +296,11 @@
         filterData();
     }
 
-    // 排序數據
+    // Sort data
     function filterData() {
-        let filtered = [...vestingData]; // 複製所有數據
+        let filtered = [...vestingData]; // Copy all data
 
-        // 排序邏輯
+        // Sort logic
         filtered.sort((a, b) => {
             let valueA, valueB;
             
@@ -309,13 +330,13 @@
             }
             
             if (sortColumn === 'balance') {
-                // BigInt 比較
+                // BigInt comparison
                 const result = valueA - valueB;
                 return sortDirection === 'asc' ? 
                     (result > 0 ? 1 : result < 0 ? -1 : 0) : 
                     (result > 0 ? -1 : result < 0 ? 1 : 0);
             } else {
-                // 一般比較
+                // General comparison
                 if (valueA < valueB) return sortDirection === 'asc' ? -1 : 1;
                 if (valueA > valueB) return sortDirection === 'asc' ? 1 : -1;
                 return 0;
@@ -326,7 +347,7 @@
         renderTable();
     }
 
-    // 獲取排序圖標
+    // Get sort icon
     function getSortIcon(column) {
         if (sortColumn !== column) {
             return '<span class="sort-icon">↕️</span>';
@@ -336,11 +357,11 @@
             '<span class="sort-icon active">↓</span>';
     }
 
-    // 渲染表格
+    // Render table
     function renderTable() {
         const container = document.getElementById('tableContainer');
         
-        // 桌面版表格
+        // Desktop table
         let desktopHtml = `
             <table>
                 <thead>
@@ -365,7 +386,7 @@
                 <tbody>
         `;
 
-        // 手機版卡片
+        // Mobile cards
         let mobileHtml = '<div class="mobile-table">';
 
         filteredData.forEach((contract, index) => {
@@ -373,7 +394,7 @@
             const balanceDisplay = Number(balance) === 0 ? '0' : toMillions(balance);
             const rank = vestingData.indexOf(contract) + 1;
             
-            // 桌面版表格行
+            // Desktop table row
             desktopHtml += `
                 <tr>
                     <td><span class="badge badge-info">#${rank}</span></td>
@@ -384,7 +405,7 @@
                 </tr>
             `;
 
-            // 手機版卡片
+            // Mobile card
             mobileHtml += `
                 <div class="mobile-card">
                     <div class="mobile-card-header">
@@ -425,54 +446,68 @@
         container.innerHTML = desktopHtml + mobileHtml;
     }
 
-    // 載入數據
+    // Load data
     async function loadVestingData() {
         showLoading();
         try {
-            console.log('開始獲取 Vesting 合約數據...');
-            updateApiStatus('Tonscan API', null);
+            console.log('Starting to fetch Vesting contract data...');
+            // Show initial progress at start
+            updateProgress(0, 'Starting to load Vesting contract data...');
             
             const startTime = performance.now();
             const newData = await fetchAllVestingAddresses();
             const endTime = performance.now();
             
             if (!newData || newData.length === 0) {
-                throw new Error('未能獲取到任何 Vesting 合約數據');
+                throw new Error('Unable to fetch any Vesting contract data');
             }
             
             vestingData = newData;
-            console.log(`成功獲取並處理 ${vestingData.length} 個 Vesting 合約`);
-            updateApiStatus('Tonscan API', endTime - startTime);
+            console.log(`Successfully fetched and processed ${vestingData.length} Vesting contracts`);
+            
+            // Show result after completion and hide after 3 seconds
+            const completionText = `Complete! Loaded ${vestingData.length} contracts (${(endTime - startTime).toFixed(0)}ms)`;
+            updateApiStatus('Tonscan API', endTime - startTime, completionText, false);
             
             renderStats();
             filterData();
             
-            // 載入指示器已移除，無需隱藏
+            // Hide API status after 3 seconds
+            setTimeout(() => {
+                hideApiStatus();
+            }, 3000);
             
         } catch (error) {
-            console.error('載入 Vesting 數據失敗:', error);
+            console.error('Loading Vesting data failed:', error);
             
-            // 顯示更友好的錯誤信息
+            // Show error status
+            updateApiStatus('Loading Failed', null, error.message || 'Unable to load data', false);
+            
+            // Show friendly error message
             document.getElementById('statsContainer').innerHTML = `
                 <div class="stat-card" style="grid-column: 1 / -1;">
-                    <h3>載入失敗</h3>
+                    <h3>Loading Failed</h3>
                     <p class="value" style="color: #FF3B30; font-size: 16px;">
-                        ${error.message || '無法載入 Vesting 合約數據'}
+                        ${error.message || 'Unable to load Vesting contract data'}
                     </p>
                     <button onclick="loadVestingData()" style="margin-top: 10px; padding: 8px 16px; background: #007AFF; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                        重新嘗試
+                        Retry
                     </button>
                 </div>
             `;
             
             document.getElementById('tableContainer').innerHTML = '';
-            // 載入指示器已移除，無需隱藏
+            
+            // Error status displayed for 5 seconds
+            setTimeout(() => {
+                hideApiStatus();
+            }, 5000);
         }
     }
 
-    // 事件監聽器
+    // Event listeners
 
-    // 初始化
+    // Initialization
     document.addEventListener('DOMContentLoaded', () => {
         loadVestingData();
     });
@@ -499,7 +534,7 @@
         position: fixed;
         top: 20px;
         right: 20px;
-        background: rgba(0, 0, 0, 0.8);
+        background: rgba(0, 0, 0, 0.85);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         color: white;
@@ -508,11 +543,10 @@
         font-size: 12px;
         z-index: 1001;
         display: none;
-        width: 200px;
+        min-width: 250px;
+        max-width: 350px;
         border: 1px solid rgba(255, 255, 255, 0.1);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
 
     .api-status.show {
@@ -538,13 +572,16 @@
 
     .api-status .api-performance {
         font-size: 11px;
-        opacity: 0.8;
+        opacity: 0.9;
         margin-top: 4px;
+        word-wrap: break-word;
+        white-space: normal;
+        line-height: 1.4;
     }
 
 
 
-    /* 表格容器樣式 - 符合主題 */
+    /* Table container styles - theme compliant */
     #tableContainer {
         overflow-x: auto;
         margin: 0;
@@ -556,7 +593,7 @@
         -webkit-backdrop-filter: blur(15px);
     }
 
-    /* 表格基本樣式 - 符合主題 */
+    /* Basic table styles - theme compliant */
     table {
         width: 100%;
         min-width: 1200px;
@@ -566,7 +603,7 @@
         background: transparent;
     }
 
-    /* 表格頭部樣式 - 符合主題 */
+    /* Table header styles - theme compliant */
     thead {
         background: rgba(248, 249, 250, 0.8);
         backdrop-filter: blur(10px);
@@ -576,7 +613,7 @@
         z-index: 10;
     }
 
-    /* 表格標題樣式 - 符合主題 */
+    /* Table title styles - theme compliant */
     th {
         padding: 18px 12px;
         text-align: left;
@@ -597,7 +634,7 @@
         background: rgba(0, 122, 255, 0.05);
     }
 
-    /* 排序圖標樣式 - 符合主題 */
+    /* Sort icon styles - theme compliant */
     .sort-icon {
         margin-left: 8px;
         font-size: 12px;
@@ -610,7 +647,7 @@
         font-weight: bold;
     }
 
-    /* 表格資料行樣式 - 符合主題 */
+    /* Table data row styles - theme compliant */
     td {
         padding: 16px 12px;
         border-bottom: 1px solid rgba(0, 0, 0, 0.04);
@@ -623,7 +660,7 @@
         background-color: rgba(0, 122, 255, 0.02);
     }
 
-    /* 響應式設計 - 符合主題 */
+    /* Responsive design - theme compliant */
     @media (max-width: 768px) {
         #tableContainer {
             padding: 20px;
