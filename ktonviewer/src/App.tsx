@@ -11,6 +11,20 @@ import {
 } from "./controller-utils";
 import { loadPoolState, poolStateStringify } from "./pool-utils";
 
+// Format helper: add thousands separators while preserving decimals
+function formatWithCommas(value: any): string {
+  const str = String(value);
+  // Avoid formatting obvious non-numeric strings
+  if (/[^0-9+\-.,]/.test(str)) {
+    const maybeNum = parseFloat(str.replace(/,/g, ""));
+    if (!isFinite(maybeNum)) return str;
+    return maybeNum.toLocaleString("en-US");
+  }
+  const num = typeof value === "number" ? value : parseFloat(str.replace(/,/g, ""));
+  if (!isFinite(num)) return str;
+  return num.toLocaleString("en-US");
+}
+
 function addressDisplay(addr: string, isTestnet: boolean = false) {
   try {
     return Address.parse(addr).toString({
@@ -52,7 +66,7 @@ const InfoLine = ({ label, value, type = "text", copyable = false }: {
   const formatValue = () => {
     switch (type) {
       case "amount":
-        return `${value} TON`;
+        return `${formatWithCommas(value)} TON`;
       case "address":
         if (!value) return "N/A";
         return `${value.substring(0, 8)}...${value.slice(-6)}`;
@@ -62,7 +76,12 @@ const InfoLine = ({ label, value, type = "text", copyable = false }: {
       case "percent":
         return `${(value / 1000000).toFixed(2)}%`;
       default:
-        return value || "N/A";
+        if (value === undefined || value === null || value === "") return "N/A";
+        const maybeNum = typeof value === "number" ? value : parseFloat(String(value).replace(/,/g, ""));
+        if (isFinite(maybeNum) && Math.abs(maybeNum) >= 1000) {
+          return formatWithCommas(maybeNum);
+        }
+        return value;
     }
   };
 
@@ -147,7 +166,7 @@ const ControllerDisplay = ({ data }: { data: any }) => {
           <InfoLine label="Controller ID" value={parsedData.controller_id} />
           <InfoLine label="Stake Amount" value={parsedData.stake_amount_sent} type="amount" />
           <InfoLine label="Stake Time" value={parsedData.stake_at} type="time" />
-          <InfoLine label="Stake Hold Period" value={`${parsedData.stake_held_for} seconds`} />
+          <InfoLine label="Stake Hold Period" value={`${formatWithCommas(parsedData.stake_held_for)} seconds`} />
         </div>
       </div>
 
@@ -158,14 +177,14 @@ const ControllerDisplay = ({ data }: { data: any }) => {
                       <InfoLine label="Borrowed Amount" value={parsedData.borrowed_amount} type="amount" />
             <InfoLine label="Borrowing Time" value={parsedData.borrowing_time} type="time" />
             <InfoLine label="Borrowing Interest" value={parsedData.borrowing_interest} type="percent" />
-            <InfoLine label="Allowed Borrow Start Time" value={`${parsedData.allowed_borrow_start_prior_elections_end} seconds before elections end`} />
+            <InfoLine label="Allowed Borrow Start Time" value={`${formatWithCommas(parsedData.allowed_borrow_start_prior_elections_end)} seconds before elections end`} />
           
           {/* Calculate Expected Interest */}
           {parsedData.borrowed_amount && parsedData.borrowing_interest > 0 && (
             <div className="flex justify-between items-center text-xs py-1 border-t border-yellow-200 pt-2 mt-2">
               <span className="text-gray-600">Expected Interest</span>
               <span className="font-mono text-green-600 font-medium">
-                {(parseFloat(parsedData.borrowed_amount) * (parsedData.borrowing_interest / 1000000)).toFixed(4)} TON
+                {formatWithCommas((parseFloat(parsedData.borrowed_amount) * (parsedData.borrowing_interest / 1000000)).toFixed(4))} TON
               </span>
             </div>
           )}
@@ -286,7 +305,7 @@ const PoolDisplay = ({ data }: { data: any }) => {
 
       {/* Current Round */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-2">Current Round #{parsedData.round_data.current_round_borrowers.round_id}</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-2">Current Round #{formatWithCommas(parsedData.round_data.current_round_borrowers.round_id)}</h4>
         <div className="bg-blue-50 rounded-lg p-3 mb-3">
         <div className="space-y-1">
           <InfoLine label="Active Borrowers" value={parsedData.round_data.current_round_borrowers.active_borrowers} />
@@ -296,7 +315,7 @@ const PoolDisplay = ({ data }: { data: any }) => {
                       <div className="flex justify-between items-center text-xs py-1">
               <span className="text-gray-600">Current Profit</span>
               <span className={`font-mono font-medium ${parseFloat(parsedData.round_data.current_round_borrowers.profit) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {parsedData.round_data.current_round_borrowers.profit} TON
+              {formatWithCommas(parsedData.round_data.current_round_borrowers.profit)} TON
               </span>
             </div>
           </div>
@@ -317,14 +336,14 @@ const PoolDisplay = ({ data }: { data: any }) => {
                     {address.substring(0, 8)}...{address.slice(-6)}
                   </button>
                   <div className="text-right">
-                    <div className="text-gray-700">{borrowData.credit} TON</div>
-                    <div className="text-green-600 text-xs">+{borrowData.interest} TON</div>
+                    <div className="text-gray-700">{formatWithCommas(borrowData.credit)} TON</div>
+                    <div className="text-green-600 text-xs">+{formatWithCommas(borrowData.interest)} TON</div>
                   </div>
                 </div>
               ))}
               {Object.keys(parsedData.round_data.current_round_borrowers.borrowers).length > 3 && (
                 <div className="text-center text-xs text-gray-500 pt-1">
-                  And {Object.keys(parsedData.round_data.current_round_borrowers.borrowers).length - 3} more borrowers
+                  And {formatWithCommas(Object.keys(parsedData.round_data.current_round_borrowers.borrowers).length - 3)} more borrowers
                 </div>
               )}
             </div>
@@ -334,7 +353,7 @@ const PoolDisplay = ({ data }: { data: any }) => {
 
       {/* Previous Round */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-2">Previous Round #{parsedData.round_data.prev_round_borrowers.round_id}</h4>
+        <h4 className="text-sm font-medium text-gray-700 mb-2">Previous Round #{formatWithCommas(parsedData.round_data.prev_round_borrowers.round_id)}</h4>
         <div className="bg-gray-50 rounded-lg p-3 space-y-1">
           <InfoLine label="Borrower Count" value={parsedData.round_data.prev_round_borrowers.active_borrowers} />
           <InfoLine label="Borrowed Amount" value={parsedData.round_data.prev_round_borrowers.borrowed} type="amount" />
@@ -343,7 +362,7 @@ const PoolDisplay = ({ data }: { data: any }) => {
                       <div className="flex justify-between items-center text-xs py-1">
               <span className="text-gray-600">Actual Profit</span>
             <span className={`font-mono font-medium ${parseFloat(parsedData.round_data.prev_round_borrowers.profit) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {parsedData.round_data.prev_round_borrowers.profit} TON
+              {formatWithCommas(parsedData.round_data.prev_round_borrowers.profit)} TON
             </span>
           </div>
         </div>
@@ -792,7 +811,7 @@ function App() {
                       <span className="text-sm font-medium text-gray-700">Pool Total Balance</span>
                     </div>
                     <div className="text-2xl font-bold text-green-600">
-                      {JSON.parse(poolStateStringify(poolData)).total_balance} TON
+                      {formatWithCommas(JSON.parse(poolStateStringify(poolData)).total_balance)} TON
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
                       Interest Rate: {(JSON.parse(poolStateStringify(poolData)).interest_rate / 1000000 * 100).toFixed(2)}%
@@ -805,10 +824,10 @@ function App() {
                       <span className="text-sm font-medium text-gray-700">Current Borrowed</span>
                     </div>
                     <div className="text-2xl font-bold text-blue-600">
-                      {JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.borrowed} TON
+                      {formatWithCommas(JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.borrowed)} TON
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
-                      Active Borrowers: {JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.active_borrowers}
+                      Active Borrowers: {formatWithCommas(JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.active_borrowers)}
                     </div>
                   </div>
 
@@ -818,10 +837,10 @@ function App() {
                       <span className="text-sm font-medium text-gray-700">Expected Return</span>
                     </div>
                     <div className="text-2xl font-bold text-purple-600">
-                      {JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.expected} TON
+                      {formatWithCommas(JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.expected)} TON
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
-                      Round: #{JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.round_id}
+                      Round: #{formatWithCommas(JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.round_id)}
                     </div>
                   </div>
 
@@ -831,7 +850,7 @@ function App() {
                       <span className="text-sm font-medium text-gray-700">LST Supply</span>
                     </div>
                     <div className="text-2xl font-bold text-yellow-600">
-                      {JSON.parse(poolStateStringify(poolData)).minters_data.supply} LST
+                      {formatWithCommas(JSON.parse(poolStateStringify(poolData)).minters_data.supply)} LST
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
                       Jetton Minter
@@ -874,7 +893,7 @@ function App() {
                       <span className="text-sm font-medium text-gray-700">Governance Fees</span>
                     </div>
                     <div className="text-2xl font-bold text-emerald-600">
-                      {JSON.parse(poolStateStringify(poolData)).accrued_governance_fee} TON
+                      {formatWithCommas(JSON.parse(poolStateStringify(poolData)).accrued_governance_fee)} TON
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
                       Accumulated Fees ({(JSON.parse(poolStateStringify(poolData)).governance_fee_share / 1000000 * 100).toFixed(2)}%)

@@ -1071,6 +1071,17 @@
         return s + 'M';
     }
 
+    // Add thousands separators for readability
+    const withCommas = (n) => {
+        try {
+            const num = typeof n === 'bigint' ? Number(n) : Number(n);
+            if (Number.isNaN(num)) return n;
+            return num.toLocaleString('en-US');
+        } catch {
+            return n;
+        }
+    }
+
     const makeAddressUrl = (address) => {
         return `<a href="https://tonscan.org/address/${address}" target="_blank">${address}</a>`;
     }
@@ -1168,11 +1179,11 @@
         document.getElementById('statsContainer').innerHTML = `
             <div class="stat-card">
                 <h3>Total Providers</h3>
-                <p class="value">${totalNominators}</p>
+                <p class="value">${withCommas(totalNominators)}</p>
             </div>
             <div class="stat-card">
                 <h3>Active Providers</h3>
-                <p class="value">${activeNominators}</p>
+                <p class="value">${withCommas(activeNominators)}</p>
             </div>
             <div class="stat-card">
                 <h3>Total Staked Amount</h3>
@@ -1250,7 +1261,7 @@
             // Desktop table row
             desktopHtml += `
                 <tr>
-                    <td>${nominator.nominator_id}</td>
+                    <td>${withCommas(nominator.nominator_id)}</td>
                     <td class="address-cell">${makeAddressUrl(nominator.nominator_address)}</td>
                     <td>${stakeDisplay} TON</td>
                     <td>
@@ -1268,7 +1279,7 @@
                         <div class="mobile-card-title">
                             Nominator #${nominator.nominator_id}
                         </div>
-                        <div class="mobile-card-index">#${nominator.nominator_id}</div>
+                        <div class="mobile-card-index">#${withCommas(nominator.nominator_id)}</div>
                     </div>
                     <div class="mobile-card-content">
                         <div class="mobile-card-row">
@@ -1330,7 +1341,7 @@
                 <h3>Basic Information</h3>
                 <p><strong>Address:</strong> ${makeAddressUrl(detail.nominator_address)}</p>
                 <p><strong>Total Stake:</strong> ${toMillions(fromNano(totalStake))} TON</p>
-                <p><strong>Allocated to Validators:</strong> ${validatorCount}</p>
+                <p><strong>Allocated to Validators:</strong> ${withCommas(validatorCount)}</p>
             </div>
         `;
 
@@ -1349,12 +1360,12 @@
                         <h4>Validator #${index + 1}</h4>
                         <p><strong>Validator Address:</strong> ${makeAddressUrl(reward.val_account_address)}</p>
                         <p><strong>Stake Amount:</strong> ${toMillions(stakeAmount)} TON</p>
-                        <p><strong>Cycle ID:</strong> ${reward.cycle_id}</p>
+                        <p><strong>Cycle ID:</strong> ${withCommas(reward.cycle_id)}</p>
                         ${cycleBonus ? `
                             <p><strong>Unfreeze Time:</strong> ${new Date(cycleBonus.unfreezes_at * 1000).toLocaleString()}</p>
                             <p><strong>Total Pool Stake:</strong> ${toMillions(fromNano(cycleBonus.total_stake))} TON</p>
                             <p><strong>Pool Rewards:</strong> ${toMillions(fromNano(cycleBonus.bonuses))} TON</p>
-                            <p><strong>Complaint Count:</strong> ${cycleBonus.number_of_complaints}</p>
+                             <p><strong>Complaint Count:</strong> ${withCommas(cycleBonus.number_of_complaints)}</p>
                         ` : ''}
                         ${reward.pending_deposit_amount > 0 ? `<p><strong>Pending Deposit:</strong> ${toMillions(fromNano(reward.pending_deposit_amount))} TON</p>` : ''}
                         ${reward.withdraw_requested > 0 ? `<p><strong>Withdrawal Request:</strong> ${toMillions(fromNano(reward.withdraw_requested))} TON</p>` : ''}

@@ -1544,14 +1544,16 @@
     };
 
     const formatNumber = (num) => {
-        if (num >= 1e9) {
-            return (num / 1e9).toFixed(2) + 'B';
-        } else if (num >= 1e6) {
-            return (num / 1e6).toFixed(2) + 'M';
-        } else if (num >= 1e3) {
-            return (num / 1e3).toFixed(2) + 'K';
+        const value = typeof num === 'string' ? parseFloat(num) : num;
+        if (!isFinite(value)) return num;
+        if (value >= 1e9) {
+            return (value / 1e9).toFixed(2) + 'B';
+        } else if (value >= 1e6) {
+            return (value / 1e6).toFixed(2) + 'M';
+        } else if (value >= 1e3) {
+            return value.toLocaleString('en-US');
         }
-        return num.toLocaleString();
+        return value.toLocaleString('en-US');
     };
 
     const formatTON = (amount) => {
@@ -2003,7 +2005,7 @@
                 html += `
                     <div class="stat-card">
                         <h3>📊 Validator Count (Weekly Change)</h3>
-                        <div class="value">${recentAvg.toFixed(0)}</div>
+                        <div class="value">${formatNumber(recentAvg)}</div>
                         ${getChangeIndicator(validatorChange.change, validatorChange.percentage)}
                         <div class="description">Average validator count for last 7 days</div>
                     </div>
@@ -2125,10 +2127,10 @@
                         <div style="margin-top: 10px; font-size: 12px;">
                             <p><strong>API Data Status:</strong></p>
                             <ul>
-                                <li>Status: ${apiData.status ? apiData.status.length + ' records' : 'No data'}</li>
-                                <li>Elections: ${apiData.elections ? apiData.elections.length + ' records' : 'No data'}</li>
+                                <li>Status: ${apiData.status ? formatNumber(apiData.status.length) + ' records' : 'No data'}</li>
+                                <li>Elections: ${apiData.elections ? formatNumber(apiData.elections.length) + ' records' : 'No data'}</li>
                                 <li>Yield: ${apiData.yield ? apiData.yield.length + ' records' : 'No data'}</li>
-                                <li>Transactions: ${apiData.transactions_amounts ? apiData.transactions_amounts.length + ' records' : 'No data'}</li>
+                                <li>Transactions: ${apiData.transactions_amounts ? formatNumber(apiData.transactions_amounts.length) + ' records' : 'No data'}</li>
                             </ul>
                             ${apiData.elections && apiData.elections.length > 0 ? `
                             <p><strong>Election Data Sample:</strong></p>
@@ -2259,7 +2261,7 @@
         
         let html = `
             <div class="success-message">
-                Loaded ${filteredData.length} days of network status data
+               Loaded ${formatNumber(filteredData.length)} days of network status data
             </div>
             <div class="metric-grid">
                 <div class="metric-item">
@@ -2364,7 +2366,7 @@
         
         let html = `
             <div class="success-message">
-                Loaded ${filteredData.length} days of transaction amount data
+                Loaded ${formatNumber(filteredData.length)} days of transaction amount data
             </div>
             <div class="metric-grid">
                 <div class="metric-item">
@@ -2466,7 +2468,7 @@
         
         let html = `
             <div class="success-message">
-                Loaded ${filteredData.length} days of transaction count data
+                Loaded ${formatNumber(filteredData.length)} days of transaction count data
             </div>
             <div class="metric-grid">
                 <div class="metric-item">
@@ -2529,7 +2531,7 @@
         // Add statistics summary
         html += `
             <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                <h4 style="margin: 0 0 10px 0; color: #333;">Statistics Summary (${filteredData.length} days)</h4>
+                <h4 style="margin: 0 0 10px 0; color: #333;">Statistics Summary (${formatNumber(filteredData.length)} days)</h4>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
                     <div>📊 Total Transactions: <strong>${formatNumber(totalTransactions)}</strong></div>
                     <div>👥 Total User Transactions: <strong>${formatNumber(totalUsers)}</strong></div>
@@ -2563,7 +2565,7 @@
         
         let html = `
             <div class="success-message">
-                Loaded ${filteredData.length} yield records
+                Loaded ${formatNumber(filteredData.length)} yield records
             </div>
             <div class="metric-grid">
                 <div class="metric-item">
@@ -2686,16 +2688,16 @@
         
         let html = `
             <div class="success-message">
-                Loaded ${filteredData.length} election records
+                Loaded ${formatNumber(filteredData.length)} election records
             </div>
             <div class="metric-grid">
                 <div class="metric-item">
                     <div class="metric-label">Total Elections</div>
-                    <div class="metric-value">${apiData.elections.length}</div>
+                    <div class="metric-value">${formatNumber(apiData.elections.length)}</div>
                 </div>
                 <div class="metric-item">
                     <div class="metric-label">Displayed Records</div>
-                    <div class="metric-value">${filteredData.length}</div>
+                    <div class="metric-value">${formatNumber(filteredData.length)}</div>
                 </div>
             </div>
             <div class="chart-container">

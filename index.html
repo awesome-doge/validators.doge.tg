@@ -174,6 +174,17 @@
         return (Number(n) * 100).toFixed(2) + '%';
     }
 
+    // Add thousands separators for readability
+    const withCommas = (n) => {
+        try {
+            const num = typeof n === 'bigint' ? Number(n) : Number(n);
+            if (Number.isNaN(num)) return n;
+            return num.toLocaleString('en-US');
+        } catch {
+            return n;
+        }
+    }
+
     const getCountryFlag = (countryCode) => {
         if (!countryCode || countryCode === 'N/A') return '🌐';
         try {
@@ -756,11 +767,11 @@
         document.getElementById('statsContainer').innerHTML = `
             <div class="stat-card">
                 <h3>Validation Cycle</h3>
-                <p class="value long-number">#${cycleData.cycle_id}</p>
+                <p class="value long-number">#${withCommas(cycleData.cycle_id)}</p>
             </div>
             <div class="stat-card">
                 <h3>Validator Count</h3>
-                <p class="value">${cycleInfo.validators.length} / ${cycleData.config16.max_validators}</p>
+                <p class="value">${withCommas(cycleInfo.validators.length)} / ${withCommas(cycleData.config16.max_validators)}</p>
             </div>
             <div class="stat-card">
                 <h3>Total Staked Amount</h3>
@@ -780,11 +791,11 @@
             </div>
             <div class="stat-card">
                 <h3>High Efficiency Nodes</h3>
-                <p class="value">${efficiencyStats.high}</p>
+                <p class="value">${withCommas(efficiencyStats.high)}</p>
             </div>
             <div class="stat-card">
                 <h3>Total Complaints</h3>
-                <p class="value">${complaintsCount}</p>
+                <p class="value">${withCommas(complaintsCount)}</p>
             </div>
         `;
     }
@@ -952,14 +963,14 @@
 
             const complaintsCount = v.complaints ? v.complaints.length : 0;
             const complaintsDisplay = complaintsCount > 0 ? 
-                `<span class="complaints-indicator">${complaintsCount}</span>` : '';
+                `<span class="complaints-indicator">${withCommas(complaintsCount)}</span>` : '';
 
             const countryFlag = getCountryFlag(geolocation);
 
             // Desktop table row
             s += `<tr class="${rowClass}">`;
             s += `<td class="start ${starClass}" onclick="saveAdnl('${v.adnl_addr}')">★</td>`;
-            s += `<td>${v.index}</td>`;
+            s += `<td>${withCommas(v.index)}</td>`;
             s += `<td><span class="badge badge-label">${label || '-'}</span></td>`;
             s += `<td class="${efficiencyClass}">${efficiency}</td>`;
             s += `<td>${toPercent(v.stake / totalStake)}</td>`;
@@ -982,7 +993,7 @@
                             <span class="start ${starClass}" onclick="saveAdnl('${v.adnl_addr}')" style="margin-right: 8px;">★</span>
                             ${label || `Validator #${v.index}`}
                         </div>
-                        <div class="mobile-card-index">#${v.index}</div>
+                        <div class="mobile-card-index">#${withCommas(v.index)}</div>
                     </div>
                     <div class="mobile-card-content">
                         <div class="mobile-card-row">
