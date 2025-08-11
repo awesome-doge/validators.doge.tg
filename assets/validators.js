@@ -101,13 +101,9 @@ const wait = (millis) => {
   });
 };
 
-const showLoading = () => {
-  document.getElementById('loadingOverlay').style.display = 'flex';
-};
+const showLoading = () => {};
 
-const hideLoading = () => {
-  document.getElementById('loadingOverlay').style.display = 'none';
-};
+const hideLoading = () => {};
 
 const urlParams = new URLSearchParams(document.location.search);
 const cycleIdFromUrl = urlParams.get('cycle_id');
@@ -146,6 +142,19 @@ const API_ENDPOINTS = {
 
 let currentApiEndpoint = 'toncenter'; // 默認使用 toncenter
 let apiPerformanceData = {};
+
+// 全域狀態（避免雙重初始化）
+const GLOBAL_CTX = (typeof window !== 'undefined' ? window : globalThis);
+GLOBAL_CTX.__validatorsState = GLOBAL_CTX.__validatorsState || { initialized: false };
+
+// 簡單快取（避免重覆請求，降低載入時間）
+const CACHE_TTL_MS = 2 * 60 * 1000; // 2 分鐘
+const cache = {
+  cyclesList: { ts: 0, data: null },
+  cycleById: new Map(), // cycle_id -> { ts, data }
+  qosByCycleId: new Map(), // cycle_id -> { ts, data }
+  qosByRange: new Map(), // `${from}-${to}` -> { ts, data }
+};
 
 const storage = localStorage.getItem('savedAdnl');
 let savedAdnl = storage ? storage.split(',') : [];
@@ -295,63 +304,41 @@ function updateApiStatus(endpointName, responseTime = null) {
 
 async function loadAvailableCycles() {
   try {
-    // Try to get data from multiple API endpoints
-    let response = null;
-    let usedEndpoint = null;
-
-    // First try to use the selected best endpoint
-    currentApiEndpoint = selectBestApiEndpoint();
-
-    try {
-      if (currentApiEndpoint === 'getaruai') {
-        // GetAruAI API returns single cycle data, need to wrap in array
-        const cycleResponse = await apiWithPerformanceTracking(
-          API_ENDPOINTS.getaruai.cycles,
-          'getaruai'
-        );
-        response = Array.isArray(cycleResponse) ? cycleResponse : [cycleResponse];
-      } else {
-        // TON Center API returns multiple cycles
-        response = await apiWithPerformanceTracking(
-          API_ENDPOINTS.toncenter.cycles + '?limit=50',
-          'toncenter'
-        );
-      }
-      usedEndpoint = currentApiEndpoint;
-    } catch (error) {
-      console.warn(`Primary API (${currentApiEndpoint}) failed, trying backup API:`, error);
-
-      // If primary API fails, try backup API
-      const backupEndpoint = currentApiEndpoint === 'toncenter' ? 'getaruai' : 'toncenter';
-
-      try {
-        if (backupEndpoint === 'getaruai') {
-          const cycleResponse = await apiWithPerformanceTracking(
-            API_ENDPOINTS.getaruai.cycles,
-            'getaruai'
-          );
-          response = Array.isArray(cycleResponse) ? cycleResponse : [cycleResponse];
-        } else {
-          response = await apiWithPerformanceTracking(
-            API_ENDPOINTS.toncenter.cycles + '?limit=50',
-            'toncenter'
-          );
-        }
-        usedEndpoint = backupEndpoint;
-        currentApiEndpoint = backupEndpoint;
-      } catch (backupError) {
-        throw new Error(`All API endpoints failed: ${error.message}, ${backupError.message}`);
-      }
+    // 使用快取（新鮮度 2 分鐘）
+    if (cache.cyclesList.data && Date.now() - cache.cyclesList.ts < CACHE_TTL_MS) {
+      availableCycles = cache.cyclesList.data;
+      renderCycleSelector();
+      return;
     }
 
-    availableCycles = response;
-    renderCycleSelector();
+    // 並行嘗試兩個來源，誰先成功用誰
+    const toncenterPromise = apiWithPerformanceTracking(
+      API_ENDPOINTS.toncenter.cycles + '?limit=50',
+      'toncenter'
+    ).then((res) => ({ src: 'toncenter', data: res }));
 
-    // Show used API information
-    console.log(`Successfully loaded ${availableCycles.length} validation cycles, using API: ${usedEndpoint}`);
+    const getaruPromise = apiWithPerformanceTracking(
+      API_ENDPOINTS.getaruai.cycles,
+      'getaruai'
+    ).then((res) => ({ src: 'getaruai', data: Array.isArray(res) ? res : [res] }));
+
+    const results = await Promise.allSettled([toncenterPromise, getaruPromise]);
+
+    // 優先取成功且為 toncenter，其次 getaruai
+    let chosen = results.find((r) => r.status === 'fulfilled' && r.value.src === 'toncenter')
+      || results.find((r) => r.status === 'fulfilled');
+
+    if (!chosen) throw new Error('All API endpoints failed for cycles list');
+
+    const { src, data } = chosen.value;
+    availableCycles = data;
+    cache.cyclesList = { ts: Date.now(), data };
+    currentApiEndpoint = src;
+
+    renderCycleSelector();
+    console.log(`Successfully loaded ${availableCycles.length} validation cycles, using API: ${src}`);
   } catch (error) {
     console.error('Failed to load validation cycle list:', error);
-    // Show error message to user
     const cycleSelector = document.getElementById('cycleSelector');
     cycleSelector.innerHTML = '<option value="">Loading failed - please retry</option>';
   }
@@ -451,59 +438,48 @@ async function getCycleData(selectedCycleId = null) {
     }
     // Otherwise use current cycle - can use new API here
     else {
+      // 兩步驟：
+      // 1) 先取最近兩個 cycle（不含 node_details）判斷目前 cycle_id
+      // 2) 再針對選定 cycle_id 拉含 node_details 的完整資料
       try {
-        if (currentApiEndpoint === 'getaruai') {
-          // GetAruAI API returns current cycle
-          const cycleResponse = await apiWithPerformanceTracking(
-            API_ENDPOINTS.getaruai.cycles,
-            'getaruai'
-          );
-          cycleData = cycleResponse;
-          usedEndpoint = 'getaruai';
+        // Step 1: 輕量列表
+        const list = await apiWithPerformanceTracking(
+          `${API_ENDPOINTS.toncenter.cycles}?limit=2`,
+          'toncenter'
+        );
+        const now = Date.now() / 1000;
+        const chosen = list[0].cycle_info.utime_since < now ? list[0] : list[1];
+        const chosenId = chosen.cycle_id;
+
+        // 有快取則用快取
+        const cached = cache.cycleById.get(chosenId);
+        if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
+          cycleData = cached.data;
+          usedEndpoint = 'toncenter(cache)';
         } else {
-          // TON Center API
+          const detailed = await apiWithPerformanceTracking(
+            `${API_ENDPOINTS.toncenter.cycles}?cycle_id=${chosenId}&node_details=true`,
+            'toncenter'
+          );
+          cycleData = detailed && detailed.length ? detailed[0] : chosen;
+          cache.cycleById.set(chosenId, { ts: Date.now(), data: cycleData });
+          usedEndpoint = 'toncenter';
+        }
+        currentCycleId = null;
+      } catch (error) {
+        console.warn('Fast path for current cycle failed, fallback to original flow:', error);
+        // 回退：沿用原本的策略
+        try {
           response = await apiWithPerformanceTracking(
             `${API_ENDPOINTS.toncenter.cycles}?node_details=true&limit=2`,
             'toncenter'
           );
           const now = Date.now() / 1000;
-          if (response[0].cycle_info.utime_since < now) {
-            cycleData = response[0];
-          } else {
-            cycleData = response[1];
-          }
+          cycleData = response[0].cycle_info.utime_since < now ? response[0] : response[1];
           usedEndpoint = 'toncenter';
-        }
-        currentCycleId = null; // Indicates using current cycle
-      } catch (error) {
-        console.warn(`Primary API (${currentApiEndpoint}) failed, trying backup API:`, error);
-
-        // Try backup API
-        const backupEndpoint = currentApiEndpoint === 'toncenter' ? 'getaruai' : 'toncenter';
-
-        try {
-          if (backupEndpoint === 'getaruai') {
-            const cycleResponse = await apiWithPerformanceTracking(
-              API_ENDPOINTS.getaruai.cycles,
-              'getaruai'
-            );
-            cycleData = cycleResponse;
-          } else {
-            response = await apiWithPerformanceTracking(
-              `${API_ENDPOINTS.toncenter.cycles}?node_details=true&limit=2`,
-              'toncenter'
-            );
-            const now = Date.now() / 1000;
-            if (response[0].cycle_info.utime_since < now) {
-              cycleData = response[0];
-            } else {
-              cycleData = response[1];
-            }
-          }
-          usedEndpoint = backupEndpoint;
-          currentApiEndpoint = backupEndpoint;
-        } catch (backupError) {
-          throw new Error(`All API endpoints failed: ${error.message}, ${backupError.message}`);
+          currentCycleId = null;
+        } catch (fallbackErr) {
+          throw new Error(`All strategies failed: ${fallbackErr.message}`);
         }
       }
     }
@@ -513,12 +489,46 @@ async function getCycleData(selectedCycleId = null) {
     // 更新URL
     updateUrlParams();
 
-    // Load QoS data
-    await getQosCycleData(cycleData.cycle_info.utime_since, cycleData.cycle_info.utime_until);
-    await wait(1000);
-    await getQosCycleDataByCycleId(cycleData.cycle_id);
+    // 並行載入 QoS（移除 1 秒等待）
+    const fromTs = cycleData.cycle_info.utime_since;
+    const toTs = cycleData.cycle_info.utime_until;
 
-    // 渲染界面
+    const qosRangeKey = `${fromTs}-${toTs}`;
+    const qosIdKey = cycleData.cycle_id;
+
+    const qosPromises = [];
+
+    // Range QoS
+    const cachedRange = cache.qosByRange.get(qosRangeKey);
+    if (cachedRange && Date.now() - cachedRange.ts < CACHE_TTL_MS) {
+      qosData = cachedRange.data.scoreboard;
+    } else {
+      qosPromises.push(
+        getQosCycleData(fromTs, toTs, true).then((resp) => {
+          cache.qosByRange.set(qosRangeKey, { ts: Date.now(), data: resp });
+          qosData = resp.scoreboard;
+        }).catch(() => {})
+      );
+    }
+
+    // QoS by cycle id
+    const cachedById = cache.qosByCycleId.get(qosIdKey);
+    if (cachedById && Date.now() - cachedById.ts < CACHE_TTL_MS) {
+      qosDataByCycleId = cachedById.data.scoreboard;
+    } else {
+      qosPromises.push(
+        getQosCycleDataByCycleId(qosIdKey, true).then((resp) => {
+          cache.qosByCycleId.set(qosIdKey, { ts: Date.now(), data: resp });
+          qosDataByCycleId = resp.scoreboard;
+        }).catch(() => {})
+      );
+    }
+
+    if (qosPromises.length) {
+      await Promise.allSettled(qosPromises);
+    }
+
+    // 一次性渲染
     renderStats();
     renderTable();
     updateCycleInfo();
@@ -579,20 +589,22 @@ function updateCycleInfo() {
         `;
 }
 
-async function getQosCycleData(fromTimestamp, toTimestamp) {
+async function getQosCycleData(fromTimestamp, toTimestamp, returnRaw = false) {
   const response = await api(
     `https://toncenter.com/api/qos/cycleScoreboard/?node_details=true&from_ts=${fromTimestamp}&to_ts=${toTimestamp}`
   );
+  if (returnRaw) return response;
   qosData = response.scoreboard;
-  renderTable();
+  return response;
 }
 
-async function getQosCycleDataByCycleId(cycleId) {
+async function getQosCycleDataByCycleId(cycleId, returnRaw = false) {
   const response = await api(
     `https://toncenter.com/api/qos/cycleScoreboard/?node_details=true&cycle_id=${cycleId}`
   );
+  if (returnRaw) return response;
   qosDataByCycleId = response.scoreboard;
-  renderTable();
+  return response;
 }
 
 const sortValidators = (validators, column, direction) => {
@@ -1086,9 +1098,16 @@ function closeValidatorDetailModal() {
 
 // 初始化應用
 async function initializeApp() {
-  await loadAvailableCycles();
-  await getCycleData();
-  await fetchCsv();
+  if (GLOBAL_CTX.__validatorsState.initialized) {
+    return;
+  }
+  GLOBAL_CTX.__validatorsState.initialized = true;
+  // 並行初始化，縮短首屏時間
+  await Promise.all([
+    loadAvailableCycles(),
+    fetchCsv(),
+    getCycleData(),
+  ]);
 }
 
 initializeApp();

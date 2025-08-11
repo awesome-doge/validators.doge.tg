@@ -355,9 +355,7 @@
             text-decoration: none;
         }
 
-        a:hover {
-            text-decoration: underline;
-        }
+        a:hover { text-decoration: none; }
 
         .loading-overlay {
             position: fixed;
@@ -1086,13 +1084,9 @@
         return `<a href="https://tonscan.org/address/${address}" target="_blank">${address}</a>`;
     }
 
-    const showLoading = () => {
-        document.getElementById('loadingOverlay').style.display = 'flex';
-    }
+    const showLoading = () => {}
 
-    const hideLoading = () => {
-        document.getElementById('loadingOverlay').style.display = 'none';
-    }
+    const hideLoading = () => {}
 
     // Global variables
     let nominatorsData = [];

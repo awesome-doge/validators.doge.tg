@@ -200,13 +200,9 @@
         })
     }
 
-    const showLoading = () => {
-        document.getElementById('loadingOverlay').style.display = 'flex';
-    }
+    const showLoading = () => {}
 
-    const hideLoading = () => {
-        document.getElementById('loadingOverlay').style.display = 'none';
-    }
+    const hideLoading = () => {}
 
     const urlParams = new URLSearchParams(document.location.search);
     const cycleIdFromUrl = urlParams.get("cycle_id");
