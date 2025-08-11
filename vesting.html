@@ -12,6 +12,9 @@
     <div class="header">
         <h1>TON Vesting Contracts</h1>
         <div class="subtitle">All Vesting contracts with sorting functionality</div>
+        <div style="font-size: 12px; color: #666; margin-top: 5px; text-align: center;">
+            🚀 頁面會立即顯示快取內容，然後在背景更新缺失的數據
+        </div>
         <div class="nav-buttons">
             <a href="index.html" class="nav-button">
                 🏠 Validators
@@ -50,7 +53,7 @@
 <script>
     // Utility functions
     const fromNano = (nano) => {
-        return BigInt(nano) / BigInt(1e9);
+            return BigInt(nano) / BigInt(1000000000);
     }
 
     const toMillions = (n) => {
@@ -81,11 +84,11 @@
     }
 
     const showLoading = () => {
-        // 載入指示器已移除，無需顯示
+        // Loading indicator removed, no need to display
     }
 
     const hideLoading = () => {
-        // 載入指示器已移除，無需隱藏
+        // Loading indicator removed, no need to hide
     }
 
     const updateProgress = (percentage, text = null) => {
@@ -105,9 +108,54 @@
     // Global variables
     let vestingData = [];
     let filteredData = [];
-    let sortColumn = 'balance'; // Default sort by balance
+    let sortColumn = 'unvested'; // Default sort by unvested amount
     let sortDirection = 'desc'; // Default descending
     let labels = {}; // address -> label
+    
+    // TON Center API configuration
+    const TONCENTER_API_KEY = '4ee76f835930b91d73f0906da03a3f6fdad65e7074ca2cb10271d73105d7530c';
+    const TONCENTER_VESTING_URL = 'https://toncenter.com/api/v3/vesting';
+    const API_RATE_LIMIT = TONCENTER_API_KEY ? 10 : 1; // requests per second
+    const REQUEST_DELAY = 1000 / API_RATE_LIMIT; // milliseconds between requests
+    
+    // Cache for vesting details
+    let vestingCache = {};
+    let noDataCache = new Set(); // Track addresses with no vesting data
+    let lastRequestTime = 0;
+    let isPageRefresh = false; // Track if this is a page refresh
+    
+    // Load cache from localStorage on page load
+    function loadCacheFromStorage() {
+        try {
+            const cachedVesting = localStorage.getItem('vestingCache');
+            if (cachedVesting) {
+                vestingCache = JSON.parse(cachedVesting);
+                console.log(`📦 Loaded ${Object.keys(vestingCache).length} vesting contracts from localStorage cache`);
+            }
+            
+            const cachedNoData = localStorage.getItem('noDataCache');
+            if (cachedNoData) {
+                const noDataArray = JSON.parse(cachedNoData);
+                noDataCache = new Set(noDataArray);
+                console.log(`📦 Loaded ${noDataCache.size} no-data addresses from localStorage cache`);
+            }
+        } catch (error) {
+            console.warn('Error loading cache from localStorage:', error);
+            // Reset cache on error
+            vestingCache = {};
+            noDataCache = new Set();
+        }
+    }
+    
+    // Save cache to localStorage
+    function saveCacheToStorage() {
+        try {
+            localStorage.setItem('vestingCache', JSON.stringify(vestingCache));
+            localStorage.setItem('noDataCache', JSON.stringify(Array.from(noDataCache)));
+        } catch (error) {
+            console.warn('Error saving cache to localStorage:', error);
+        }
+    }
 
     // API status updates
     function updateApiStatus(apiName, responseTime = null, progressText = null, keepVisible = false) {
@@ -149,6 +197,171 @@
         apiStatus.classList.remove('show');
     }
 
+    // Rate limiting utility
+    async function waitForRateLimit() {
+        const now = Date.now();
+        const timeSinceLastRequest = now - lastRequestTime;
+        if (timeSinceLastRequest < REQUEST_DELAY) {
+            await new Promise(resolve => setTimeout(resolve, REQUEST_DELAY - timeSinceLastRequest));
+        }
+        lastRequestTime = Date.now();
+    }
+
+        // Fetch vesting contract details from TON Center API
+    async function fetchVestingDetails(contractAddress, forceRefresh = false) {
+        // Check cache first - return cached data if exists and not forcing refresh
+        if (!forceRefresh && vestingCache[contractAddress]) {
+            console.log(`Using cached vesting data for ${contractAddress}`);
+            return vestingCache[contractAddress];
+        }
+
+        // If forcing refresh, remove from noDataCache to allow retry
+        if (forceRefresh) {
+            noDataCache.delete(contractAddress);
+        }
+
+        await waitForRateLimit();
+
+        try {
+            const url = `${TONCENTER_VESTING_URL}?contract_address=${encodeURIComponent(contractAddress)}`;
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            
+            if (TONCENTER_API_KEY) {
+                headers['X-API-Key'] = TONCENTER_API_KEY;
+            }
+
+                const response = await fetch(url, {
+                method: 'GET',
+                headers: headers
+            });
+                
+                if (!response.ok) {
+                console.warn(`API Error for ${contractAddress}: ${response.status}`);
+                // Mark as no data for this session, but will retry on refresh
+                noDataCache.add(contractAddress);
+                
+                // Save to localStorage
+                saveCacheToStorage();
+                
+                return null;
+                }
+                
+                const data = await response.json();
+                
+            // Check if we got valid vesting data
+            if (!data.vesting_contracts || data.vesting_contracts.length === 0) {
+                console.warn(`No vesting data found for ${contractAddress}`);
+                // Mark as no data for this session, but will retry on refresh
+                noDataCache.add(contractAddress);
+                
+                // Save to localStorage
+                saveCacheToStorage();
+                
+                return null;
+            }
+
+            const vestingContract = data.vesting_contracts[0];
+            const processedData = {
+                address: vestingContract.address,
+                start_time: vestingContract.start_time,
+                total_duration: vestingContract.total_duration,
+                unlock_period: vestingContract.unlock_period,
+                cliff_duration: vestingContract.cliff_duration,
+                sender_address: vestingContract.sender_address,
+                owner_address: vestingContract.owner_address,
+                total_amount: vestingContract.total_amount,
+                whitelist: vestingContract.whitelist || [],
+                            address_book: data.address_book || {}
+                        };
+
+            // Cache the successful result and remove from noDataCache
+            vestingCache[contractAddress] = processedData;
+            noDataCache.delete(contractAddress);
+            
+            // Save to localStorage
+            saveCacheToStorage();
+            
+            console.log(`Successfully fetched and cached vesting data for ${contractAddress}`);
+            return processedData;
+                
+            } catch (error) {
+            console.error(`Failed to fetch vesting details for ${contractAddress}:`, error);
+            // Mark as no data for this session, but will retry on refresh
+            noDataCache.add(contractAddress);
+            return null;
+        }
+    }
+
+    // Calculate vesting status
+    function calculateVestingStatus(vestingDetails, currentBalance) {
+        if (!vestingDetails) return null;
+
+        // Validate required fields
+        if (!vestingDetails.total_amount || 
+            !vestingDetails.start_time || 
+            !vestingDetails.total_duration || 
+            !vestingDetails.unlock_period || 
+            !vestingDetails.cliff_duration) {
+            console.warn('Incomplete vesting details:', vestingDetails);
+            return null;
+        }
+
+        // Ensure all values are valid numbers
+        const startTime = Number(vestingDetails.start_time);
+        const totalDuration = Number(vestingDetails.total_duration);
+        const unlockPeriod = Number(vestingDetails.unlock_period);
+        const cliffDuration = Number(vestingDetails.cliff_duration);
+        
+        // Validate numeric values
+        if (isNaN(startTime) || isNaN(totalDuration) || isNaN(unlockPeriod) || isNaN(cliffDuration)) {
+            console.warn('Invalid numeric values in vesting details:', {
+                startTime, totalDuration, unlockPeriod, cliffDuration
+            });
+            return null;
+        }
+
+        // Validate total_amount is a valid string or number
+        let totalAmount;
+        try {
+            totalAmount = BigInt(vestingDetails.total_amount);
+        } catch (error) {
+            console.warn('Invalid total_amount:', vestingDetails.total_amount, error);
+            return null;
+        }
+
+        const now = Math.floor(Date.now() / 1000);
+        
+        // Calculate vested amount
+        let vestedAmount = BigInt(0);
+        if (now >= startTime) {
+            const elapsedTime = Math.min(now - startTime, totalDuration);
+            
+            if (elapsedTime >= cliffDuration && unlockPeriod > 0) {
+                const vestingPeriods = Math.floor(elapsedTime / unlockPeriod);
+                const totalPeriods = Math.floor(totalDuration / unlockPeriod);
+                if (totalPeriods > 0) {
+                    vestedAmount = totalAmount * BigInt(vestingPeriods) / BigInt(totalPeriods);
+                }
+            }
+        }
+
+        const unvestedAmount = totalAmount - vestedAmount;
+        const liquidAmount = currentBalance - unvestedAmount > 0 ? currentBalance - unvestedAmount : BigInt(0);
+
+        return {
+            totalAmount,
+            vestedAmount,
+            unvestedAmount,
+            liquidAmount,
+            startTime,
+            totalDuration,
+            unlockPeriod,
+            cliffDuration
+        };
+    }
+
     // Load labels from labels.csv
     async function fetchLabelsCsv() {
         try {
@@ -170,10 +383,10 @@
             if (filteredData && filteredData.length) {
                 renderTable();
             }
-        } catch (e) {
+                } catch (e) {
             console.warn('Failed to load labels.csv', e);
             updateApiStatus('Loading Failed', null, 'Failed to load labels', false);
-        }
+                }
     }
 
     // Fetch all Vesting contract addresses
@@ -277,14 +490,32 @@
             }
         }, BigInt(0));
         
-        const activeContracts = vestingData.filter(c => c.balance && Number(c.balance) > 0).length;
-        const averageBalance = totalContracts > 0 ? totalBalance / BigInt(totalContracts) : BigInt(0);
+        const totalUnvestedAmount = vestingData.reduce((sum, contract) => {
+            try {
+                return sum + (contract.unvestedAmount || BigInt(0));
+            } catch (e) {
+                return sum;
+            }
+        }, BigInt(0));
+        
+        const totalVestingAmount = vestingData.reduce((sum, contract) => {
+            try {
+                return sum + (contract.totalVestingAmount || BigInt(0));
+            } catch (e) {
+                return sum;
+            }
+        }, BigInt(0));
+        
+        const totalLiquidAmount = vestingData.reduce((sum, contract) => {
+            try {
+                return sum + (contract.liquidAmount || BigInt(0));
+            } catch (e) {
+                return sum;
+            }
+        }, BigInt(0));
 
-        const oldestContract = vestingData.reduce((oldest, contract) => {
-            if (!contract.created_utime) return oldest;
-            if (!oldest.created_utime) return contract;
-            return contract.created_utime < oldest.created_utime ? contract : oldest;
-        }, {created_utime: Date.now() / 1000});
+        const activeContracts = vestingData.filter(c => c.balance && Number(c.balance) > 0).length;
+        const contractsWithVestingData = vestingData.filter(c => c.vestingDetails).length;
 
         document.getElementById('statsContainer').innerHTML = `
             <div class="stat-card">
@@ -299,13 +530,31 @@
                 <h3>Total Balance</h3>
                 <p class="value">${toMillionsShort(fromNano(totalBalance))} TON</p>
             </div>
-            <div class="stat-card">
-                <h3>Average Balance</h3>
-                <p class="value">${toMillionsShort(fromNano(averageBalance))} TON</p>
+            <div class="stat-card" style="background: rgba(255, 59, 48, 0.1); border: 2px solid rgba(255, 59, 48, 0.3);">
+                <h3>Total Unvested Amount</h3>
+                <p class="value" style="color: #FF3B30; font-weight: bold;">${toMillionsShort(fromNano(totalUnvestedAmount))} TON</p>
             </div>
             <div class="stat-card">
-                <h3>Oldest Contract</h3>
-                <p class="value">${oldestContract.created_utime ? new Date(oldestContract.created_utime * 1000).toLocaleDateString() : 'N/A'}</p>
+                <h3>Total Liquid Amount</h3>
+                <p class="value" style="color: #34C759;">${toMillionsShort(fromNano(totalLiquidAmount))} TON</p>
+            </div>
+            <div class="stat-card">
+                <h3>Total Vesting Amount</h3>
+                <p class="value">${toMillionsShort(fromNano(totalVestingAmount))} TON</p>
+            </div>
+            <div class="stat-card">
+                <h3>Contracts with Data</h3>
+                <p class="value">${withCommas(contractsWithVestingData)} / ${withCommas(totalContracts)}</p>
+                ${noDataCache.size > 0 ? `
+                    <div style="margin-top: 8px;">
+                        <button onclick="loadVestingData(true)" style="padding: 6px 12px; background: #34C759; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; margin-right: 4px;">
+                            Background Update (${noDataCache.size})
+                        </button>
+                        <button onclick="loadVestingData(true, true)" style="padding: 6px 12px; background: #007AFF; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">
+                            Full Reload
+                        </button>
+                    </div>
+                ` : ''}
             </div>
         `;
     }
@@ -318,7 +567,7 @@
         } else {
             // If clicking different column, set new column and use default sort direction
             sortColumn = column;
-            sortDirection = column === 'balance' ? 'desc' : 'asc';
+            sortDirection = ['balance', 'unvested', 'totalVesting', 'liquid'].includes(column) ? 'desc' : 'asc';
         }
         
         filterData();
@@ -345,6 +594,30 @@
                     valueA = BigInt(a.balance || 0);
                     valueB = BigInt(b.balance || 0);
                     break;
+                case 'unvested':
+                    valueA = a.unvestedAmount || BigInt(0);
+                    valueB = b.unvestedAmount || BigInt(0);
+                    break;
+                case 'totalVesting':
+                    valueA = a.totalVestingAmount || BigInt(0);
+                    valueB = b.totalVestingAmount || BigInt(0);
+                    break;
+                case 'liquid':
+                    valueA = a.liquidAmount || BigInt(0);
+                    valueB = b.liquidAmount || BigInt(0);
+                    break;
+                case 'owner':
+                    valueA = (a.ownerAddress || '').toLowerCase();
+                    valueB = (b.ownerAddress || '').toLowerCase();
+                    break;
+                case 'vestingStart':
+                    valueA = a.vestingStartTime || 0;
+                    valueB = b.vestingStartTime || 0;
+                    break;
+                case 'duration':
+                    valueA = a.vestingDuration || 0;
+                    valueB = b.vestingDuration || 0;
+                    break;
                 case 'created':
                     valueA = a.created_utime || 0;
                     valueB = b.created_utime || 0;
@@ -357,7 +630,7 @@
                     return 0;
             }
             
-            if (sortColumn === 'balance') {
+            if (['balance', 'unvested', 'totalVesting', 'liquid'].includes(sortColumn)) {
                 // BigInt comparison
                 const result = valueA - valueB;
                 return sortDirection === 'asc' ? 
@@ -398,19 +671,31 @@
                             Rank ${getSortIcon('rank')}
                         </th>
                         <th onclick="sortData('address')">
-                            Address ${getSortIcon('address')}
+                            Contract Address ${getSortIcon('address')}
                         </th>
                         <th>
                             Label
                         </th>
                         <th onclick="sortData('balance')">
-                            Balance (TON) ${getSortIcon('balance')}
+                            Current Balance ${getSortIcon('balance')}
                         </th>
-                        <th onclick="sortData('created')">
-                            Created ${getSortIcon('created')}
+                        <th onclick="sortData('unvested')" style="background: rgba(255, 59, 48, 0.1);">
+                            <strong>Unvested Amount</strong> ${getSortIcon('unvested')}
                         </th>
-                        <th onclick="sortData('lastTx')">
-                            Last Transaction ${getSortIcon('lastTx')}
+                        <th onclick="sortData('liquid')">
+                            Liquid Amount ${getSortIcon('liquid')}
+                        </th>
+                        <th onclick="sortData('totalVesting')">
+                            Total Vesting ${getSortIcon('totalVesting')}
+                        </th>
+                        <th onclick="sortData('owner')">
+                            Owner Address ${getSortIcon('owner')}
+                        </th>
+                        <th onclick="sortData('vestingStart')">
+                            Vesting Start ${getSortIcon('vestingStart')}
+                        </th>
+                        <th onclick="sortData('duration')">
+                            Duration (days) ${getSortIcon('duration')}
                         </th>
                     </tr>
                 </thead>
@@ -421,10 +706,45 @@
         let mobileHtml = '<div class="mobile-table">';
 
         filteredData.forEach((contract, index) => {
-            const balance = fromNano(contract.balance);
+            // Ensure balance is valid
+            const balance = contract.balance && !isNaN(contract.balance) ? fromNano(contract.balance) : BigInt(0);
             const balanceDisplay = Number(balance) === 0 ? '0' : toMillions(balance);
             const rank = vestingData.indexOf(contract) + 1;
             const label = labels[contract.address] || '';
+            
+            // Format vesting amounts with validation
+            let unvestedDisplay = '0';
+            let liquidDisplay = balanceDisplay;
+            let totalVestingDisplay = '-';
+            
+            try {
+                if (contract.unvestedAmount && contract.unvestedAmount !== BigInt(0)) {
+                    unvestedDisplay = toMillions(fromNano(contract.unvestedAmount));
+                }
+                if (contract.liquidAmount && contract.liquidAmount !== BigInt(0)) {
+                    liquidDisplay = toMillions(fromNano(contract.liquidAmount));
+                }
+                if (contract.totalVestingAmount && contract.totalVestingAmount !== BigInt(0)) {
+                    totalVestingDisplay = toMillions(fromNano(contract.totalVestingAmount));
+                }
+            } catch (error) {
+                console.warn('Error formatting vesting amounts:', error, contract);
+                // Fallback to safe values
+                unvestedDisplay = '0';
+                liquidDisplay = balanceDisplay;
+                totalVestingDisplay = '-';
+            }
+            
+            // Format addresses
+            const ownerAddressShort = contract.ownerAddress ? 
+                contract.ownerAddress.substring(0, 8) + '...' + contract.ownerAddress.substring(contract.ownerAddress.length - 6) : '-';
+            const ownerAddressLink = contract.ownerAddress ? makeAddressUrl(contract.ownerAddress) : '-';
+            
+            // Format dates with validation
+            const vestingStartDate = contract.vestingStartTime && !isNaN(contract.vestingStartTime) ? 
+                new Date(contract.vestingStartTime * 1000).toLocaleDateString() : '-';
+            const durationDays = contract.vestingDuration && !isNaN(contract.vestingDuration) ? 
+                Math.floor(contract.vestingDuration / (24 * 60 * 60)) : '-';
             
             // Desktop table row
             desktopHtml += `
@@ -433,8 +753,12 @@
                     <td class="mono">${makeAddressUrl(contract.address)}</td>
                     <td>${label ? `<span class="badge badge-label">${label}</span>` : '-'}</td>
                     <td><strong>${balanceDisplay} TON</strong></td>
-                    <td>${timestampToDate(contract.created_utime)}</td>
-                    <td>${timestampToDate(contract.latest_transaction_time)}</td>
+                    <td style="background: rgba(255, 59, 48, 0.05);"><strong style="color: #FF3B30;">${unvestedDisplay} TON</strong></td>
+                    <td><span style="color: #34C759;">${liquidDisplay} TON</span></td>
+                    <td>${totalVestingDisplay} TON</td>
+                    <td class="mono" style="font-size: 11px;">${ownerAddressLink}</td>
+                    <td>${vestingStartDate}</td>
+                    <td>${durationDays}</td>
                 </tr>
             `;
 
@@ -453,20 +777,36 @@
                             <span class="mobile-card-value">${label || '-'}</span>
                         </div>
                         <div class="mobile-card-row">
-                            <span class="mobile-card-label">Balance:</span>
+                            <span class="mobile-card-label">Current Balance:</span>
                             <span class="mobile-card-value"><strong>${balanceDisplay} TON</strong></span>
                         </div>
+                        <div class="mobile-card-row" style="background: rgba(255, 59, 48, 0.05);">
+                            <span class="mobile-card-label"><strong>Unvested Amount:</strong></span>
+                            <span class="mobile-card-value"><strong style="color: #FF3B30;">${unvestedDisplay} TON</strong></span>
+                        </div>
                         <div class="mobile-card-row">
-                            <span class="mobile-card-label">Address:</span>
+                            <span class="mobile-card-label">Liquid Amount:</span>
+                            <span class="mobile-card-value"><span style="color: #34C759;">${liquidDisplay} TON</span></span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">Total Vesting:</span>
+                            <span class="mobile-card-value">${totalVestingDisplay} TON</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">Contract Address:</span>
                             <span class="mobile-card-value mono">${makeAddressUrl(contract.address)}</span>
                         </div>
                         <div class="mobile-card-row">
-                            <span class="mobile-card-label">Created:</span>
-                            <span class="mobile-card-value">${timestampToDate(contract.created_utime)}</span>
+                            <span class="mobile-card-label">Owner Address:</span>
+                            <span class="mobile-card-value mono">${ownerAddressLink}</span>
                         </div>
                         <div class="mobile-card-row">
-                            <span class="mobile-card-label">Last Tx:</span>
-                            <span class="mobile-card-value">${timestampToDate(contract.latest_transaction_time)}</span>
+                            <span class="mobile-card-label">Vesting Start:</span>
+                            <span class="mobile-card-value">${vestingStartDate}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">Duration:</span>
+                            <span class="mobile-card-value">${durationDays} days</span>
                         </div>
                     </div>
                 </div>
@@ -483,36 +823,375 @@
         container.innerHTML = desktopHtml + mobileHtml;
     }
 
-    // Load data
-    async function loadVestingData() {
-        showLoading();
+    // Load vesting details for contracts - fast mode (cache only)
+    function enrichVestingDataFromCache(contractsData) {
+        const enrichedData = [];
+        
+        for (let i = 0; i < contractsData.length; i++) {
+            const contract = contractsData[i];
+            
+            try {
+                // Use cached data if available
+                const vestingDetails = vestingCache[contract.address] || null;
+                
+                // Calculate vesting status
+                const vestingStatus = calculateVestingStatus(vestingDetails, BigInt(contract.balance || 0));
+                
+                // Combine all data
+                const enrichedContract = {
+                    ...contract,
+                    vestingDetails,
+                    vestingStatus,
+                    // Key metrics for easy access
+                    totalVestingAmount: vestingStatus ? vestingStatus.totalAmount : BigInt(0),
+                    unvestedAmount: vestingStatus ? vestingStatus.unvestedAmount : BigInt(0),
+                    liquidAmount: vestingStatus ? vestingStatus.liquidAmount : BigInt(contract.balance || 0),
+                    ownerAddress: vestingDetails ? vestingDetails.owner_address : null,
+                    senderAddress: vestingDetails ? vestingDetails.sender_address : null,
+                    vestingStartTime: vestingDetails ? vestingDetails.start_time : null,
+                    vestingDuration: vestingDetails ? vestingDetails.total_duration : null,
+                    unlockPeriod: vestingDetails ? vestingDetails.unlock_period : null
+                };
+                
+                enrichedData.push(enrichedContract);
+            } catch (error) {
+                console.warn(`Error processing contract ${contract.address} from cache:`, error);
+                
+                // Add contract with fallback data
+                const fallbackContract = {
+                    ...contract,
+                    vestingDetails: null,
+                    vestingStatus: null,
+                    totalVestingAmount: BigInt(0),
+                    unvestedAmount: BigInt(0),
+                    liquidAmount: BigInt(contract.balance || 0),
+                    ownerAddress: null,
+                    senderAddress: null,
+                    vestingStartTime: null,
+                    vestingDuration: null,
+                    unlockPeriod: null
+                };
+                
+                enrichedData.push(fallbackContract);
+            }
+        }
+        
+        return enrichedData;
+    }
+    
+    // Background update for addresses without data
+    async function updateMissingVestingData(contractsData, onProgress = null, onComplete = null) {
+        const addressesToUpdate = [];
+        
+        // Find addresses that need updating
+        for (const contract of contractsData) {
+            const hasCache = vestingCache[contract.address];
+            const wasNoData = noDataCache.has(contract.address);
+            
+            if (!hasCache || wasNoData) {
+                addressesToUpdate.push(contract);
+            }
+        }
+        
+        if (addressesToUpdate.length === 0) {
+            console.log('No addresses need updating');
+            if (onComplete) onComplete(0);
+            return;
+        }
+        
+        console.log(`Background updating ${addressesToUpdate.length} addresses...`);
+        
+        let updatedCount = 0;
+        let newDataCount = 0;
+        
+        for (let i = 0; i < addressesToUpdate.length; i++) {
+            const contract = addressesToUpdate[i];
+            
+            try {
+                const wasNoData = noDataCache.has(contract.address);
+                const vestingDetails = await fetchVestingDetails(contract.address, wasNoData);
+                
+                if (vestingDetails && !vestingCache[contract.address]) {
+                    newDataCount++;
+                    console.log(`🎉 Found new vesting data for ${contract.address}`);
+                }
+                
+                updatedCount++;
+                
+                if (onProgress) {
+                    onProgress(updatedCount, addressesToUpdate.length, newDataCount);
+                }
+                
+            } catch (error) {
+                console.warn(`Background update failed for ${contract.address}:`, error);
+                updatedCount++;
+                
+                if (onProgress) {
+                    onProgress(updatedCount, addressesToUpdate.length, newDataCount);
+                }
+            }
+        }
+        
+        if (onComplete) {
+            onComplete(newDataCount);
+        }
+        
+        console.log(`Background update complete: ${updatedCount}/${addressesToUpdate.length} processed, ${newDataCount} new data found`);
+    }
+
+    // Load vesting details for contracts - full mode
+    async function enrichVestingData(contractsData, isRefresh = false) {
+        const enrichedData = [];
+        const totalContracts = contractsData.length;
+        
+        updateProgress(70, 'Fetching vesting contract details...');
+        
+        // Count addresses that need to be queried
+        let addressesToQuery = 0;
+        let queriedCount = 0;
+        
+        for (let i = 0; i < contractsData.length; i++) {
+            const contract = contractsData[i];
+            
+            // Determine if we need to query this address
+            const hasCache = vestingCache[contract.address];
+            const wasNoData = noDataCache.has(contract.address);
+            const needsQuery = !hasCache || (isRefresh && wasNoData);
+            
+            if (needsQuery) {
+                addressesToQuery++;
+            }
+        }
+        
+        console.log(`Processing ${totalContracts} contracts. Need to query: ${addressesToQuery}, Using cache: ${totalContracts - addressesToQuery}`);
+        
+        for (let i = 0; i < contractsData.length; i++) {
+            const contract = contractsData[i];
+            
+            try {
+                // Determine if we need to query this address
+                const hasCache = vestingCache[contract.address];
+                const wasNoData = noDataCache.has(contract.address);
+                const needsQuery = !hasCache || (isRefresh && wasNoData);
+                
+                let vestingDetails = null;
+                
+                if (needsQuery) {
+                    queriedCount++;
+                    updateProgress(
+                        70 + (queriedCount / Math.max(addressesToQuery, 1)) * 20, 
+                        `Querying ${queriedCount}/${addressesToQuery} addresses (${i + 1}/${totalContracts} total)...`
+                    );
+                    
+                    // Fetch vesting details from TON Center API (force refresh if it was previously no data)
+                    vestingDetails = await fetchVestingDetails(contract.address, wasNoData);
+                } else if (hasCache) {
+                    // Use cached data
+                    vestingDetails = vestingCache[contract.address];
+                }
+                
+                // Calculate vesting status
+                const vestingStatus = calculateVestingStatus(vestingDetails, BigInt(contract.balance || 0));
+                
+                // Combine all data
+                const enrichedContract = {
+                    ...contract,
+                    vestingDetails,
+                    vestingStatus,
+                    // Key metrics for easy access
+                    totalVestingAmount: vestingStatus ? vestingStatus.totalAmount : BigInt(0),
+                    unvestedAmount: vestingStatus ? vestingStatus.unvestedAmount : BigInt(0),
+                    liquidAmount: vestingStatus ? vestingStatus.liquidAmount : BigInt(contract.balance || 0),
+                    ownerAddress: vestingDetails ? vestingDetails.owner_address : null,
+                    senderAddress: vestingDetails ? vestingDetails.sender_address : null,
+                    vestingStartTime: vestingDetails ? vestingDetails.start_time : null,
+                    vestingDuration: vestingDetails ? vestingDetails.total_duration : null,
+                    unlockPeriod: vestingDetails ? vestingDetails.unlock_period : null
+                };
+                
+                enrichedData.push(enrichedContract);
+                
+                // Update progress for processing
+                if (!needsQuery) {
+                    const progressPercent = 70 + (i + 1) / totalContracts * 25;
+                    updateProgress(progressPercent, `Processing ${i + 1}/${totalContracts} contracts (using cache)...`);
+                }
+                
+            } catch (error) {
+                console.warn(`Error processing contract ${contract.address}:`, error);
+                // Add contract without vesting details
+                enrichedData.push({
+                    ...contract,
+                    vestingDetails: null,
+                    vestingStatus: null,
+                    totalVestingAmount: BigInt(0),
+                    unvestedAmount: BigInt(0),
+                    liquidAmount: BigInt(contract.balance || 0),
+                    ownerAddress: null,
+                    senderAddress: null,
+                    vestingStartTime: null,
+                    vestingDuration: null,
+                    unlockPeriod: null
+                });
+            }
+        }
+        
+        return enrichedData;
+    }
+
+    // Load data with fast cache display + background update
+    async function loadVestingData(isRefresh = false, forceFullLoad = false) {
         try {
             console.log('Starting to fetch Vesting contract data...');
-            // Show initial progress at start
+            
+            // Check if we have cached data first
+            const cachedCount = Object.keys(vestingCache).length;
+            const noDataCount = noDataCache.size;
+            
+            // Always show cached data first if available (both refresh and first load)
+            if (cachedCount > 0) {
+                console.log('🚀 Showing cached data immediately...');
+                
+                try {
+                    // Show cached data first without waiting for addresses
+                    const existingAddresses = Object.keys(vestingCache);
+                    const cachedData = existingAddresses.map(address => {
+                        const contract = { 
+                            address,
+                            balance: '0', // Default balance, will be updated when addresses are loaded
+                            created_utime: 0,
+                            latest_transaction_time: 0
+                        };
+                        return enrichVestingDataFromCache([contract])[0];
+                    });
+                    
+                    if (cachedData.length > 0) {
+                        vestingData = cachedData;
+                        renderStats();
+                        filterData();
+                        
+                        updateApiStatus('Cache', null, `Showing cached data (${cachedCount} contracts)`, true);
+                    }
+                } catch (error) {
+                    console.warn('Error showing cached data immediately:', error);
+                    // Continue with normal loading process
+                }
+            }
+            
+            showLoading();
             updateProgress(0, 'Starting to load Vesting contract data...');
             
             const startTime = performance.now();
-            const newData = await fetchAllVestingAddresses();
-            const endTime = performance.now();
             
-            if (!newData || newData.length === 0) {
+            // Get all vesting contract addresses
+            const addressData = await fetchAllVestingAddresses();
+            if (!addressData || addressData.length === 0) {
                 throw new Error('Unable to fetch any Vesting contract data');
             }
             
-            vestingData = newData;
-            console.log(`Successfully fetched and processed ${vestingData.length} Vesting contracts`);
+            console.log(`Cache status: ${cachedCount} with data, ${noDataCount} without data${isRefresh ? ' (refresh mode)' : ''}`);
             
-            // Show result after completion and hide after 3 seconds
-            const completionText = `Complete! Loaded ${vestingData.length} contracts (${(endTime - startTime).toFixed(0)}ms)`;
-            updateApiStatus('Tonscan API', endTime - startTime, completionText, false);
-            
-            renderStats();
-            filterData();
-            
-            // Hide API status after 3 seconds
-            setTimeout(() => {
-                hideApiStatus();
-            }, 3000);
+            // If we have cache, show cached data first and then background update
+            if (cachedCount > 0) {
+                console.log('🚀 Fast loading from cache...');
+                updateProgress(70, 'Loading from cache...');
+                
+                // Quick load from cache
+                const cachedData = enrichVestingDataFromCache(addressData);
+                vestingData = cachedData;
+                
+                updateProgress(95, 'Cache loaded, starting background update...');
+                
+                const fastEndTime = performance.now();
+                console.log(`Fast cache load completed in ${(fastEndTime - startTime).toFixed(0)}ms`);
+                
+                // Show cached data immediately
+                renderStats();
+                filterData();
+                
+                // Update API status to show cache load
+                updateApiStatus('Cache', fastEndTime - startTime, `Cache loaded (${cachedCount} contracts with data)`, true);
+                
+                // Start background update for missing data
+                const addressesToUpdate = addressData.filter(contract => 
+                    !vestingCache[contract.address] || noDataCache.has(contract.address)
+                );
+                
+                if (addressesToUpdate.length > 0) {
+                    console.log(`🔄 Starting background update for ${addressesToUpdate.length} addresses...`);
+                    
+                    updateMissingVestingData(addressData, 
+                        // Progress callback
+                        (current, total, newDataFound) => {
+                            const progressText = `Background update: ${current}/${total} (found ${newDataFound} new data)`;
+                            updateApiStatus('Background Update', null, progressText, true);
+                        },
+                        // Complete callback
+                        (newDataFound) => {
+                            console.log('🎉 Background update completed');
+                            
+                            if (newDataFound > 0) {
+                                // Refresh display with new data
+                                const updatedData = enrichVestingDataFromCache(addressData);
+                                vestingData = updatedData;
+                                renderStats();
+                                filterData();
+                                
+                                updateApiStatus('Background Complete', null, `Background update complete! Found ${newDataFound} new data`, false);
+                                
+                                setTimeout(() => {
+                                    hideApiStatus();
+                                }, 5000);
+                            } else {
+                                // Even if no new data, refresh display to show updated contract info
+                                const updatedData = enrichVestingDataFromCache(addressData);
+                                vestingData = updatedData;
+                                renderStats();
+                                filterData();
+                                
+                                updateApiStatus('Background Complete', null, 'Background update complete, no new data found', false);
+                                
+                                setTimeout(() => {
+                                    hideApiStatus();
+                                }, 3000);
+                            }
+                        }
+                    );
+                } else {
+                    setTimeout(() => {
+                        hideApiStatus();
+                    }, 3000);
+                }
+                
+                // IMPORTANT: Return early when using cache to avoid calling enrichVestingData
+                return;
+                
+            } else {
+                // Standard full load when no cache available
+                console.log('📦 Standard loading (no cache available)...');
+                
+                const enrichedData = await enrichVestingData(addressData, isRefresh);
+                
+                const endTime = performance.now();
+                
+                vestingData = enrichedData;
+                console.log(`Successfully fetched and processed ${vestingData.length} Vesting contracts`);
+                
+                updateProgress(100, 'Complete!');
+                
+                // Show result after completion
+                const newCachedCount = Object.keys(vestingCache).length;
+                const newNoDataCount = noDataCache.size;
+                const completionText = `Complete! Loaded ${vestingData.length} contracts (Cached: ${newCachedCount}, No data: ${newNoDataCount}) - ${(endTime - startTime).toFixed(0)}ms`;
+                updateApiStatus('TON Center API', endTime - startTime, completionText, false);
+                
+                renderStats();
+                filterData();
+                
+                setTimeout(() => {
+                    hideApiStatus();
+                }, 3000);
+            }
             
         } catch (error) {
             console.error('Loading Vesting data failed:', error);
@@ -527,7 +1206,7 @@
                     <p class="value" style="color: #FF3B30; font-size: 16px;">
                         ${error.message || 'Unable to load Vesting contract data'}
                     </p>
-                    <button onclick="loadVestingData()" style="margin-top: 10px; padding: 8px 16px; background: #007AFF; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                    <button onclick="loadVestingData(true, true)" style="margin-top: 10px; padding: 8px 16px; background: #007AFF; color: white; border: none; border-radius: 8px; cursor: pointer;">
                         Retry
                     </button>
                 </div>
@@ -535,7 +1214,6 @@
             
             document.getElementById('tableContainer').innerHTML = '';
             
-            // Error status displayed for 5 seconds
             setTimeout(() => {
                 hideApiStatus();
             }, 5000);
@@ -544,10 +1222,66 @@
 
     // Event listeners
 
+    // Detect if this is a page refresh
+    function detectPageRefresh() {
+        // Check if there's any existing data that would indicate this is a refresh
+        const hasExistingCache = Object.keys(vestingCache).length > 0;
+        const hasExistingNoDataCache = noDataCache.size > 0;
+        
+        // Check performance navigation API if available
+        let navigationTypeRefresh = false;
+        if (performance.navigation) {
+            navigationTypeRefresh = performance.navigation.type === performance.navigation.TYPE_RELOAD;
+        } else if (performance.getEntriesByType) {
+            const perfEntries = performance.getEntriesByType('navigation');
+            if (perfEntries.length > 0) {
+                navigationTypeRefresh = perfEntries[0].type === 'reload';
+            }
+        }
+        
+        isPageRefresh = navigationTypeRefresh || hasExistingCache || hasExistingNoDataCache;
+        console.log(`Page load detected: ${isPageRefresh ? 'Refresh' : 'First load'}`);
+        
+        return isPageRefresh;
+    }
+
     // Initialization
     document.addEventListener('DOMContentLoaded', () => {
+        // Load cache from localStorage first
+        loadCacheFromStorage();
+        
+        detectPageRefresh();
         fetchLabelsCsv();
-        loadVestingData();
+        
+        // Always try to show cached data first, then load/update
+        const cachedCount = Object.keys(vestingCache).length;
+        if (cachedCount > 0) {
+            console.log('🚀 Found existing cache on page load, showing immediately...');
+            try {
+                const existingAddresses = Object.keys(vestingCache);
+                const cachedData = existingAddresses.map(address => {
+                    const contract = { 
+                        address,
+                        balance: '0', // Default balance, will be updated when addresses are loaded
+                        created_utime: 0,
+                        latest_transaction_time: 0
+                    };
+                    return enrichVestingDataFromCache([contract])[0];
+                });
+                
+                if (cachedData.length > 0) {
+                    vestingData = cachedData;
+                    renderStats();
+                    filterData();
+                    
+                    updateApiStatus('Cache', null, `Showing cached data (${cachedCount} contracts)`, true);
+                }
+            } catch (error) {
+                console.warn('Error showing cached data on page load:', error);
+            }
+        }
+        
+        loadVestingData(isPageRefresh);
     });
 
 </script>
@@ -652,7 +1386,7 @@
     /* Basic table styles - theme compliant */
     table {
         width: 100%;
-        min-width: 1200px;
+        min-width: 1400px;
         border-collapse: separate;
         border-spacing: 0;
         font-size: 13px;
@@ -743,3 +1477,4 @@
 
 </body>
 </html>
+
