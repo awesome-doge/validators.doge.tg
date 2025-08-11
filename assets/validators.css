@@ -3,6 +3,11 @@
     box-sizing: border-box;
 }
 
+html, body {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -12,6 +17,7 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     scroll-behavior: smooth;
+    overflow-x: hidden;
 }
         
 /* macOS style scrollbar */
@@ -208,6 +214,8 @@ body {
     word-break: break-all;
     overflow-wrap: break-word;
     hyphens: auto;
+    -webkit-hyphens: auto;
+    font-variant-numeric: tabular-nums;
     flex: 1;
     display: flex;
     align-items: center;
@@ -245,6 +253,7 @@ body {
     min-width: 300px;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    min-height: 44px;
 }
 
 .search-input:focus {
@@ -256,9 +265,9 @@ body {
 
 .filter-row {
     display: flex;
-    gap: 25px;
+    gap: 16px;
     flex-wrap: wrap;
-    align-items: end;
+    align-items: stretch;
     margin-bottom: 15px;
 }
         
@@ -271,7 +280,7 @@ body {
 .filter-group {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     min-width: 0;
 }
 
@@ -310,6 +319,11 @@ body {
     -webkit-backdrop-filter: blur(10px);
     min-width: 200px;
     cursor: pointer;
+    width: 100%;
+    max-width: 100%;
+    min-height: 44px;
+    width: -webkit-fill-available;
+    padding-right: 36px; /* 留出空間給 iOS/翻譯浮動圖示 */
 }
         
 .cycle-selector:focus {
@@ -320,14 +334,14 @@ body {
 }
         
 .cycle-info {
-    font-size: 12px;
+    font-size: 13px;
     color: #8e8e93;
-    margin-top: 8px;
+    margin-top: 6px;
     font-weight: 500;
     line-height: 1.4;
     word-break: break-word;
     overflow-wrap: break-word;
-    padding: 8px 12px;
+    padding: 10px 12px;
     background: rgba(248, 249, 250, 0.6);
     border-radius: 8px;
     border: 1px solid rgba(0, 0, 0, 0.05);
@@ -343,6 +357,11 @@ body {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     min-width: 150px;
+    width: 100%;
+    max-width: 100%;
+    min-height: 44px;
+    width: -webkit-fill-available;
+    padding-right: 36px; /* 留出空間給 iOS/翻譯浮動圖示 */
 }
 
 .filter-select:focus {
@@ -381,39 +400,13 @@ body {
         box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
     }
             
-    .filter-row {
-        flex-direction: column;
-        gap: 16px;
-        margin-bottom: 0;
-    }
+    .filter-row { flex-direction: column; gap: 12px; margin-bottom: 0; }
             
-    .filter-group, .cycle-group {
-        margin-bottom: 0;
-        min-width: 100%;
-        max-width: none;
-    }
+    .filter-group, .cycle-group { margin-bottom: 0; min-width: 100%; max-width: none; }
             
-    .filter-group label, .cycle-group label {
-        font-size: 14px;
-        font-weight: 700;
-        color: #1d1d1f;
-        margin-bottom: 8px;
-        text-transform: none;
-        letter-spacing: 0.3px;
-    }
+    .filter-group label, .cycle-group label { font-size: 13px; font-weight: 700; color: #1d1d1f; margin-bottom: 6px; text-transform: none; letter-spacing: 0.2px; }
             
-    .cycle-selector, .filter-select {
-        min-width: 100%;
-        padding: 18px 20px;
-        font-size: 16px;
-        border-radius: 16px;
-        /* Prevent iOS zoom */
-        font-size: 16px;
-        /* Improve touch experience */
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        background: rgba(248, 249, 250, 0.9);
-        border: 2px solid rgba(0, 0, 0, 0.08);
-    }
+    .cycle-selector, .filter-select { min-width: 100%; padding: 16px 18px; font-size: 16px; border-radius: 16px; transition: all 0.2s cubic-bezier(0.4,0,0.2,1); background: rgba(248,249,250,0.95); border: 1.5px solid rgba(0,0,0,0.06); }
             
     .cycle-selector:focus, .filter-select:focus {
         transform: scale(1.02);
@@ -422,17 +415,7 @@ body {
         background: rgba(255, 255, 255, 0.95);
     }
             
-    .cycle-info {
-        font-size: 13px;
-        padding: 12px 16px;
-        margin-top: 8px;
-        border-radius: 12px;
-        background: rgba(248, 249, 250, 0.8);
-        border: 1px solid rgba(0, 122, 255, 0.1);
-        color: #1d1d1f;
-        font-weight: 500;
-        line-height: 1.5;
-    }
+    .cycle-info { font-size: 13px; padding: 10px 12px; margin-top: 6px; border-radius: 12px; background: rgba(248, 249, 250, 0.85); border: 1px solid rgba(0, 122, 255, 0.08); color: #1d1d1f; font-weight: 500; line-height: 1.45; }
             
     /* Improve selector visual effects on mobile */
     .cycle-selector, .filter-select {
@@ -440,17 +423,7 @@ body {
         overflow: hidden;
     }
             
-    .cycle-selector::after, .filter-select::after {
-        content: '▼';
-        position: absolute;
-        right: 16px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #8e8e93;
-        font-size: 12px;
-        pointer-events: none;
-        transition: color 0.2s ease;
-    }
+    .cycle-selector::after, .filter-select::after { content: '▼'; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: #8e8e93; font-size: 12px; pointer-events: none; transition: color 0.2s ease; }
             
     .cycle-selector:focus::after, .filter-select:focus::after {
         color: #007AFF;
@@ -660,6 +633,8 @@ th:nth-child(14), td:nth-child(14) { width: 80px; } /* Details */
 .mono, .mono a {
     font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
     font-size: 11px;
+    word-break: break-all;
+    overflow-wrap: anywhere;
 }
 
 a, a:focus, a:active {
@@ -689,6 +664,7 @@ a:hover {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    white-space: nowrap;
 }
 
 .badge-success {
@@ -1194,7 +1170,7 @@ a:hover {
 .mobile-card-label {
     color: #6e6e73;
     font-weight: 600;
-    font-size: 13px;
+    font-size: 14px;
     min-width: 70px;
 }
             
@@ -1204,7 +1180,8 @@ a:hover {
     flex: 1;
     margin-left: 16px;
     font-weight: 600;
-    font-size: 13px;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
 }
             
 .mobile-card-value.mono {
@@ -1239,22 +1216,15 @@ a:hover {
         margin-bottom: 12px;
     }
             
-    .mobile-card-content {
-        font-size: 13px;
-    }
+    .mobile-card-content { font-size: 14px; }
             
     .mobile-card-row {
         margin-bottom: 6px;
     }
             
-    .mobile-card-label {
-        font-size: 12px;
-        min-width: 60px;
-    }
+    .mobile-card-label { font-size: 13px; min-width: 60px; }
             
-    .mobile-card-value {
-        font-size: 12px;
-    }
+    .mobile-card-value { font-size: 13px; }
             
     .controls {
         padding: 16px;

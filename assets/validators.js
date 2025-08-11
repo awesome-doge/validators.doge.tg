@@ -889,8 +889,8 @@ const renderTable = () => {
     s += `<td>${v.index}</td>`;
     s += `<td><span class="badge badge-label">${label || '-'}</span></td>`;
     s += `<td class="${efficiencyClass}">${efficiency}</td>`;
-    s += `<td>${toPercent(v.stake / totalStake)}</td>`;
-    s += `<td>${toMillions(fromNano(v.stake))}&nbsp;TON</td>`;
+            s += `<td class="mono">${toPercent(v.stake / totalStake)}</td>`;
+            s += `<td class="mono">${toMillions(fromNano(v.stake))}&nbsp;TON</td>`;
     s += `<td><span class="country-flag">${countryFlag}</span>${geolocation}</td>`;
     s += `<td class="mono">${validatorVersion}</td>`;
     s += `<td class="mono">${mytonctrlVersion}</td>`;
@@ -902,7 +902,7 @@ const renderTable = () => {
     s += '</tr>';
 
     // Mobile card
-    mobileHtml += `
+            mobileHtml += `
                 <div class="mobile-card ${rowClass}">
                     <div class="mobile-card-header">
                         <div class="mobile-card-title">
@@ -918,11 +918,11 @@ const renderTable = () => {
                         </div>
                         <div class="mobile-card-row">
                             <span class="mobile-card-label">Weight:</span>
-                            <span class="mobile-card-value">${toPercent(v.stake / totalStake)}</span>
+                            <span class="mobile-card-value mono">${toPercent(v.stake / totalStake)}</span>
                         </div>
                         <div class="mobile-card-row">
                             <span class="mobile-card-label">Stake:</span>
-                            <span class="mobile-card-value">${toMillions(fromNano(v.stake))} TON</span>
+                            <span class="mobile-card-value mono">${toMillions(fromNano(v.stake))} TON</span>
                         </div>
                         <div class="mobile-card-row">
                             <span class="mobile-card-label">Geography:</span>
