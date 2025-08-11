@@ -1915,21 +1915,21 @@
         
         const endpointKeys = Object.keys(API_ENDPOINTS);
         const total = endpointKeys.length;
-        let completed = 0;
         
         updateProgress(10, `Loading ${total} API endpoints...`);
         
-        const promises = Object.entries(API_ENDPOINTS).map(async ([key, endpoint]) => {
+        const promises = Object.entries(API_ENDPOINTS).map(async ([key, endpoint], index) => {
             try {
-                updateProgress(20 + (completed / total) * 60, `Loading ${key.toUpperCase()} data...`);
+                // Calculate progress based on index (20% to 70% distributed among endpoints)
+                const progressPercent = 20 + (index / total) * 50;
+                updateProgress(progressPercent, `Loading ${key.toUpperCase()} data...`);
+                
                 const data = await fetchApiData(endpoint, key.toUpperCase());
                 apiData[key] = data;
-                completed++;
                 return { key, data, success: true, count: data.length };
             } catch (error) {
                 // fetchApiData now returns empty array instead of throwing error
                 apiData[key] = [];
-                completed++;
                 return { key, error, success: false, count: 0 };
             }
         });

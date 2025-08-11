@@ -755,7 +755,7 @@ a:hover {
     position: fixed;
     top: 20px;
     right: 20px;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     color: white;
@@ -764,11 +764,10 @@ a:hover {
     font-size: 12px;
     z-index: 1001;
     display: none;
-    width: 200px;
+    min-width: 250px;
+    max-width: 350px;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .api-status.show {
@@ -794,8 +793,29 @@ a:hover {
 
 .api-status .api-performance {
     font-size: 11px;
-    opacity: 0.8;
+    opacity: 0.9;
     margin-top: 4px;
+    word-wrap: break-word;
+    white-space: normal;
+    line-height: 1.4;
+}
+
+/* Responsive design for API status */
+@media (max-width: 768px) {
+    .api-status {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        min-width: unset;
+        max-width: unset;
+        width: auto;
+        font-size: 11px;
+        padding: 10px 12px;
+    }
+    
+    .api-status .api-performance {
+        font-size: 10px;
+    }
 }
 
 .detail-btn {
