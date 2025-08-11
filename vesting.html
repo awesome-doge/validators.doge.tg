@@ -107,6 +107,7 @@
     let filteredData = [];
     let sortColumn = 'balance'; // Default sort by balance
     let sortDirection = 'desc'; // Default descending
+    let labels = {}; // address -> label
 
     // API status updates
     function updateApiStatus(apiName, responseTime = null, progressText = null, keepVisible = false) {
@@ -146,6 +147,33 @@
             clearTimeout(window.apiStatusTimeout);
         }
         apiStatus.classList.remove('show');
+    }
+
+    // Load labels from labels.csv
+    async function fetchLabelsCsv() {
+        try {
+            updateApiStatus('Loading', null, 'Loading labels...', true);
+            const response = await fetch('labels.csv');
+            if (!response.ok) throw new Error('Failed to load labels.csv');
+            const text = await response.text();
+            const lines = text.split('\n');
+            const columns = lines.map(line => line.split(','));
+            columns.forEach(c => {
+                if (c.length !== 2) return;
+                const addr = c[0];
+                const label = c[1].trim();
+                if (label && label !== '#N/A') {
+                    labels[addr] = label;
+                }
+            });
+            updateApiStatus('Loading', null, `Loaded ${Object.keys(labels).length} labels`, false);
+            if (filteredData && filteredData.length) {
+                renderTable();
+            }
+        } catch (e) {
+            console.warn('Failed to load labels.csv', e);
+            updateApiStatus('Loading Failed', null, 'Failed to load labels', false);
+        }
     }
 
     // Fetch all Vesting contract addresses
@@ -372,6 +400,9 @@
                         <th onclick="sortData('address')">
                             Address ${getSortIcon('address')}
                         </th>
+                        <th>
+                            Label
+                        </th>
                         <th onclick="sortData('balance')">
                             Balance (TON) ${getSortIcon('balance')}
                         </th>
@@ -393,12 +424,14 @@
             const balance = fromNano(contract.balance);
             const balanceDisplay = Number(balance) === 0 ? '0' : toMillions(balance);
             const rank = vestingData.indexOf(contract) + 1;
+            const label = labels[contract.address] || '';
             
             // Desktop table row
             desktopHtml += `
                 <tr>
                     <td><span class="badge badge-info">#${rank}</span></td>
                     <td class="mono">${makeAddressUrl(contract.address)}</td>
+                    <td>${label ? `<span class="badge badge-label">${label}</span>` : '-'}</td>
                     <td><strong>${balanceDisplay} TON</strong></td>
                     <td>${timestampToDate(contract.created_utime)}</td>
                     <td>${timestampToDate(contract.latest_transaction_time)}</td>
@@ -415,6 +448,10 @@
                         <div class="mobile-card-index">#${rank}</div>
                     </div>
                     <div class="mobile-card-content">
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">Label:</span>
+                            <span class="mobile-card-value">${label || '-'}</span>
+                        </div>
                         <div class="mobile-card-row">
                             <span class="mobile-card-label">Balance:</span>
                             <span class="mobile-card-value"><strong>${balanceDisplay} TON</strong></span>
@@ -509,6 +546,7 @@
 
     // Initialization
     document.addEventListener('DOMContentLoaded', () => {
+        fetchLabelsCsv();
         loadVestingData();
     });
 
