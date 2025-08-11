@@ -40,9 +40,7 @@
     </div>
 </div>
 
-<div class="loading-overlay" id="loadingOverlay">
-    <div class="loading-spinner"></div>
-</div>
+
 
 <div class="api-status" id="apiStatus">
     <div>Data Source: <span class="api-name" id="apiName">Tonscan API</span></div>
@@ -83,11 +81,18 @@
     }
 
     const showLoading = () => {
-        document.getElementById('loadingOverlay').style.display = 'flex';
+        // 載入指示器已移除，無需顯示
     }
 
     const hideLoading = () => {
-        document.getElementById('loadingOverlay').style.display = 'none';
+        // 載入指示器已移除，無需隱藏
+    }
+
+    const updateProgress = (percentage, text = null) => {
+        // 進度更新已移除，僅保留 console.log 用於調試
+        if (text) {
+            console.log(`載入進度: ${Math.round(percentage)}% - ${text}`);
+        }
     }
 
     const timestampToDate = (timestamp) => {
@@ -129,6 +134,9 @@
         let allAddresses = [];
         let offset = 0;
         let hasMore = true;
+        const maxEstimated = 500; // 預估最大數量用於進度計算
+
+        updateProgress(10, 'Fetching Vesting contract list...');
 
         while (hasMore && allAddresses.length < 500) {
             try {
@@ -157,7 +165,10 @@
                     allAddresses = allAddresses.concat(addresses);
                     offset += BATCH_SIZE;
                     
-                    // 顯示進度
+                    // 更新進度 (10% - 70%)
+                    const fetchProgress = Math.min(70, 10 + (allAddresses.length / maxEstimated) * 60);
+                    updateProgress(fetchProgress, `已獲取 ${allAddresses.length} 個 Vesting 合約地址...`);
+                    
                     console.log(`已獲取 ${allAddresses.length} 個 Vesting 合約地址...`);
                 }
                 
@@ -171,12 +182,15 @@
             }
         }
 
+        updateProgress(80, '正在處理和排序數據...');
         console.log(`總共獲取 ${allAddresses.length} 個 Vesting 合約地址`);
 
         // 過濾無效數據並按餘額排序
         const validAddresses = allAddresses.filter(addr => 
             addr && addr.address && typeof addr.balance !== 'undefined'
         );
+        
+        updateProgress(90, '正在排序合約...');
         
         validAddresses.sort((a, b) => {
             try {
@@ -186,6 +200,8 @@
                 return 0;
             }
         });
+        
+        updateProgress(100, '載入完成！');
         
         return validAddresses; // 返回所有地址，不限制數量
     }
@@ -431,6 +447,8 @@
             renderStats();
             filterData();
             
+            // 載入指示器已移除，無需隱藏
+            
         } catch (error) {
             console.error('載入 Vesting 數據失敗:', error);
             
@@ -448,8 +466,7 @@
             `;
             
             document.getElementById('tableContainer').innerHTML = '';
-        } finally {
-            hideLoading();
+            // 載入指示器已移除，無需隱藏
         }
     }
 
@@ -525,34 +542,7 @@
         margin-top: 4px;
     }
 
-    .loading-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-    }
 
-    .loading-spinner {
-        border: 3px solid rgba(0, 122, 255, 0.1);
-        border-top: 3px solid #007AFF;
-        border-radius: 50%;
-        width: 50px;
-        height: 50px;
-        animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
 
     /* 表格容器樣式 - 符合主題 */
     #tableContainer {
@@ -654,6 +644,8 @@
             display: none;
         }
     }
+
+
 </style>
 
 </body>

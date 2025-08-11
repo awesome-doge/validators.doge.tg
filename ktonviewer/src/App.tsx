@@ -440,7 +440,7 @@ function App() {
   // Default addresses
   const [controllerAddress, setControllerAddress] = useState("Ef9GOR1wqJFPVpbHOxObSATkdbfTizRTmDi6DdjJFYaRKhoK"); // KTON Validator Controller
 
-  const [poolAddress, setPoolAddress] = useState("EQA9HwEZD_tONfVz6lJS0PVKR5viEiEGyj9AuQewGQVnXPg0"); // KTON Pool
+  const [poolAddress, setPoolAddress] = useState("EQDsW2P6nuP1zopKoNiCYj2xhqDan0cBuULQ8MH4o7dBt_7a"); // pKTON Pool
 
   const [controllerData, setControllerData] = useState<any>({});
 
