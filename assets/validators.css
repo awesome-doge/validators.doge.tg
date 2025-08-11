@@ -157,13 +157,13 @@ body {
     flex-shrink: 0;
 }
 
-/* 大螢幕優化 - 網路切換器與按鈕同行 */
+/* 大螢幕優化 - 所有頁面導航按鈕保持居中 */
 @media (min-width: 1200px) {
     .nav-buttons {
         max-width: 1000px;
         margin-left: auto;
         margin-right: auto;
-        justify-content: space-between;
+        justify-content: center;
         align-items: center;
     }
     
@@ -171,10 +171,13 @@ body {
         flex: 0 0 auto;
     }
     
+    /* 網路切換器單獨一行，置於導航按鈕下方 */
     .network-selector {
-        margin-left: auto;
-        margin-right: 0;
         order: 10;
+        margin-left: 0;
+        margin-top: 15px;
+        flex-basis: 100%;
+        justify-content: center;
     }
     
     /* 優化過濾器在大螢幕上的佈局 */
@@ -193,12 +196,13 @@ body {
     }
 }
 
-/* 中等螢幕調整 - 網路切換器換行 */
+/* 中等螢幕調整 - 所有頁面導航按鈕保持居中 */
 @media (max-width: 1199px) and (min-width: 769px) {
     .nav-buttons {
         justify-content: center;
     }
     
+    /* 網路切換器單獨一行，置於導航按鈕下方 */
     .network-selector {
         order: 10;
         margin-left: 0;
