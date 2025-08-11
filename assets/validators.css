@@ -1463,3 +1463,24 @@ a:hover {
 }
 
 
+/* Anchor styled action chip (unified with .detail-btn) */
+.detail-link {
+    background: linear-gradient(135deg, #007AFF, #5856D6);
+    color: white !important;
+    padding: 6px 12px;
+    border-radius: 8px;
+    text-decoration: none !important;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-block;
+    border: none;
+}
+
+.detail-link:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+    text-decoration: none !important;
+}
+
+
