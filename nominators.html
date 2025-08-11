@@ -1086,7 +1086,7 @@
     let filteredData = [];
 
     // API status update
-    function updateApiStatus(apiName, responseTime = null) {
+    function updateApiStatus(apiName, responseTime = null, progressText = null, keepVisible = false) {
         const apiStatus = document.getElementById('apiStatus');
         const apiNameElement = document.getElementById('apiName');
         const apiPerformance = document.getElementById('apiPerformance');
@@ -1098,9 +1098,11 @@
         
         apiNameElement.textContent = displayNames[apiName] || apiName;
         
-        // Display performance information
+        // Display performance information or progress text
         let performanceText = '';
-        if (responseTime !== null) {
+        if (progressText) {
+            performanceText = progressText;
+        } else if (responseTime !== null) {
             performanceText = `${responseTime.toFixed(0)}ms`;
         }
         
@@ -1109,10 +1111,35 @@
         // Display status indicator
         apiStatus.classList.add('show');
         
-        // Auto-hide after 3 seconds
-        setTimeout(() => {
-            apiStatus.classList.remove('show');
-        }, 3000);
+        // Clear previous timer
+        if (window.apiStatusTimeout) {
+            clearTimeout(window.apiStatusTimeout);
+        }
+        
+        // Hide after 3 seconds if not keeping visible
+        if (!keepVisible && !progressText) {
+            window.apiStatusTimeout = setTimeout(() => {
+                apiStatus.classList.remove('show');
+            }, 3000);
+        }
+    }
+
+    // Hide API status
+    function hideApiStatus() {
+        const apiStatus = document.getElementById('apiStatus');
+        if (window.apiStatusTimeout) {
+            clearTimeout(window.apiStatusTimeout);
+        }
+        apiStatus.classList.remove('show');
+    }
+
+    // Update progress using API status panel
+    const updateProgress = (percentage, text = null) => {
+        if (text) {
+            const progressText = `${Math.round(percentage)}% - ${text}`;
+            updateApiStatus('Loading', null, progressText, true);
+            console.log(`Loading progress: ${Math.round(percentage)}% - ${text}`);
+        }
     }
 
     // API requests
@@ -1361,11 +1388,32 @@
     async function init() {
         showLoading();
         try {
+            updateProgress(0, 'Starting to load nominators data...');
+            
+            updateProgress(30, 'Fetching nominators from API...');
             nominatorsData = await fetchNominators();
+            
+            updateProgress(70, 'Processing statistics...');
             renderStats();
+            
+            updateProgress(90, 'Preparing data for display...');
             prepareData();
+            
+            updateProgress(100, `Loaded ${nominatorsData.length} nominators successfully!`);
+            
+            // Hide progress after 3 seconds
+            setTimeout(() => {
+                hideApiStatus();
+            }, 3000);
+            
         } catch (error) {
+            updateApiStatus('Loading Failed', null, error.message || 'Unable to load nominators', false);
             alert(`Failed to load data: ${error.message}`);
+            
+            // Hide error after 5 seconds
+            setTimeout(() => {
+                hideApiStatus();
+            }, 5000);
         } finally {
             hideLoading();
         }

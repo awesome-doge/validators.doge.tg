@@ -362,12 +362,12 @@
     }
 
     // 更新 API 狀態顯示
-    function updateApiStatus(endpointName, responseTime = null) {
+    function updateApiStatus(endpointName, responseTime = null, progressText = null, keepVisible = false) {
         const apiStatus = document.getElementById('apiStatus');
         const apiName = document.getElementById('apiName');
         const apiPerformance = document.getElementById('apiPerformance');
 
-        // 顯示 API 名稱
+        // Display API name
         const displayNames = {
             'toncenter': 'TON Center',
             'getaruai': 'GetAruAI'
@@ -375,33 +375,65 @@
         
         apiName.textContent = displayNames[endpointName] || endpointName;
         
-        // 顯示性能信息
+        // Display performance information or progress text
         let performanceText = '';
-        if (responseTime !== null) {
+        if (progressText) {
+            performanceText = progressText;
+        } else if (responseTime !== null) {
             performanceText = `${responseTime.toFixed(0)}ms`;
         }
         
         apiPerformance.textContent = performanceText;
         
-        // 顯示狀態指示器
+        // Show status indicator
         apiStatus.classList.add('show');
         
-        // 3秒後自動隱藏
-        setTimeout(() => {
-            apiStatus.classList.remove('show');
-        }, 3000);
+        // Clear previous timer
+        if (window.apiStatusTimeout) {
+            clearTimeout(window.apiStatusTimeout);
+        }
+        
+        // Hide after 3 seconds if not keeping visible
+        if (!keepVisible && !progressText) {
+            window.apiStatusTimeout = setTimeout(() => {
+                apiStatus.classList.remove('show');
+            }, 3000);
+        }
+    }
+
+    // Hide API status
+    function hideApiStatus() {
+        const apiStatus = document.getElementById('apiStatus');
+        if (window.apiStatusTimeout) {
+            clearTimeout(window.apiStatusTimeout);
+        }
+        apiStatus.classList.remove('show');
+    }
+
+    // Update progress using API status panel
+    const updateProgress = (percentage, text = null) => {
+        if (text) {
+            const progressText = `${Math.round(percentage)}% - ${text}`;
+            updateApiStatus('Loading', null, progressText, true);
+            console.log(`Loading progress: ${Math.round(percentage)}% - ${text}`);
+        }
     }
 
     async function loadAvailableCycles() {
         try {
+            // Show initial progress
+            updateProgress(0, 'Starting to load validator cycles...');
+            
             // Try to get data from multiple API endpoints
             let response = null;
             let usedEndpoint = null;
 
             // First try to use the selected best endpoint
+            updateProgress(20, 'Selecting best API endpoint...');
             currentApiEndpoint = selectBestApiEndpoint();
             
             try {
+                updateProgress(40, `Fetching data from ${currentApiEndpoint}...`);
                 if (currentApiEndpoint === 'getaruai') {
                     // GetAruAI API returns single cycle data, need to wrap in array
                     const cycleResponse = await apiWithPerformanceTracking(
@@ -443,17 +475,32 @@
                 }
             }
 
+            updateProgress(80, 'Processing cycle data...');
             availableCycles = response;
             renderCycleSelector();
             
-            // Show used API information
+            // Show completion status
+            updateProgress(100, `Loaded ${availableCycles.length} cycles successfully!`);
             console.log(`Successfully loaded ${availableCycles.length} validation cycles, using API: ${usedEndpoint}`);
+            
+            // Hide progress after 3 seconds
+            setTimeout(() => {
+                hideApiStatus();
+            }, 3000);
             
         } catch (error) {
             console.error('Failed to load validation cycle list:', error);
+            // Show error status
+            updateApiStatus('Loading Failed', null, error.message || 'Unable to load cycles', false);
+            
             // Show error message to user
             const cycleSelector = document.getElementById('cycleSelector');
             cycleSelector.innerHTML = '<option value="">Loading failed - please retry</option>';
+            
+            // Hide error after 5 seconds
+            setTimeout(() => {
+                hideApiStatus();
+            }, 5000);
         }
     }
 

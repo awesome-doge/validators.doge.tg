@@ -1488,6 +1488,56 @@
         transactions_count: null
     };
 
+    // API status management
+    function updateApiStatus(apiName, responseTime = null, progressText = null, keepVisible = false) {
+        const apiStatus = document.getElementById('apiStatus');
+        const apiNameElement = document.getElementById('apiName');
+        const apiPerformance = document.getElementById('apiPerformance');
+
+        apiNameElement.textContent = apiName;
+        
+        // Display performance information or progress text
+        let performanceText = '';
+        if (progressText) {
+            performanceText = progressText;
+        } else if (responseTime !== null) {
+            performanceText = `${responseTime.toFixed(0)}ms`;
+        }
+        
+        apiPerformance.textContent = performanceText;
+        apiStatus.classList.add('show');
+        
+        // Clear previous timer
+        if (window.apiStatusTimeout) {
+            clearTimeout(window.apiStatusTimeout);
+        }
+        
+        // Hide after 3 seconds if not keeping visible
+        if (!keepVisible && !progressText) {
+            window.apiStatusTimeout = setTimeout(() => {
+                apiStatus.classList.remove('show');
+            }, 3000);
+        }
+    }
+
+    // Hide API status
+    function hideApiStatus() {
+        const apiStatus = document.getElementById('apiStatus');
+        if (window.apiStatusTimeout) {
+            clearTimeout(window.apiStatusTimeout);
+        }
+        apiStatus.classList.remove('show');
+    }
+
+    // Update progress using API status panel
+    const updateProgress = (percentage, text = null) => {
+        if (text) {
+            const progressText = `${Math.round(percentage)}% - ${text}`;
+            updateApiStatus('TON Tech API', null, progressText, true);
+            console.log(`Loading progress: ${Math.round(percentage)}% - ${text}`);
+        }
+    }
+
     let currentFilters = {
         status: 7,
         amounts: 7,
@@ -1861,32 +1911,51 @@
     // Load all API data
     const loadAllApiData = async () => {
         showLoading();
+        updateProgress(0, 'Starting to load TON Tech data...');
+        
+        const endpointKeys = Object.keys(API_ENDPOINTS);
+        const total = endpointKeys.length;
+        let completed = 0;
+        
+        updateProgress(10, `Loading ${total} API endpoints...`);
         
         const promises = Object.entries(API_ENDPOINTS).map(async ([key, endpoint]) => {
             try {
+                updateProgress(20 + (completed / total) * 60, `Loading ${key.toUpperCase()} data...`);
                 const data = await fetchApiData(endpoint, key.toUpperCase());
                 apiData[key] = data;
+                completed++;
                 return { key, data, success: true, count: data.length };
             } catch (error) {
                 // fetchApiData now returns empty array instead of throwing error
                 apiData[key] = [];
+                completed++;
                 return { key, error, success: false, count: 0 };
             }
         });
 
+        updateProgress(80, 'Processing API responses...');
         const results = await Promise.all(promises);
+        
+        updateProgress(90, 'Finalizing data processing...');
         
         // Show loading results summary
         const successful = results.filter(r => r.success).length;
-        const total = results.length;
+        
+        updateProgress(100, `Complete! ${successful}/${total} APIs loaded successfully`);
         
         if (successful === total) {
-            showApiStatus(`All ${total} APIs loaded successfully 🎉`);
+            updateApiStatus('TON Tech API', null, `All ${total} APIs loaded successfully 🎉`, false);
         } else if (successful > 0) {
-            showApiStatus(`${successful}/${total} APIs loaded successfully`, false);
+            updateApiStatus('TON Tech API', null, `${successful}/${total} APIs loaded successfully`, false);
         } else {
-            showApiStatus(`All APIs failed to load - please check network connection`, true);
+            updateApiStatus('Loading Failed', null, 'All APIs failed to load - check network connection', false);
         }
+        
+        // Hide progress after 3 seconds
+        setTimeout(() => {
+            hideApiStatus();
+        }, 3000);
         
         hideLoading();
         
@@ -2900,7 +2969,12 @@
             console.log('✅ TON Tech Dashboard initialization completed');
         } catch (error) {
             console.error('❌ Initialization failed:', error);
-            showApiStatus('Initialization failed: ' + error.message, true);
+            updateApiStatus('Initialization Failed', null, 'Initialization failed: ' + error.message, false);
+            
+            // Hide error after 5 seconds
+            setTimeout(() => {
+                hideApiStatus();
+            }, 5000);
         }
     };
 
