@@ -13,7 +13,7 @@
         <h1>TON Vesting Contracts</h1>
         <div class="subtitle">All Vesting contracts with sorting functionality</div>
         <div style="font-size: 12px; color: #666; margin-top: 5px; text-align: center;">
-            🚀 頁面會立即顯示快取內容，然後在背景更新缺失的數據
+            🚀 Page will display cached content immediately, then update missing data in background
         </div>
         <div class="nav-buttons">
             <a href="index.html" class="nav-button">
@@ -546,12 +546,15 @@
                 <h3>Contracts with Data</h3>
                 <p class="value">${withCommas(contractsWithVestingData)} / ${withCommas(totalContracts)}</p>
                 ${noDataCache.size > 0 ? `
-                    <div style="margin-top: 8px;">
-                        <button onclick="loadVestingData(true)" style="padding: 6px 12px; background: #34C759; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; margin-right: 4px;">
-                            Background Update (${noDataCache.size})
+                    <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; width: 100%;">
+                        <button onclick="loadVestingData(true)" class="action-button update-button">
+                            <span class="button-icon">🔄</span>
+                            <span class="button-text">Background Update</span>
+                            <span class="button-badge">${noDataCache.size}</span>
                         </button>
-                        <button onclick="loadVestingData(true, true)" style="padding: 6px 12px; background: #007AFF; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">
-                            Full Reload
+                        <button onclick="loadVestingData(true, true)" class="action-button reload-button">
+                            <span class="button-icon">⚡</span>
+                            <span class="button-text">Full Reload</span>
                         </button>
                     </div>
                 ` : ''}
@@ -1206,8 +1209,9 @@
                     <p class="value" style="color: #FF3B30; font-size: 16px;">
                         ${error.message || 'Unable to load Vesting contract data'}
                     </p>
-                    <button onclick="loadVestingData(true, true)" style="margin-top: 10px; padding: 8px 16px; background: #007AFF; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                        Retry
+                    <button onclick="loadVestingData(true, true)" class="action-button retry-button">
+                        <span class="button-icon">🔄</span>
+                        <span class="button-text">Retry</span>
                     </button>
                 </div>
             `;
@@ -1469,6 +1473,142 @@
     @media (min-width: 769px) {
         .mobile-table {
             display: none;
+        }
+    }
+
+    /* Action Button Styles */
+    .action-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 14px;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+        min-height: 40px;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .action-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .action-button:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .action-button:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.3);
+    }
+
+    .button-icon {
+        font-size: 16px;
+        line-height: 1;
+    }
+
+    .button-text {
+        white-space: nowrap;
+    }
+
+    .button-badge {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 2px 6px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 700;
+        min-width: 18px;
+        text-align: center;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        flex-shrink: 0;
+        margin-left: auto;
+    }
+
+    /* Update Button (Green) */
+    .update-button {
+        background: linear-gradient(135deg, #34C759, #30D158);
+        color: white;
+        border: 1px solid rgba(52, 199, 89, 0.3);
+    }
+
+    .update-button:hover {
+        background: linear-gradient(135deg, #30D158, #2ECC71);
+        border-color: rgba(52, 199, 89, 0.5);
+    }
+
+    /* Reload Button (Blue) */
+    .reload-button {
+        background: linear-gradient(135deg, #007AFF, #5856D6);
+        color: white;
+        border: 1px solid rgba(0, 122, 255, 0.3);
+    }
+
+    .reload-button:hover {
+        background: linear-gradient(135deg, #5856D6, #007AFF);
+        border-color: rgba(0, 122, 255, 0.5);
+    }
+
+    /* Retry Button (Orange) */
+    .retry-button {
+        background: linear-gradient(135deg, #FF9500, #FF6B35);
+        color: white;
+        border: 1px solid rgba(255, 149, 0, 0.3);
+    }
+
+    .retry-button:hover {
+        background: linear-gradient(135deg, #FF6B35, #FF9500);
+        border-color: rgba(255, 149, 0, 0.5);
+    }
+
+    /* Responsive button design */
+    @media (max-width: 768px) {
+        .action-button {
+            padding: 12px 16px;
+            font-size: 14px;
+            min-height: 48px;
+            gap: 8px;
+        }
+        
+        .button-icon {
+            font-size: 18px;
+        }
+        
+        .button-badge {
+            font-size: 12px;
+            padding: 3px 8px;
+            min-width: 20px;
+        }
+    }
+
+    /* Extra small screens */
+    @media (max-width: 480px) {
+        .action-button {
+            padding: 10px 12px;
+            font-size: 13px;
+            min-height: 44px;
+            gap: 6px;
+        }
+        
+        .button-text {
+            font-size: 12px;
+        }
+        
+        .button-badge {
+            font-size: 11px;
+            padding: 2px 6px;
+            min-width: 18px;
         }
     }
 
