@@ -152,167 +152,15 @@
             font-weight: 600;
         }
 
-        .ktonviewer-container {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            padding: 20px;
-        }
+        /* .ktonviewer-container 已移至共用 CSS */
 
         /* React app style overrides to match design language */
-        #root {
-            width: 100%;
-            min-height: 600px;
-        }
+        /* #root 尺寸已移至共用 CSS */
 
         /* Override Tailwind styles to match existing design */
-        .bg-gray-100, .bg-gradient-to-br {
-            background: transparent !important;
-        }
+        /* Tailwind overrides 已移至共用 CSS */
 
-        .bg-blue-600 {
-            background: linear-gradient(135deg, #007AFF, #5856D6) !important;
-            border: none;
-            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
-        }
-
-        .bg-blue-600:hover, .hover\:bg-blue-700:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
-            background: linear-gradient(135deg, #0056CC, #4A44B8) !important;
-        }
-
-        .bg-green-600 {
-            background: linear-gradient(135deg, #34C759, #30B950) !important;
-            border: none;
-            box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
-        }
-
-        .bg-green-600:hover, .hover\:bg-green-700:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(52, 199, 89, 0.4);
-            background: linear-gradient(135deg, #28A745, #268238) !important;
-        }
-
-        .bg-purple-600 {
-            background: linear-gradient(135deg, #8E44AD, #9B59B6) !important;
-            border: none;
-            box-shadow: 0 4px 12px rgba(142, 68, 173, 0.3);
-        }
-
-        .bg-purple-600:hover, .hover\:bg-purple-700:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(142, 68, 173, 0.4);
-            background: linear-gradient(135deg, #7D3C98, #8A4FBE) !important;
-        }
-
-        .border-gray-300 {
-            border-color: rgba(0, 0, 0, 0.1) !important;
-        }
-
-        .bg-gray-50 {
-            background: rgba(248, 250, 252, 0.8) !important;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-
-        .focus\:ring-2:focus, .focus\:ring-blue-500:focus {
-            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1) !important;
-            border-color: #007AFF !important;
-        }
-
-        .rounded-lg, .rounded-xl {
-            border-radius: 12px !important;
-        }
-
-        .text-white {
-            color: white !important;
-        }
-
-        /* Data card styles */
-        .bg-white {
-            background: rgba(255, 255, 255, 0.95) !important;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        }
-
-        .shadow-lg {
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
-        }
-
-        .border-gray-100 {
-            border-color: rgba(0, 0, 0, 0.05) !important;
-        }
-
-        /* Status badge styles */
-        .bg-green-100 {
-            background: rgba(52, 199, 89, 0.1) !important;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-
-        .bg-yellow-100 {
-            background: rgba(255, 193, 7, 0.1) !important;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-
-        .bg-red-100 {
-            background: rgba(220, 53, 69, 0.1) !important;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-
-        .bg-blue-100 {
-            background: rgba(0, 122, 255, 0.1) !important;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-
-        /* Text colors */
-        .text-green-800 { color: #1e7e34 !important; }
-        .text-yellow-800 { color: #856404 !important; }
-        .text-red-800 { color: #721c24 !important; }
-        .text-blue-800 { color: #003d82 !important; }
-        .text-blue-600 { color: #007AFF !important; }
-        .text-green-600 { color: #34C759 !important; }
-        .text-purple-600 { color: #8E44AD !important; }
-        .text-gray-800 { color: #1d1d1f !important; }
-        .text-gray-600 { color: #86868b !important; }
-        .text-gray-500 { color: #a1a1aa !important; }
-        .text-gray-900 { color: #000000 !important; }
-
-        /* Border styles */
-        .border-green-200 { border-color: rgba(52, 199, 89, 0.2) !important; }
-        .border-yellow-200 { border-color: rgba(255, 193, 7, 0.2) !important; }
-        .border-red-200 { border-color: rgba(220, 53, 69, 0.2) !important; }
-        .border-blue-200 { border-color: rgba(0, 122, 255, 0.2) !important; }
-
-        /* Font styles */
-        .font-mono {
-            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace !important;
-        }
-
-        /* Transition animations */
-        .transition-colors {
-            transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out, border-color 0.2s ease-in-out !important;
-        }
-
-        .transition-all {
-            transition: all 0.2s ease-in-out !important;
-        }
-
-        /* JSON viewer optimization */
-        .react-json-view {
-            background: rgba(248, 249, 250, 0.8) !important;
-            border-radius: 12px !important;
-            padding: 15px !important;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 0, 0, 0.08) !important;
-        }
+        /* 多數 Tailwind 覆蓋與 JSON viewer 樣式已移至共用 CSS */
 
         /* Responsive design */
         @media (max-width: 768px) {
@@ -459,7 +307,7 @@
     <!-- Load React app CSS -->
     <link rel="stylesheet" crossorigin href="./ktonviewer-dist/assets/index-CrmaECJT.css">
 </head>
-<body>
+<body class="page-ktonviewer">
 
 <div class="container">
     <div class="header">
