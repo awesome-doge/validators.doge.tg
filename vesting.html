@@ -116,8 +116,16 @@
     // TON Center API configuration
     const TONCENTER_API_KEY = '4ee76f835930b91d73f0906da03a3f6fdad65e7074ca2cb10271d73105d7530c';
     const TONCENTER_V2_URL = 'https://toncenter.com/api/v2/jsonRPC';
-    const API_RATE_LIMIT = TONCENTER_API_KEY ? 30 : 1; // requests per second - increased for better performance with API key
-    const REQUEST_DELAY = 1000 / API_RATE_LIMIT; // milliseconds between requests
+    
+    // API Rate limits based on load type
+    const API_RATE_LIMITS = {
+        FIRST_LOAD: 1,      // 第一次載入：每秒1次請求
+        FULL_RELOAD: 10,    // 完整重新載入：每秒10次請求
+        BACKGROUND: 5       // 背景更新：每秒5次請求
+    };
+    
+    let currentRateLimit = API_RATE_LIMITS.FIRST_LOAD;
+    let requestDelay = 1000 / currentRateLimit;
     
     // Cache for vesting details
     let vestingCache = {};
@@ -198,28 +206,41 @@
         apiStatus.classList.remove('show');
     }
 
+    // 設定 API 請求速率
+    function setApiRateLimit(limitType) {
+        currentRateLimit = API_RATE_LIMITS[limitType] || API_RATE_LIMITS.FIRST_LOAD;
+        requestDelay = 1000 / currentRateLimit;
+        console.log(`🔧 API rate limit set to: ${currentRateLimit} requests/second (${requestDelay}ms delay)`);
+    }
+
     // Rate limiting utility
     async function waitForRateLimit() {
         const now = Date.now();
         const timeSinceLastRequest = now - lastRequestTime;
-        if (timeSinceLastRequest < REQUEST_DELAY) {
-            await new Promise(resolve => setTimeout(resolve, REQUEST_DELAY - timeSinceLastRequest));
+        if (timeSinceLastRequest < requestDelay) {
+            await new Promise(resolve => setTimeout(resolve, requestDelay - timeSinceLastRequest));
         }
         lastRequestTime = Date.now();
     }
 
-        // Create TonWeb instance for v2 jsonRPC calls with optimized settings
+    // Create TonWeb instance for v2 jsonRPC calls with optimized settings
     const tonweb = new TonWeb(new TonWeb.HttpProvider(TONCENTER_V2_URL, {
         apiKey: TONCENTER_API_KEY,
-        timeout: 30000, // 30 seconds timeout
-        requestsPerSecond: API_RATE_LIMIT // Use our configured rate limit
+        timeout: 15000, // 15 seconds timeout (shorter for faster retries)
+        requestsPerSecond: currentRateLimit, // Use dynamic rate limit
+        // Enhanced error handling
+        retryOnServerError: true,
+        retryCount: 1,
+        retryInterval: 500
     }));
 
     // Fetch vesting contract details using TON Center API v2 jsonRPC
-    async function fetchVestingDetails(contractAddress, forceRefresh = false) {
+    async function fetchVestingDetails(contractAddress, forceRefresh = false, retryCount = 0) {
+        const maxRetries = 2;
+        
         // Check cache first - return cached data if exists and not forcing refresh
         if (!forceRefresh && vestingCache[contractAddress]) {
-            console.log(`Using cached vesting data for ${contractAddress}`);
+            console.log(`📦 Using cached vesting data for ${contractAddress}`);
             return vestingCache[contractAddress];
         }
 
@@ -228,13 +249,23 @@
             noDataCache.delete(contractAddress);
         }
 
+        // Apply rate limiting
+        await waitForRateLimit();
+
         try {
-            console.log(`Fetching vesting data for ${contractAddress} using v2 jsonRPC...`);
+            // 只在第一次嘗試或重試時記錄日誌
+            if (retryCount === 0) {
+                console.log(`🔍 Fetching vesting data for ${contractAddress}...`);
+            } else {
+                console.log(`🔄 Retry ${retryCount} for ${contractAddress}`);
+            }
             
             // First, get address info to verify it's a vesting contract
             const addressInfo = await tonweb.provider.getAddressInfo(contractAddress);
             if (!addressInfo || addressInfo.state === 'uninitialized') {
-                console.warn(`Contract ${contractAddress} is uninitialized`);
+                if (retryCount === 0) {
+                    console.warn(`⚠️ Contract ${contractAddress} is uninitialized`);
+                }
                 noDataCache.add(contractAddress);
                 saveCacheToStorage();
                 return null;
@@ -248,17 +279,49 @@
                     address: new TonWeb.utils.Address(contractAddress)
                 });
 
-                // Try to get vesting data - this will fail if it's not a vesting contract
-                const vestingData = await vestingWallet.getVestingData();
-                if (!vestingData) {
-                    console.warn(`No vesting data found for ${contractAddress}`);
-                    noDataCache.add(contractAddress);
-                    saveCacheToStorage();
-                    return null;
+                // Try to get vesting data with enhanced error handling
+                let vestingData;
+                try {
+                    vestingData = await vestingWallet.getVestingData();
+                    if (!vestingData) {
+                        if (retryCount === 0) {
+                            console.warn(`No vesting data found for ${contractAddress}`);
+                        }
+                        noDataCache.add(contractAddress);
+                        saveCacheToStorage();
+                        return null;
+                    }
+                } catch (dataError) {
+                    // 特別處理解析錯誤
+                    if (dataError.message && dataError.message.includes('parse response error')) {
+                        throw dataError; // 重新拋出讓外層重試邏輯處理
+                    } else {
+                        // 其他錯誤表示不是 vesting 合約
+                        if (retryCount === 0) {
+                            console.warn(`Failed to get vesting data for ${contractAddress}:`, dataError.message);
+                        }
+                        noDataCache.add(contractAddress);
+                        saveCacheToStorage();
+                        return null;
+                    }
                 }
 
-                // Get whitelist
-                const whitelist = await vestingWallet.getWhitelist();
+                // Get whitelist with enhanced error handling
+                let whitelist = [];
+                try {
+                    whitelist = await vestingWallet.getWhitelist();
+                } catch (whitelistError) {
+                    // 白名單獲取失敗很常見，不是致命錯誤
+                    if (whitelistError.message && whitelistError.message.includes('parse response error')) {
+                        throw whitelistError; // 解析錯誤需要重試
+                    } else {
+                        // 其他錯誤使用空白名單
+                        if (retryCount === 0) {
+                            console.log(`📝 Whitelist not available for ${contractAddress}, using empty array`);
+                        }
+                        whitelist = [];
+                    }
+                }
 
                 // Process the data into the expected format
                 const processedData = {
@@ -281,35 +344,88 @@
                 // Save to localStorage
                 saveCacheToStorage();
                 
-                console.log(`Successfully fetched and cached vesting data for ${contractAddress} using v2 jsonRPC`);
+                if (retryCount === 0) {
+                    console.log(`✅ Successfully fetched vesting data for ${contractAddress}`);
+                } else {
+                    console.log(`✅ Retry successful for ${contractAddress} on attempt ${retryCount}`);
+                }
                 return processedData;
 
             } catch (vestingError) {
-                console.warn(`Contract ${contractAddress} is not a vesting wallet or failed to get vesting data:`, vestingError.message);
-                noDataCache.add(contractAddress);
-                saveCacheToStorage();
-                return null;
+                // 更詳細的錯誤分類和重試邏輯
+                if (vestingError.message && vestingError.message.includes('parse response error')) {
+                    console.warn(`⚠️ API response parse error for ${contractAddress}:`, vestingError.message);
+                    
+                    // 如果還有重試機會，等待一下再重試
+                    if (retryCount < maxRetries) {
+                        const currentRetry = retryCount + 1;
+                        console.log(`🔄 Retrying ${contractAddress} in 1 second... (${currentRetry}/${maxRetries})`);
+                        
+                        // 更新狀態顯示重試信息
+                        updateApiStatus('Retrying', null, `API parse error, retrying ${contractAddress.slice(0, 10)}... (${currentRetry}/${maxRetries})`, true);
+                        
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        return await fetchVestingDetails(contractAddress, forceRefresh, retryCount + 1);
+                    } else {
+                        console.warn(`❌ Max retries reached for ${contractAddress}, marking as temporarily unavailable`);
+                        // 對於解析錯誤，不加入 noDataCache，因為可能是暫時的 API 問題
+                        // 這些地址會在下次載入時重新嘗試
+                        return null;
+                    }
+                } else {
+                    console.warn(`⚠️ Contract ${contractAddress} is not a vesting wallet:`, vestingError.message);
+                    noDataCache.add(contractAddress);
+                    saveCacheToStorage();
+                    return null;
+                }
             }
                 
         } catch (error) {
-            console.error(`Failed to fetch vesting details for ${contractAddress} using v2 jsonRPC:`, error);
-            // Mark as no data for this session, but will retry on refresh
-            noDataCache.add(contractAddress);
+            console.error(`❌ Failed to fetch vesting details for ${contractAddress}:`, error);
+            
+            // 如果是網路錯誤且還有重試機會
+            if (retryCount < maxRetries && (
+                error.message.includes('timeout') || 
+                error.message.includes('network') || 
+                error.message.includes('fetch')
+            )) {
+                const currentRetry = retryCount + 1;
+                console.log(`🔄 Network error, retrying ${contractAddress} in 2 seconds... (${currentRetry}/${maxRetries})`);
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                return await fetchVestingDetails(contractAddress, forceRefresh, retryCount + 1);
+            }
+            
+            // 其他錯誤或達到最大重試次數，標記為無數據但會在刷新時重試
             return null;
         }
+    }
+
+    // 備用方法：直接使用 fetch API 調用 TON Center（目前未實現）
+    async function fetchVestingDetailsFallback(contractAddress) {
+        console.log(`🔧 Fallback method not implemented yet for ${contractAddress}`);
+        throw new Error('Fallback method not implemented');
     }
 
     // Calculate vesting status
     function calculateVestingStatus(vestingDetails, currentBalance) {
         if (!vestingDetails) return null;
 
-        // Validate required fields
+        // Validate required fields - 允許 cliff_duration 為 0，但其他關鍵字段不能為 0
         if (!vestingDetails.total_amount || 
-            !vestingDetails.start_time || 
+            vestingDetails.start_time === undefined || vestingDetails.start_time === null ||
             !vestingDetails.total_duration || 
             !vestingDetails.unlock_period || 
-            !vestingDetails.cliff_duration) {
+            vestingDetails.cliff_duration === undefined || vestingDetails.cliff_duration === null) {
             console.warn('Incomplete vesting details:', vestingDetails);
+            return null;
+        }
+
+        // 檢查是否為無效的快取數據（關鍵值都是 0 表示損壞的快取）
+        if (vestingDetails.start_time === 0 && 
+            vestingDetails.total_duration === 0 && 
+            vestingDetails.unlock_period === 0 && 
+            (!vestingDetails.total_amount || vestingDetails.total_amount === "0")) {
+            console.warn('🗑️ Invalid cached vesting data (all zeros):', vestingDetails.address);
             return null;
         }
 
@@ -547,23 +663,24 @@
                 <h3>Total Vesting Amount</h3>
                 <p class="value">${toMillionsShort(fromNano(totalVestingAmount))} TON</p>
             </div>
-            <div class="stat-card">
-                <h3>Contracts with Data</h3>
-                <p class="value">${withCommas(contractsWithVestingData)} / ${withCommas(totalContracts)}</p>
-                ${noDataCache.size > 0 ? `
-                    <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; width: 100%;">
-                        <button onclick="loadVestingData(true)" class="action-button update-button">
-                            <span class="button-icon">🔄</span>
-                            <span class="button-text">Background Update</span>
-                            <span class="button-badge">${noDataCache.size}</span>
+                            <div class="stat-card">
+                    <h3>Contracts with Data</h3>
+                    <p class="value">${withCommas(contractsWithVestingData)} / ${withCommas(totalContracts)}</p>
+                    <div style="margin-top: 12px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; width: 100%;">
+                        <button onclick="clearAllCacheAndReload()" class="action-button clear-button">
+                            <span class="button-icon">🗑️</span>
+                            <span class="button-text">清除快取 (1/秒)</span>
                         </button>
-                        <button onclick="loadVestingData(true, true)" class="action-button reload-button">
+                        <button onclick="loadWithRate('BACKGROUND')" class="action-button medium-button">
+                            <span class="button-icon">🔄</span>
+                            <span class="button-text">5次/秒</span>
+                        </button>
+                        <button onclick="loadWithRate('FULL_RELOAD')" class="action-button fast-button">
                             <span class="button-icon">⚡</span>
-                            <span class="button-text">Full Reload</span>
+                            <span class="button-text">10次/秒</span>
                         </button>
                     </div>
-                ` : ''}
-            </div>
+                </div>
         `;
     }
 
@@ -842,13 +959,29 @@
     // Load vesting details for contracts - fast mode (cache only)
     function enrichVestingDataFromCache(contractsData) {
         const enrichedData = [];
+        let invalidCacheCount = 0;
         
         for (let i = 0; i < contractsData.length; i++) {
             const contract = contractsData[i];
             
             try {
                 // Use cached data if available
-                const vestingDetails = vestingCache[contract.address] || null;
+                let vestingDetails = vestingCache[contract.address] || null;
+                
+                // 檢查快取數據的有效性
+                if (vestingDetails) {
+                    // 檢查是否為無效快取（所有關鍵值都是 0）
+                    if (vestingDetails.start_time === 0 && 
+                        vestingDetails.total_duration === 0 && 
+                        vestingDetails.unlock_period === 0 && 
+                        (!vestingDetails.total_amount || vestingDetails.total_amount === "0")) {
+                        
+                        console.warn(`🗑️ Removing invalid cached data for ${contract.address}`);
+                        delete vestingCache[contract.address];
+                        vestingDetails = null;
+                        invalidCacheCount++;
+                    }
+                }
                 
                 // Calculate vesting status
                 const vestingStatus = calculateVestingStatus(vestingDetails, BigInt(contract.balance || 0));
@@ -892,37 +1025,37 @@
             }
         }
         
+        // 如果清理了無效快取，保存到 localStorage
+        if (invalidCacheCount > 0) {
+            console.log(`🧹 Cleaned ${invalidCacheCount} invalid cache entries`);
+            saveCacheToStorage();
+        }
+        
         return enrichedData;
     }
     
-    // Background update for addresses without data
-    async function updateMissingVestingData(contractsData, onProgress = null, onComplete = null) {
-        const addressesToUpdate = [];
-        
-        // Find addresses that need updating
-        for (const contract of contractsData) {
+    // 簡化版本：背景更新缺失的歸屬數據（支援實時更新）
+    async function updateMissingVestingData(contractsData, onProgress = null, onComplete = null, enableRealTimeUpdate = false) {
+        // 找出需要更新的地址
+        const addressesToUpdate = contractsData.filter(contract => {
             const hasCache = vestingCache[contract.address];
             const wasNoData = noDataCache.has(contract.address);
-            
-            if (!hasCache || wasNoData) {
-                addressesToUpdate.push(contract);
-            }
-        }
+            return !hasCache || wasNoData;
+        });
         
         if (addressesToUpdate.length === 0) {
-            console.log('No addresses need updating');
+            console.log('✅ No addresses need updating');
             if (onComplete) onComplete(0);
             return;
         }
         
-        console.log(`Background updating ${addressesToUpdate.length} addresses...`);
+        console.log(`🔄 Background updating ${addressesToUpdate.length} addresses...`);
         
         let updatedCount = 0;
         let newDataCount = 0;
         
-        for (let i = 0; i < addressesToUpdate.length; i++) {
-            const contract = addressesToUpdate[i];
-            
+        // 批量處理地址
+        for (const contract of addressesToUpdate) {
             try {
                 const wasNoData = noDataCache.has(contract.address);
                 const vestingDetails = await fetchVestingDetails(contract.address, wasNoData);
@@ -930,168 +1063,387 @@
                 if (vestingDetails && !vestingCache[contract.address]) {
                     newDataCount++;
                     console.log(`🎉 Found new vesting data for ${contract.address}`);
-                }
-                
-                updatedCount++;
-                
-                if (onProgress) {
-                    onProgress(updatedCount, addressesToUpdate.length, newDataCount);
+                    
+                    // 實時更新：每找到新數據就立即更新顯示
+                    if (enableRealTimeUpdate) {
+                        const updatedData = enrichVestingDataFromCache(contractsData);
+                        vestingData = updatedData;
+                        renderStats();
+                        filterData();
+                    }
                 }
                 
             } catch (error) {
-                console.warn(`Background update failed for ${contract.address}:`, error);
-                updatedCount++;
-                
-                if (onProgress) {
-                    onProgress(updatedCount, addressesToUpdate.length, newDataCount);
-                }
+                console.warn(`❌ Background update failed for ${contract.address}:`, error);
+            }
+            
+            updatedCount++;
+            
+            // 回調進度更新
+            if (onProgress) {
+                onProgress(updatedCount, addressesToUpdate.length, newDataCount);
             }
         }
         
+        // 完成回調
         if (onComplete) {
             onComplete(newDataCount);
         }
         
-        console.log(`Background update complete: ${updatedCount}/${addressesToUpdate.length} processed, ${newDataCount} new data found`);
+        console.log(`✅ Background update complete: ${updatedCount}/${addressesToUpdate.length} processed, ${newDataCount} new data found`);
     }
 
-    // Load vesting details for contracts - full mode
-    async function enrichVestingData(contractsData, isRefresh = false) {
+    // 簡化版本：enrichVestingData - 處理合約數據並計算歸屬狀態（支援實時更新）
+    async function enrichVestingData(contractsData, isRefresh = false, enableRealTimeUpdate = false) {
         const enrichedData = [];
         const totalContracts = contractsData.length;
         
-        updateProgress(70, 'Fetching vesting contract details...');
+        updateProgress(70, 'Processing vesting contract details...');
         
-        // Count addresses that need to be queried
-        let addressesToQuery = 0;
+        // 計算需要查詢的地址
+        const addressesToQuery = contractsData.filter(contract => {
+            const hasCache = vestingCache[contract.address];
+            const wasNoData = noDataCache.has(contract.address);
+            return !hasCache || (isRefresh && wasNoData);
+        }).length;
+        
+        console.log(`📊 Processing ${totalContracts} contracts. Query needed: ${addressesToQuery}, Using cache: ${totalContracts - addressesToQuery}`);
+        
         let queriedCount = 0;
         
         for (let i = 0; i < contractsData.length; i++) {
             const contract = contractsData[i];
             
-            // Determine if we need to query this address
-            const hasCache = vestingCache[contract.address];
-            const wasNoData = noDataCache.has(contract.address);
-            const needsQuery = !hasCache || (isRefresh && wasNoData);
-            
-            if (needsQuery) {
-                addressesToQuery++;
-            }
-        }
-        
-        console.log(`Processing ${totalContracts} contracts. Need to query: ${addressesToQuery}, Using cache: ${totalContracts - addressesToQuery}`);
-        
-        for (let i = 0; i < contractsData.length; i++) {
-            const contract = contractsData[i];
-            
             try {
-                // Determine if we need to query this address
-                const hasCache = vestingCache[contract.address];
-                const wasNoData = noDataCache.has(contract.address);
-                const needsQuery = !hasCache || (isRefresh && wasNoData);
+                const enrichedContract = await processContract(contract, isRefresh);
+                enrichedData.push(enrichedContract);
                 
-                let vestingDetails = null;
-                
+                // 如果需要查詢 API，更新進度
+                const needsQuery = !vestingCache[contract.address] || (isRefresh && noDataCache.has(contract.address));
                 if (needsQuery) {
                     queriedCount++;
                     updateProgress(
-                        70 + (queriedCount / Math.max(addressesToQuery, 1)) * 20, 
-                        `Querying ${queriedCount}/${addressesToQuery} addresses (${i + 1}/${totalContracts} total)...`
+                        70 + (queriedCount / Math.max(addressesToQuery, 1)) * 25, 
+                        `Queried ${queriedCount}/${addressesToQuery} addresses...`
                     );
-                    
-                    // Fetch vesting details from TON Center API (force refresh if it was previously no data)
-                    vestingDetails = await fetchVestingDetails(contract.address, wasNoData);
-                } else if (hasCache) {
-                    // Use cached data
-                    vestingDetails = vestingCache[contract.address];
                 }
-                
-                // Calculate vesting status
-                const vestingStatus = calculateVestingStatus(vestingDetails, BigInt(contract.balance || 0));
-                
-                // Combine all data
-                const enrichedContract = {
-                    ...contract,
-                    vestingDetails,
-                    vestingStatus,
-                    // Key metrics for easy access
-                    totalVestingAmount: vestingStatus ? vestingStatus.totalAmount : BigInt(0),
-                    unvestedAmount: vestingStatus ? vestingStatus.unvestedAmount : BigInt(0),
-                    liquidAmount: vestingStatus ? vestingStatus.liquidAmount : BigInt(contract.balance || 0),
-                    ownerAddress: vestingDetails ? vestingDetails.owner_address : null,
-                    senderAddress: vestingDetails ? vestingDetails.sender_address : null,
-                    vestingStartTime: vestingDetails ? vestingDetails.start_time : null,
-                    vestingDuration: vestingDetails ? vestingDetails.total_duration : null,
-                    unlockPeriod: vestingDetails ? vestingDetails.unlock_period : null
-                };
-                
-                enrichedData.push(enrichedContract);
-                
-                // Update progress for processing
-                if (!needsQuery) {
-                    const progressPercent = 70 + (i + 1) / totalContracts * 25;
-                    updateProgress(progressPercent, `Processing ${i + 1}/${totalContracts} contracts (using cache)...`);
+
+                // 實時更新：每獲得一個新數據就更新顯示
+                if (enableRealTimeUpdate && (needsQuery || i % 10 === 0)) {
+                    const currentData = [...enrichedData];
+                    // 加上尚未處理的合約（使用快取或後備數據）
+                    for (let j = i + 1; j < contractsData.length; j++) {
+                        const remainingContract = contractsData[j];
+                        try {
+                            const cachedContract = enrichVestingDataFromCache([remainingContract])[0];
+                            currentData.push(cachedContract);
+                        } catch (error) {
+                            currentData.push(createFallbackContract(remainingContract));
+                        }
+                    }
+                    
+                    // 實時更新顯示
+                    vestingData = currentData;
+                    renderStats();
+                    filterData();
                 }
                 
             } catch (error) {
-                console.warn(`Error processing contract ${contract.address}:`, error);
-                // Add contract without vesting details
-                enrichedData.push({
-                    ...contract,
-                    vestingDetails: null,
-                    vestingStatus: null,
-                    totalVestingAmount: BigInt(0),
-                    unvestedAmount: BigInt(0),
-                    liquidAmount: BigInt(contract.balance || 0),
-                    ownerAddress: null,
-                    senderAddress: null,
-                    vestingStartTime: null,
-                    vestingDuration: null,
-                    unlockPeriod: null
-                });
+                console.warn(`❌ Error processing contract ${contract.address}:`, error);
+                enrichedData.push(createFallbackContract(contract));
             }
         }
         
         return enrichedData;
     }
 
+    // 處理單個合約
+    async function processContract(contract, isRefresh = false) {
+        const hasCache = vestingCache[contract.address];
+        const wasNoData = noDataCache.has(contract.address);
+        const needsQuery = !hasCache || (isRefresh && wasNoData);
+        
+        let vestingDetails = null;
+        
+        if (needsQuery) {
+            vestingDetails = await fetchVestingDetails(contract.address, wasNoData);
+        } else if (hasCache) {
+            vestingDetails = vestingCache[contract.address];
+        }
+        
+        // 計算歸屬狀態
+        const vestingStatus = calculateVestingStatus(vestingDetails, BigInt(contract.balance || 0));
+        
+        return {
+            ...contract,
+            vestingDetails,
+            vestingStatus,
+            totalVestingAmount: vestingStatus ? vestingStatus.totalAmount : BigInt(0),
+            unvestedAmount: vestingStatus ? vestingStatus.unvestedAmount : BigInt(0),
+            liquidAmount: vestingStatus ? vestingStatus.liquidAmount : BigInt(contract.balance || 0),
+            ownerAddress: vestingDetails ? vestingDetails.owner_address : null,
+            senderAddress: vestingDetails ? vestingDetails.sender_address : null,
+            vestingStartTime: vestingDetails ? vestingDetails.start_time : null,
+            vestingDuration: vestingDetails ? vestingDetails.total_duration : null,
+            unlockPeriod: vestingDetails ? vestingDetails.unlock_period : null
+        };
+    }
+
+    // 創建後備合約數據（當處理失敗時）
+    function createFallbackContract(contract) {
+        return {
+            ...contract,
+            vestingDetails: null,
+            vestingStatus: null,
+            totalVestingAmount: BigInt(0),
+            unvestedAmount: BigInt(0),
+            liquidAmount: BigInt(contract.balance || 0),
+            ownerAddress: null,
+            senderAddress: null,
+            vestingStartTime: null,
+            vestingDuration: null,
+            unlockPeriod: null
+        };
+    }
+
+    // 顯示快取數據
+    function displayCachedData(cachedCount) {
+        try {
+            const existingAddresses = Object.keys(vestingCache);
+            const cachedData = existingAddresses.map(address => {
+                const contract = { 
+                    address,
+                    balance: '0', // 預設餘額，地址載入後會更新
+                    created_utime: 0,
+                    latest_transaction_time: 0
+                };
+                return enrichVestingDataFromCache([contract])[0];
+            });
+            
+            if (cachedData.length > 0) {
+                vestingData = cachedData;
+                renderStats();
+                filterData();
+                updateApiStatus('Cache', null, `Showing cached data (${cachedCount} contracts)`, true);
+            }
+        } catch (error) {
+            console.warn('⚠️ Error showing cached data immediately:', error);
+            // 繼續正常載入流程
+        }
+    }
+
+    // 處理有快取數據的載入流程
+    async function handleCachedDataLoad(addressData, startTime, cachedCount) {
+        console.log('🚀 Fast loading from cache...');
+        updateProgress(70, 'Loading from cache...');
+        
+        // 快速從快取載入
+        const cachedData = enrichVestingDataFromCache(addressData);
+        vestingData = cachedData;
+        
+        updateProgress(95, 'Cache loaded, starting background update...');
+        
+        const fastEndTime = performance.now();
+        console.log(`⚡ Fast cache load completed in ${(fastEndTime - startTime).toFixed(0)}ms`);
+        
+        // 立即顯示快取數據
+        renderStats();
+        filterData();
+        updateApiStatus('Cache', fastEndTime - startTime, `Cache loaded (${cachedCount} contracts with data)`, true);
+        
+        // 背景更新缺失數據
+        const addressesToUpdate = addressData.filter(contract => 
+            !vestingCache[contract.address] || noDataCache.has(contract.address)
+        );
+        
+        if (addressesToUpdate.length > 0) {
+            console.log(`🔄 Starting background update for ${addressesToUpdate.length} addresses...`);
+            
+            updateMissingVestingData(addressData, 
+                // 進度回調
+                (current, total, newDataFound) => {
+                    const progressText = `Background update: ${current}/${total} (found ${newDataFound} new data)`;
+                    updateApiStatus('Background Update', null, progressText, true);
+                },
+                // 完成回調
+                (newDataFound) => {
+                    handleBackgroundUpdateComplete(addressData, newDataFound);
+                }
+            );
+        } else {
+            setTimeout(() => hideApiStatus(), 3000);
+        }
+    }
+
+    // 處理完整數據載入流程
+    async function handleFullDataLoad(addressData, isRefresh, startTime, enableRealTimeUpdate = false) {
+        console.log('📦 Standard loading (no cache available)...');
+        
+        const enrichedData = await enrichVestingData(addressData, isRefresh, enableRealTimeUpdate);
+        const endTime = performance.now();
+        
+        vestingData = enrichedData;
+        console.log(`✅ Successfully fetched and processed ${vestingData.length} Vesting contracts`);
+        
+        updateProgress(100, 'Complete!');
+        
+        // 顯示完成結果
+        const newCachedCount = Object.keys(vestingCache).length;
+        const newNoDataCount = noDataCache.size;
+        const completionText = `Complete! Loaded ${vestingData.length} contracts (Cached: ${newCachedCount}, No data: ${newNoDataCount}) - ${(endTime - startTime).toFixed(0)}ms`;
+        updateApiStatus('TON Center API v2', endTime - startTime, completionText, false);
+        
+        renderStats();
+        filterData();
+        
+        setTimeout(() => hideApiStatus(), 3000);
+    }
+
+    // 處理背景更新完成
+    function handleBackgroundUpdateComplete(addressData, newDataFound) {
+        console.log('🎉 Background update completed');
+        
+        // 刷新顯示
+        const updatedData = enrichVestingDataFromCache(addressData);
+        vestingData = updatedData;
+        renderStats();
+        filterData();
+        
+        if (newDataFound > 0) {
+            updateApiStatus('Background Complete', null, `Background update complete! Found ${newDataFound} new data`, false);
+            setTimeout(() => hideApiStatus(), 5000);
+        } else {
+            updateApiStatus('Background Complete', null, 'Background update complete, no new data found', false);
+            setTimeout(() => hideApiStatus(), 3000);
+        }
+    }
+
+    // 徹底清除所有快取並以 1次/秒 重新載入
+    function clearAllCacheAndReload() {
+        console.log('🗑️ Clearing all cache and reloading with 1 req/sec...');
+        
+        // 清除記憶體快取
+        vestingCache = {};
+        noDataCache = new Set();
+        vestingData = [];
+        
+        // 清除 localStorage 快取
+        try {
+            localStorage.removeItem('vestingCache');
+            localStorage.removeItem('noDataCache');
+            console.log('✅ All cache cleared successfully');
+        } catch (error) {
+            console.warn('⚠️ Error clearing localStorage:', error);
+        }
+        
+        // 設定為最慢速率（1次/秒）
+        setApiRateLimit('FIRST_LOAD');
+        
+        // 清空顯示並顯示載入狀態
+        updateStatsForLoading();
+        document.getElementById('tableContainer').innerHTML = '';
+        
+        // 顯示狀態
+        updateApiStatus('Cache Cleared', null, '快取已清除，以 1次/秒 重新載入中...', true);
+        
+        // 強制完整重新載入（啟用實時更新）
+        loadVestingDataWithRealTime(false, true);
+    }
+
+    // 使用指定速率載入數據
+    function loadWithRate(rateType) {
+        console.log(`🚀 Loading with rate: ${rateType}`);
+        
+        // 設定對應的速率
+        setApiRateLimit(rateType);
+        
+        // 顯示載入訊息
+        const rateInfo = {
+            'FIRST_LOAD': { text: '1次/秒', emoji: '🐌' },
+            'BACKGROUND': { text: '5次/秒', emoji: '🔄' },
+            'FULL_RELOAD': { text: '10次/秒', emoji: '⚡' }
+        };
+        
+        const info = rateInfo[rateType] || rateInfo['FIRST_LOAD'];
+        updateApiStatus('Loading', null, `${info.emoji} 使用 ${info.text} 速率載入中...`, true);
+        
+        // 更新統計卡片為載入狀態
+        updateStatsForLoading();
+        
+        // 開始載入數據（強制完整載入，啟用實時更新）
+        loadVestingDataWithRealTime(false, true);
+    }
+
+    // 更新統計卡片為載入狀態
+    function updateStatsForLoading() {
+        document.getElementById('statsContainer').innerHTML = `
+            <div class="stat-card">
+                <h3>Loading...</h3>
+                <p class="value">載入中...</p>
+            </div>
+            <div class="stat-card">
+                <h3>Loading...</h3>
+                <p class="value">載入中...</p>
+            </div>
+            <div class="stat-card">
+                <h3>Loading...</h3>
+                <p class="value">載入中...</p>
+            </div>
+            <div class="stat-card">
+                <h3>Loading...</h3>
+                <p class="value">載入中...</p>
+            </div>
+            <div class="stat-card">
+                <h3>Loading...</h3>
+                <p class="value">載入中...</p>
+            </div>
+            <div class="stat-card">
+                <h3>Loading...</h3>
+                <p class="value">載入中...</p>
+            </div>
+            <div class="stat-card">
+                <h3>Contracts with Data</h3>
+                <p class="value">載入中...</p>
+                <div style="margin-top: 12px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; width: 100%;">
+                    <button onclick="clearAllCacheAndReload()" class="action-button clear-button">
+                        <span class="button-icon">🗑️</span>
+                        <span class="button-text">清除快取 (1/秒)</span>
+                    </button>
+                    <button onclick="loadWithRate('BACKGROUND')" class="action-button medium-button">
+                        <span class="button-icon">🔄</span>
+                        <span class="button-text">5次/秒</span>
+                    </button>
+                    <button onclick="loadWithRate('FULL_RELOAD')" class="action-button fast-button">
+                        <span class="button-icon">⚡</span>
+                        <span class="button-text">10次/秒</span>
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
     // Load data with fast cache display + background update
     async function loadVestingData(isRefresh = false, forceFullLoad = false) {
         try {
-            console.log('Starting to fetch Vesting contract data...');
+            console.log('🚀 Starting to fetch Vesting contract data...');
+            
+            // 設定 API 請求速率
+            if (forceFullLoad) {
+                setApiRateLimit('FULL_RELOAD');
+            } else if (isRefresh) {
+                setApiRateLimit('BACKGROUND');
+            } else {
+                setApiRateLimit('FIRST_LOAD');
+            }
             
             // Check if we have cached data first
             const cachedCount = Object.keys(vestingCache).length;
             const noDataCount = noDataCache.size;
             
-            // Always show cached data first if available (both refresh and first load)
+            // 立即顯示快取數據（如果有的話）
             if (cachedCount > 0) {
-                console.log('🚀 Showing cached data immediately...');
-                
-                try {
-                    // Show cached data first without waiting for addresses
-                    const existingAddresses = Object.keys(vestingCache);
-                    const cachedData = existingAddresses.map(address => {
-                        const contract = { 
-                            address,
-                            balance: '0', // Default balance, will be updated when addresses are loaded
-                            created_utime: 0,
-                            latest_transaction_time: 0
-                        };
-                        return enrichVestingDataFromCache([contract])[0];
-                    });
-                    
-                    if (cachedData.length > 0) {
-                        vestingData = cachedData;
-                        renderStats();
-                        filterData();
-                        
-                        updateApiStatus('Cache', null, `Showing cached data (${cachedCount} contracts)`, true);
-                    }
-                } catch (error) {
-                    console.warn('Error showing cached data immediately:', error);
-                    // Continue with normal loading process
-                }
+                console.log('📦 Showing cached data immediately...');
+                displayCachedData(cachedCount);
             }
             
             showLoading();
@@ -1105,108 +1457,13 @@
                 throw new Error('Unable to fetch any Vesting contract data');
             }
             
-            console.log(`Cache status: ${cachedCount} with data, ${noDataCount} without data${isRefresh ? ' (refresh mode)' : ''}`);
+            console.log(`📊 Cache status: ${cachedCount} with data, ${noDataCount} without data${isRefresh ? ' (refresh mode)' : ''}`);
             
-            // If we have cache, show cached data first and then background update
-            if (cachedCount > 0) {
-                console.log('🚀 Fast loading from cache...');
-                updateProgress(70, 'Loading from cache...');
-                
-                // Quick load from cache
-                const cachedData = enrichVestingDataFromCache(addressData);
-                vestingData = cachedData;
-                
-                updateProgress(95, 'Cache loaded, starting background update...');
-                
-                const fastEndTime = performance.now();
-                console.log(`Fast cache load completed in ${(fastEndTime - startTime).toFixed(0)}ms`);
-                
-                // Show cached data immediately
-                renderStats();
-                filterData();
-                
-                // Update API status to show cache load
-                updateApiStatus('Cache', fastEndTime - startTime, `Cache loaded (${cachedCount} contracts with data)`, true);
-                
-                // Start background update for missing data
-                const addressesToUpdate = addressData.filter(contract => 
-                    !vestingCache[contract.address] || noDataCache.has(contract.address)
-                );
-                
-                if (addressesToUpdate.length > 0) {
-                    console.log(`🔄 Starting background update for ${addressesToUpdate.length} addresses...`);
-                    
-                    updateMissingVestingData(addressData, 
-                        // Progress callback
-                        (current, total, newDataFound) => {
-                            const progressText = `Background update: ${current}/${total} (found ${newDataFound} new data)`;
-                            updateApiStatus('Background Update', null, progressText, true);
-                        },
-                        // Complete callback
-                        (newDataFound) => {
-                            console.log('🎉 Background update completed');
-                            
-                            if (newDataFound > 0) {
-                                // Refresh display with new data
-                                const updatedData = enrichVestingDataFromCache(addressData);
-                                vestingData = updatedData;
-                                renderStats();
-                                filterData();
-                                
-                                updateApiStatus('Background Complete', null, `Background update complete! Found ${newDataFound} new data`, false);
-                                
-                                setTimeout(() => {
-                                    hideApiStatus();
-                                }, 5000);
-                            } else {
-                                // Even if no new data, refresh display to show updated contract info
-                                const updatedData = enrichVestingDataFromCache(addressData);
-                                vestingData = updatedData;
-                                renderStats();
-                                filterData();
-                                
-                                updateApiStatus('Background Complete', null, 'Background update complete, no new data found', false);
-                                
-                                setTimeout(() => {
-                                    hideApiStatus();
-                                }, 3000);
-                            }
-                        }
-                    );
-                } else {
-                    setTimeout(() => {
-                        hideApiStatus();
-                    }, 3000);
-                }
-                
-                // IMPORTANT: Return early when using cache to avoid calling enrichVestingData
-                return;
-                
+            // 根據快取狀態選擇載入策略
+            if (cachedCount > 0 && !forceFullLoad) {
+                await handleCachedDataLoad(addressData, startTime, cachedCount);
             } else {
-                // Standard full load when no cache available
-                console.log('📦 Standard loading (no cache available)...');
-                
-                const enrichedData = await enrichVestingData(addressData, isRefresh);
-                
-                const endTime = performance.now();
-                
-                vestingData = enrichedData;
-                console.log(`Successfully fetched and processed ${vestingData.length} Vesting contracts`);
-                
-                updateProgress(100, 'Complete!');
-                
-                // Show result after completion
-                const newCachedCount = Object.keys(vestingCache).length;
-                const newNoDataCount = noDataCache.size;
-                const completionText = `Complete! Loaded ${vestingData.length} contracts (Cached: ${newCachedCount}, No data: ${newNoDataCount}) - ${(endTime - startTime).toFixed(0)}ms`;
-                updateApiStatus('TON Center API v2', endTime - startTime, completionText, false);
-                
-                renderStats();
-                filterData();
-                
-                setTimeout(() => {
-                    hideApiStatus();
-                }, 3000);
+                await handleFullDataLoad(addressData, isRefresh, startTime);
             }
             
         } catch (error) {
@@ -1226,6 +1483,65 @@
                         <span class="button-icon">🔄</span>
                         <span class="button-text">Retry</span>
                     </button>
+                </div>
+            `;
+            
+            document.getElementById('tableContainer').innerHTML = '';
+            
+            setTimeout(() => {
+                hideApiStatus();
+            }, 5000);
+        }
+    }
+
+    // 支援實時更新的載入函數
+    async function loadVestingDataWithRealTime(isRefresh = false, forceFullLoad = false) {
+        try {
+            console.log('🚀 Starting to fetch Vesting contract data with real-time updates...');
+            
+            showLoading();
+            updateProgress(0, 'Starting to load Vesting contract data...');
+            
+            const startTime = performance.now();
+            
+            // Get all vesting contract addresses
+            const addressData = await fetchAllVestingAddresses();
+            if (!addressData || addressData.length === 0) {
+                throw new Error('Unable to fetch any Vesting contract data');
+            }
+            
+            console.log(`📊 Starting real-time data loading with current rate: ${currentRateLimit} req/sec`);
+            
+            // 直接進行完整載入（啟用實時更新）
+            await handleFullDataLoad(addressData, isRefresh, startTime, true);
+            
+        } catch (error) {
+            console.error('Loading Vesting data failed:', error);
+            
+            // Show error status
+            updateApiStatus('Loading Failed', null, error.message || 'Unable to load data', false);
+            
+            // Show friendly error message
+            document.getElementById('statsContainer').innerHTML = `
+                <div class="stat-card" style="grid-column: 1 / -1;">
+                    <h3>Loading Failed</h3>
+                    <p class="value" style="color: #FF3B30; font-size: 16px;">
+                        ${error.message || 'Unable to load Vesting contract data'}
+                    </p>
+                    <div style="margin-top: 12px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; width: 100%;">
+                        <button onclick="clearAllCacheAndReload()" class="action-button clear-button">
+                            <span class="button-icon">🗑️</span>
+                            <span class="button-text">清除快取 (1/秒)</span>
+                        </button>
+                        <button onclick="loadWithRate('BACKGROUND')" class="action-button medium-button">
+                            <span class="button-icon">🔄</span>
+                            <span class="button-text">5次/秒</span>
+                        </button>
+                        <button onclick="loadWithRate('FULL_RELOAD')" class="action-button fast-button">
+                            <span class="button-icon">⚡</span>
+                            <span class="button-text">10次/秒</span>
+                        </button>
+                    </div>
                 </div>
             `;
             
@@ -1262,42 +1578,27 @@
         return isPageRefresh;
     }
 
-    // Initialization
+    // 簡化的初始化邏輯
     document.addEventListener('DOMContentLoaded', () => {
-        // Load cache from localStorage first
+        console.log('🌟 Initializing Vesting Dashboard...');
+        
+        // 載入本地快取
         loadCacheFromStorage();
         
-        detectPageRefresh();
+        // 檢測頁面刷新狀態
+        const isPageRefresh = detectPageRefresh();
+        
+        // 載入標籤數據
         fetchLabelsCsv();
         
-        // Always try to show cached data first, then load/update
+        // 顯示快取數據（如果有的話）
         const cachedCount = Object.keys(vestingCache).length;
         if (cachedCount > 0) {
-            console.log('🚀 Found existing cache on page load, showing immediately...');
-            try {
-                const existingAddresses = Object.keys(vestingCache);
-                const cachedData = existingAddresses.map(address => {
-                    const contract = { 
-                        address,
-                        balance: '0', // Default balance, will be updated when addresses are loaded
-                        created_utime: 0,
-                        latest_transaction_time: 0
-                    };
-                    return enrichVestingDataFromCache([contract])[0];
-                });
-                
-                if (cachedData.length > 0) {
-                    vestingData = cachedData;
-                    renderStats();
-                    filterData();
-                    
-                    updateApiStatus('Cache', null, `Showing cached data (${cachedCount} contracts)`, true);
-                }
-            } catch (error) {
-                console.warn('Error showing cached data on page load:', error);
-            }
+            console.log('🚀 Found existing cache, showing immediately...');
+            displayCachedData(cachedCount);
         }
         
+        // 開始主要數據載入
         loadVestingData(isPageRefresh);
     });
 
@@ -1583,6 +1884,42 @@
     .retry-button:hover {
         background: linear-gradient(135deg, #FF6B35, #FF9500);
         border-color: rgba(255, 149, 0, 0.5);
+    }
+
+    /* Clear Button (Red) */
+    .clear-button {
+        background: linear-gradient(135deg, #FF3B30, #FF6B6B);
+        color: white;
+        border: 1px solid rgba(255, 59, 48, 0.3);
+    }
+
+    .clear-button:hover {
+        background: linear-gradient(135deg, #FF6B6B, #FF3B30);
+        border-color: rgba(255, 59, 48, 0.5);
+    }
+
+    /* Medium Button (Purple) */
+    .medium-button {
+        background: linear-gradient(135deg, #5856D6, #AF52DE);
+        color: white;
+        border: 1px solid rgba(88, 86, 214, 0.3);
+    }
+
+    .medium-button:hover {
+        background: linear-gradient(135deg, #AF52DE, #5856D6);
+        border-color: rgba(88, 86, 214, 0.5);
+    }
+
+    /* Fast Button (Blue) */
+    .fast-button {
+        background: linear-gradient(135deg, #007AFF, #0051D5);
+        color: white;
+        border: 1px solid rgba(0, 122, 255, 0.3);
+    }
+
+    .fast-button:hover {
+        background: linear-gradient(135deg, #0051D5, #007AFF);
+        border-color: rgba(0, 122, 255, 0.5);
     }
 
     /* Responsive button design */
