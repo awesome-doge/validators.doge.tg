@@ -795,9 +795,22 @@
                     valueA = a.liquidAmount || BigInt(0);
                     valueB = b.liquidAmount || BigInt(0);
                     break;
+                case 'sender':
+                    valueA = (a.senderAddress || '').toLowerCase();
+                    valueB = (b.senderAddress || '').toLowerCase();
+                    break;
                 case 'owner':
                     valueA = (a.ownerAddress || '').toLowerCase();
                     valueB = (b.ownerAddress || '').toLowerCase();
+                    break;
+                case 'senderOwnerMatch':
+                    // Sort by whether sender and owner match
+                    const matchA = a.senderAddress && a.ownerAddress && 
+                        a.senderAddress.toLowerCase() === a.ownerAddress.toLowerCase() ? 1 : 0;
+                    const matchB = b.senderAddress && b.ownerAddress && 
+                        b.senderAddress.toLowerCase() === b.ownerAddress.toLowerCase() ? 1 : 0;
+                    valueA = matchA;
+                    valueB = matchB;
                     break;
                 case 'vestingStart':
                     valueA = a.vestingStartTime || 0;
@@ -883,8 +896,14 @@
                         <th onclick="sortData('totalVesting')">
                             Total Vesting ${getSortIcon('totalVesting')}
                         </th>
+                        <th onclick="sortData('sender')">
+                            Sender Address ${getSortIcon('sender')}
+                        </th>
                         <th onclick="sortData('owner')">
                             Owner Address ${getSortIcon('owner')}
+                        </th>
+                        <th onclick="sortData('senderOwnerMatch')">
+                            Sender=Owner ${getSortIcon('senderOwnerMatch')}
                         </th>
                         <th onclick="sortData('duration')">
                             Duration (days) ${getSortIcon('duration')}
@@ -928,9 +947,20 @@
             }
             
             // Format addresses
+            const telegramSenderAddress = 'UQCZ3CmthhVRIciwzpt1VC0XFPBrP6QvVHLZe_Ydx46QSHGU';
+            const senderAddressShort = contract.senderAddress ? 
+                contract.senderAddress.substring(0, 8) + '...' + contract.senderAddress.substring(contract.senderAddress.length - 6) : '-';
+            const senderAddressLink = contract.senderAddress ? 
+                (contract.senderAddress === telegramSenderAddress ? 
+                    '<span class="badge badge-telegram">telegram</span>' : 
+                    makeAddressUrl(contract.senderAddress)) : '-';
             const ownerAddressShort = contract.ownerAddress ? 
                 contract.ownerAddress.substring(0, 8) + '...' + contract.ownerAddress.substring(contract.ownerAddress.length - 6) : '-';
             const ownerAddressLink = contract.ownerAddress ? makeAddressUrl(contract.ownerAddress) : '-';
+            
+            // Check if sender and owner are the same
+            const senderOwnerMatch = contract.senderAddress && contract.ownerAddress && 
+                contract.senderAddress.toLowerCase() === contract.ownerAddress.toLowerCase();
             
             // Format dates with validation
             const vestingStartDate = contract.vestingStartTime && !isNaN(contract.vestingStartTime) ? 
@@ -950,7 +980,16 @@
                     <td style="background: rgba(255, 59, 48, 0.05);"><strong style="color: #FF3B30;">${unvestedDisplay} TON</strong></td>
                     <td><span style="color: #34C759;">${liquidDisplay} TON</span></td>
                     <td>${totalVestingDisplay} TON</td>
+                    <td class="mono" style="font-size: 11px;">${senderAddressLink}</td>
                     <td class="mono" style="font-size: 11px;">${ownerAddressLink}</td>
+                    <td style="text-align: center;">
+                        ${senderOwnerMatch ? 
+                            '<span class="badge" style="background: #34C759; color: white;">✓ Same</span>' : 
+                            contract.senderAddress && contract.ownerAddress ? 
+                                '<span class="badge" style="background: #FF3B30; color: white;">✗ Different</span>' : 
+                                '<span style="color: #8E8E93;">-</span>'
+                        }
+                    </td>
                     <td>${durationDays}</td>
                 </tr>
             `;
@@ -998,8 +1037,23 @@
                             <span class="mobile-card-value mono">${makeAddressUrl(contract.address)}</span>
                         </div>
                         <div class="mobile-card-row">
+                            <span class="mobile-card-label">Sender Address:</span>
+                            <span class="mobile-card-value mono">${senderAddressLink}</span>
+                        </div>
+                        <div class="mobile-card-row">
                             <span class="mobile-card-label">Owner Address:</span>
                             <span class="mobile-card-value mono">${ownerAddressLink}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">Sender=Owner:</span>
+                            <span class="mobile-card-value">
+                                ${senderOwnerMatch ? 
+                                    '<span class="badge" style="background: #34C759; color: white;">✓ Same</span>' : 
+                                    contract.senderAddress && contract.ownerAddress ? 
+                                        '<span class="badge" style="background: #FF3B30; color: white;">✗ Different</span>' : 
+                                        '<span style="color: #8E8E93;">-</span>'
+                                }
+                            </span>
                         </div>
                         <div class="mobile-card-row">
                             <span class="mobile-card-label">Duration:</span>
@@ -1685,6 +1739,12 @@
         color: white;
     }
 
+    .badge-telegram {
+        background: linear-gradient(135deg, #0088cc, #229ED9);
+        color: white;
+        font-weight: 700;
+    }
+
     .api-status {
         position: fixed;
         top: 20px;
@@ -1769,7 +1829,7 @@
     /* Basic table styles - theme compliant */
     table {
         width: 100%;
-        min-width: 1600px;
+        min-width: 1800px;
         border-collapse: separate;
         border-spacing: 0;
         font-size: 13px;
