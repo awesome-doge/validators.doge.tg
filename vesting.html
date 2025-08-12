@@ -122,6 +122,7 @@
     let sortColumn = 'unvested'; // Default sort by unvested amount
     let sortDirection = 'desc'; // Default descending
     let labels = {}; // address -> label
+    let blacklist = new Set(); // 黑名單地址集合
     
     // TON Center API configuration
     const TONCENTER_API_KEY = '4ee76f835930b91d73f0906da03a3f6fdad65e7074ca2cb10271d73105d7530c';
@@ -520,6 +521,44 @@
                 }
     }
 
+    // Load blacklist from blacklist.csv
+    async function fetchBlacklistCsv() {
+        try {
+            console.log('📋 Loading blacklist...');
+            const response = await fetch('blacklist.csv');
+            if (!response.ok) {
+                console.log('📋 No blacklist.csv found, continuing without blacklist');
+                return;
+            }
+            
+            const text = await response.text();
+            const lines = text.split('\n');
+            let blacklistCount = 0;
+            
+            lines.forEach(line => {
+                line = line.trim();
+                // 跳過空行、註釋行和標題行
+                if (!line || line.startsWith('#') || line.toLowerCase().startsWith('address')) {
+                    return;
+                }
+                
+                const columns = line.split(',');
+                if (columns.length >= 1) {
+                    const addr = columns[0].trim();
+                    if (addr) {
+                        blacklist.add(addr);
+                        blacklistCount++;
+                    }
+                }
+            });
+            
+            console.log(`🚫 Loaded ${blacklistCount} blacklisted addresses`);
+            
+        } catch (e) {
+            console.warn('Failed to load blacklist.csv:', e);
+        }
+    }
+
     // Fetch all Vesting contract addresses
     async function fetchAllVestingAddresses() {
         const CODE_HASH = 'tItTGr7DtxRjgpH3137W3J9qJynvyiBHcTc3TUrotZA=';
@@ -578,10 +617,20 @@
         updateProgress(80, 'Processing and sorting data...');
         console.log(`Total fetched ${allAddresses.length} Vesting contract addresses`);
 
-        // Filter invalid data and sort by balance
-        const validAddresses = allAddresses.filter(addr => 
-            addr && addr.address && typeof addr.balance !== 'undefined'
-        );
+        // Filter invalid data and blacklisted addresses, then sort by balance
+        const validAddresses = allAddresses.filter(addr => {
+            if (!addr || !addr.address || typeof addr.balance === 'undefined') {
+                return false;
+            }
+            
+            // 檢查是否在黑名單中
+            if (blacklist.has(addr.address)) {
+                console.log(`🚫 Filtered out blacklisted address: ${addr.address}`);
+                return false;
+            }
+            
+            return true;
+        });
         
         updateProgress(90, 'Sorting contracts...');
         
@@ -594,9 +643,14 @@
             }
         });
         
+        const filteredCount = allAddresses.length - validAddresses.length;
+        if (filteredCount > 0) {
+            console.log(`🚫 Filtered out ${filteredCount} addresses (invalid data + blacklisted)`);
+        }
+        
         updateProgress(100, 'Loading complete!');
         
-        return validAddresses; // Return all addresses, no limit
+        return validAddresses; // Return filtered addresses
     }
 
     // Render statistics
@@ -1598,8 +1652,9 @@
         // 檢測頁面刷新狀態
         const isPageRefresh = detectPageRefresh();
         
-        // 載入標籤數據
+        // 載入標籤數據和黑名單
         fetchLabelsCsv();
+        fetchBlacklistCsv();
         
         // 顯示快取數據（如果有的話）
         const cachedCount = Object.keys(vestingCache).length;
