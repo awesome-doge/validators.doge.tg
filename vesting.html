@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,viewport-fit=cover">
     <title>TON Vesting Contracts - Validators Dashboard</title>
+    <script src="vesting/lib/tonweb-0.0.66.js"></script>
     <link rel="stylesheet" href="assets/validators.css">
 </head>
 <body>
@@ -46,7 +47,7 @@
 
 
 <div class="api-status" id="apiStatus">
-    <div>Data Source: <span class="api-name" id="apiName">Tonscan API</span></div>
+    <div>Data Source: <span class="api-name" id="apiName">TON Center API v2</span></div>
     <div class="api-performance" id="apiPerformance"></div>
 </div>
 
@@ -95,7 +96,7 @@
         // Use API status panel to display progress
         if (text) {
             const progressText = `${Math.round(percentage)}% - ${text}`;
-            updateApiStatus('Tonscan API', null, progressText, true);
+            updateApiStatus('TON Center API v2', null, progressText, true);
             console.log(`Loading progress: ${Math.round(percentage)}% - ${text}`);
         }
     }
@@ -114,8 +115,8 @@
     
     // TON Center API configuration
     const TONCENTER_API_KEY = '4ee76f835930b91d73f0906da03a3f6fdad65e7074ca2cb10271d73105d7530c';
-    const TONCENTER_VESTING_URL = 'https://toncenter.com/api/v3/vesting';
-    const API_RATE_LIMIT = TONCENTER_API_KEY ? 10 : 1; // requests per second
+    const TONCENTER_V2_URL = 'https://toncenter.com/api/v2/jsonRPC';
+    const API_RATE_LIMIT = TONCENTER_API_KEY ? 30 : 1; // requests per second - increased for better performance with API key
     const REQUEST_DELAY = 1000 / API_RATE_LIMIT; // milliseconds between requests
     
     // Cache for vesting details
@@ -207,7 +208,14 @@
         lastRequestTime = Date.now();
     }
 
-        // Fetch vesting contract details from TON Center API
+        // Create TonWeb instance for v2 jsonRPC calls with optimized settings
+    const tonweb = new TonWeb(new TonWeb.HttpProvider(TONCENTER_V2_URL, {
+        apiKey: TONCENTER_API_KEY,
+        timeout: 30000, // 30 seconds timeout
+        requestsPerSecond: API_RATE_LIMIT // Use our configured rate limit
+    }));
+
+    // Fetch vesting contract details using TON Center API v2 jsonRPC
     async function fetchVestingDetails(contractAddress, forceRefresh = false) {
         // Check cache first - return cached data if exists and not forcing refresh
         if (!forceRefresh && vestingCache[contractAddress]) {
@@ -220,74 +228,71 @@
             noDataCache.delete(contractAddress);
         }
 
-        await waitForRateLimit();
-
         try {
-            const url = `${TONCENTER_VESTING_URL}?contract_address=${encodeURIComponent(contractAddress)}`;
-            const headers = {
-                'Content-Type': 'application/json'
-            };
+            console.log(`Fetching vesting data for ${contractAddress} using v2 jsonRPC...`);
             
-            if (TONCENTER_API_KEY) {
-                headers['X-API-Key'] = TONCENTER_API_KEY;
+            // First, get address info to verify it's a vesting contract
+            const addressInfo = await tonweb.provider.getAddressInfo(contractAddress);
+            if (!addressInfo || addressInfo.state === 'uninitialized') {
+                console.warn(`Contract ${contractAddress} is uninitialized`);
+                noDataCache.add(contractAddress);
+                saveCacheToStorage();
+                return null;
             }
 
-                const response = await fetch(url, {
-                method: 'GET',
-                headers: headers
-            });
-                
-                if (!response.ok) {
-                console.warn(`API Error for ${contractAddress}: ${response.status}`);
-                // Mark as no data for this session, but will retry on refresh
-                noDataCache.add(contractAddress);
-                
-                // Save to localStorage
-                saveCacheToStorage();
-                
-                return null;
+            // Check if this is a vesting wallet by trying to call vesting methods
+            try {
+                // Create VestingWallet instance to get vesting data
+                const VestingWalletClass = TonWeb.LockupWallets.VestingWalletV1;
+                const vestingWallet = new VestingWalletClass(tonweb.provider, {
+                    address: new TonWeb.utils.Address(contractAddress)
+                });
+
+                // Try to get vesting data - this will fail if it's not a vesting contract
+                const vestingData = await vestingWallet.getVestingData();
+                if (!vestingData) {
+                    console.warn(`No vesting data found for ${contractAddress}`);
+                    noDataCache.add(contractAddress);
+                    saveCacheToStorage();
+                    return null;
                 }
-                
-                const data = await response.json();
-                
-            // Check if we got valid vesting data
-            if (!data.vesting_contracts || data.vesting_contracts.length === 0) {
-                console.warn(`No vesting data found for ${contractAddress}`);
-                // Mark as no data for this session, but will retry on refresh
-                noDataCache.add(contractAddress);
+
+                // Get whitelist
+                const whitelist = await vestingWallet.getWhitelist();
+
+                // Process the data into the expected format
+                const processedData = {
+                    address: contractAddress,
+                    start_time: vestingData.vestingStartTime,
+                    total_duration: vestingData.vestingTotalDuration,
+                    unlock_period: vestingData.unlockPeriod,
+                    cliff_duration: vestingData.cliffDuration,
+                    sender_address: vestingData.vestingSenderAddress.toString(true, true, false),
+                    owner_address: vestingData.ownerAddress.toString(true, true, false),
+                    total_amount: vestingData.vestingTotalAmount.toString(),
+                    whitelist: whitelist.map(addr => addr.toString(true, true, false)),
+                    address_book: {} // Will be populated if needed
+                };
+
+                // Cache the successful result and remove from noDataCache
+                vestingCache[contractAddress] = processedData;
+                noDataCache.delete(contractAddress);
                 
                 // Save to localStorage
                 saveCacheToStorage();
                 
+                console.log(`Successfully fetched and cached vesting data for ${contractAddress} using v2 jsonRPC`);
+                return processedData;
+
+            } catch (vestingError) {
+                console.warn(`Contract ${contractAddress} is not a vesting wallet or failed to get vesting data:`, vestingError.message);
+                noDataCache.add(contractAddress);
+                saveCacheToStorage();
                 return null;
             }
-
-            const vestingContract = data.vesting_contracts[0];
-            const processedData = {
-                address: vestingContract.address,
-                start_time: vestingContract.start_time,
-                total_duration: vestingContract.total_duration,
-                unlock_period: vestingContract.unlock_period,
-                cliff_duration: vestingContract.cliff_duration,
-                sender_address: vestingContract.sender_address,
-                owner_address: vestingContract.owner_address,
-                total_amount: vestingContract.total_amount,
-                whitelist: vestingContract.whitelist || [],
-                            address_book: data.address_book || {}
-                        };
-
-            // Cache the successful result and remove from noDataCache
-            vestingCache[contractAddress] = processedData;
-            noDataCache.delete(contractAddress);
-            
-            // Save to localStorage
-            saveCacheToStorage();
-            
-            console.log(`Successfully fetched and cached vesting data for ${contractAddress}`);
-            return processedData;
                 
-            } catch (error) {
-            console.error(`Failed to fetch vesting details for ${contractAddress}:`, error);
+        } catch (error) {
+            console.error(`Failed to fetch vesting details for ${contractAddress} using v2 jsonRPC:`, error);
             // Mark as no data for this session, but will retry on refresh
             noDataCache.add(contractAddress);
             return null;
@@ -1194,7 +1199,7 @@
                 const newCachedCount = Object.keys(vestingCache).length;
                 const newNoDataCount = noDataCache.size;
                 const completionText = `Complete! Loaded ${vestingData.length} contracts (Cached: ${newCachedCount}, No data: ${newNoDataCount}) - ${(endTime - startTime).toFixed(0)}ms`;
-                updateApiStatus('TON Center API', endTime - startTime, completionText, false);
+                updateApiStatus('TON Center API v2', endTime - startTime, completionText, false);
                 
                 renderStats();
                 filterData();
