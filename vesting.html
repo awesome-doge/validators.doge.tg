@@ -58,11 +58,21 @@
     }
 
     const toMillions = (n) => {
-        return (Number(n) / 1e6).toFixed(3) + 'M';
+        const num = Number(n);
+        if (num < 1000) {
+            // 小於 1000 時直接顯示數字，不用 M
+            return num.toFixed(3).replace(/\.?0+$/, '');
+        }
+        return (num / 1e6).toFixed(3) + 'M';
     }
 
     const toMillionsShort = (n) => {
-        let s = (Number(n) / 1e6).toFixed(3);
+        const num = Number(n);
+        if (num < 1000) {
+            // 小於 1000 時直接顯示數字，不用 M
+            return num.toFixed(3).replace(/\.?0+$/, '');
+        }
+        let s = (num / 1e6).toFixed(3);
         for (let i = 0; i < 3; i++) {
             if (s.endsWith('0')) s = s.substring(0, s.length - 1);
         }
