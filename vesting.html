@@ -679,6 +679,12 @@
                         <th>
                             Label
                         </th>
+                        <th onclick="sortData('created')">
+                            Created ${getSortIcon('created')}
+                        </th>
+                        <th onclick="sortData('vestingStart')">
+                            Vesting Start ${getSortIcon('vestingStart')}
+                        </th>
                         <th onclick="sortData('balance')">
                             Current Balance ${getSortIcon('balance')}
                         </th>
@@ -693,9 +699,6 @@
                         </th>
                         <th onclick="sortData('owner')">
                             Owner Address ${getSortIcon('owner')}
-                        </th>
-                        <th onclick="sortData('vestingStart')">
-                            Vesting Start ${getSortIcon('vestingStart')}
                         </th>
                         <th onclick="sortData('duration')">
                             Duration (days) ${getSortIcon('duration')}
@@ -755,12 +758,13 @@
                     <td><span class="badge badge-info">#${rank}</span></td>
                     <td class="mono">${makeAddressUrl(contract.address)}</td>
                     <td>${label ? `<span class="badge badge-label">${label}</span>` : '-'}</td>
+                    <td>${contract.created_utime ? new Date(contract.created_utime * 1000).toLocaleDateString() : '-'}</td>
+                    <td>${vestingStartDate}</td>
                     <td><strong>${balanceDisplay} TON</strong></td>
                     <td style="background: rgba(255, 59, 48, 0.05);"><strong style="color: #FF3B30;">${unvestedDisplay} TON</strong></td>
                     <td><span style="color: #34C759;">${liquidDisplay} TON</span></td>
                     <td>${totalVestingDisplay} TON</td>
                     <td class="mono" style="font-size: 11px;">${ownerAddressLink}</td>
-                    <td>${vestingStartDate}</td>
                     <td>${durationDays}</td>
                 </tr>
             `;
@@ -778,6 +782,14 @@
                         <div class="mobile-card-row">
                             <span class="mobile-card-label">Label:</span>
                             <span class="mobile-card-value">${label || '-'}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">Created:</span>
+                            <span class="mobile-card-value">${contract.created_utime ? new Date(contract.created_utime * 1000).toLocaleDateString() : '-'}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">Vesting Start:</span>
+                            <span class="mobile-card-value">${vestingStartDate}</span>
                         </div>
                         <div class="mobile-card-row">
                             <span class="mobile-card-label">Current Balance:</span>
@@ -802,10 +814,6 @@
                         <div class="mobile-card-row">
                             <span class="mobile-card-label">Owner Address:</span>
                             <span class="mobile-card-value mono">${ownerAddressLink}</span>
-                        </div>
-                        <div class="mobile-card-row">
-                            <span class="mobile-card-label">Vesting Start:</span>
-                            <span class="mobile-card-value">${vestingStartDate}</span>
                         </div>
                         <div class="mobile-card-row">
                             <span class="mobile-card-label">Duration:</span>
@@ -1390,7 +1398,7 @@
     /* Basic table styles - theme compliant */
     table {
         width: 100%;
-        min-width: 1400px;
+        min-width: 1600px;
         border-collapse: separate;
         border-spacing: 0;
         font-size: 13px;
