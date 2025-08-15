@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { RefreshCw, Copy, CheckCircle, AlertCircle, Info, DollarSign, Users, Clock, Shield } from "lucide-react";
 
 import { Address } from "@ton/core";
@@ -167,7 +167,10 @@ const ControllerDisplay = ({ data }: { data: any }) => {
     );
   }
 
-  const parsedData = JSON.parse(controllerStateStringify(data));
+  const parsedData = useMemo(
+    () => JSON.parse(controllerStateStringify(data)),
+    [data]
+  );
 
   return (
     <div className="space-y-3">
@@ -286,7 +289,10 @@ const PoolDisplay = ({ data }: { data: any }) => {
     );
   }
 
-  const parsedData = JSON.parse(poolStateStringify(data));
+  const parsedData = useMemo(
+    () => JSON.parse(poolStateStringify(data)),
+    [data]
+  );
 
   return (
     <div className="space-y-3">
@@ -450,6 +456,20 @@ function App() {
 
   const [isPoolLoading, setIsPoolLoading] = useState(false);
   const [isPoolControllersLoading, setIsPoolControllersLoading] = useState(false);
+
+  const parsedPoolData = useMemo(() => {
+    if (!poolData || Object.keys(poolData).length === 0 || (poolData as any).error) {
+      return null;
+    }
+    return JSON.parse(poolStateStringify(poolData));
+  }, [poolData]);
+
+  const parsedControllerData = useMemo(() => {
+    if (!controllerData || Object.keys(controllerData).length === 0 || (controllerData as any).error) {
+      return null;
+    }
+    return JSON.parse(controllerStateStringify(controllerData));
+  }, [controllerData]);
 
   // Delay function
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -714,26 +734,26 @@ function App() {
         <div className="rounded-2xl border border-white/60 bg-white/70 backdrop-blur-xl shadow-[0_12px_48px_rgba(0,0,0,0.08)]">
           <div className="p-6">
             {/* Top metrics row */}
-            {poolData && Object.keys(poolData).length > 0 && !poolData.error ? (
+            {parsedPoolData ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <MetricCard
                   title="Pool Total Balance"
-                  value={`${formatWithCommas(JSON.parse(poolStateStringify(poolData)).total_balance)} TON`}
+                  value={`${formatWithCommas(parsedPoolData.total_balance)} TON`}
                   color="green"
                 />
                 <MetricCard
                   title="Current Borrowed"
-                  value={`${formatWithCommas(JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.borrowed)} TON`}
+                  value={`${formatWithCommas(parsedPoolData.round_data.current_round_borrowers.borrowed)} TON`}
                   color="indigo"
                 />
                 <MetricCard
                   title="Expected Return"
-                  value={`${formatWithCommas(JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.expected)} TON`}
+                  value={`${formatWithCommas(parsedPoolData.round_data.current_round_borrowers.expected)} TON`}
                   color="purple"
                 />
                 <MetricCard
                   title="Active Borrowers"
-                  value={formatWithCommas(JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.active_borrowers)}
+                  value={formatWithCommas(parsedPoolData.round_data.current_round_borrowers.active_borrowers)}
                   color="emerald"
                 />
               </div>
@@ -868,7 +888,7 @@ function App() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {/* Pool Total */}
-              {poolData && Object.keys(poolData).length > 0 && !poolData.error && (
+              {parsedPoolData && (
                 <>
                   <div className="bg-green-50 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-2">
@@ -876,10 +896,10 @@ function App() {
                       <span className="text-sm font-medium text-gray-700">Pool Total Balance</span>
                     </div>
                     <div className="text-2xl font-bold text-green-600">
-                      {formatWithCommas(JSON.parse(poolStateStringify(poolData)).total_balance)} TON
+                      {formatWithCommas(parsedPoolData.total_balance)} TON
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
-                      Interest Rate: {(JSON.parse(poolStateStringify(poolData)).interest_rate / 1000000 * 100).toFixed(2)}%
+                      Interest Rate: {(parsedPoolData.interest_rate / 1000000 * 100).toFixed(2)}%
                     </div>
                   </div>
 
@@ -889,10 +909,10 @@ function App() {
                       <span className="text-sm font-medium text-gray-700">Current Borrowed</span>
                     </div>
                     <div className="text-2xl font-bold text-blue-600">
-                      {formatWithCommas(JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.borrowed)} TON
+                      {formatWithCommas(parsedPoolData.round_data.current_round_borrowers.borrowed)} TON
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
-                      Active Borrowers: {formatWithCommas(JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.active_borrowers)}
+                      Active Borrowers: {formatWithCommas(parsedPoolData.round_data.current_round_borrowers.active_borrowers)}
                     </div>
                   </div>
 
@@ -902,10 +922,10 @@ function App() {
                       <span className="text-sm font-medium text-gray-700">Expected Return</span>
                     </div>
                     <div className="text-2xl font-bold text-purple-600">
-                      {formatWithCommas(JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.expected)} TON
+                      {formatWithCommas(parsedPoolData.round_data.current_round_borrowers.expected)} TON
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
-                      Round: #{formatWithCommas(JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.round_id)}
+                      Round: #{formatWithCommas(parsedPoolData.round_data.current_round_borrowers.round_id)}
                     </div>
                   </div>
 
@@ -915,7 +935,7 @@ function App() {
                       <span className="text-sm font-medium text-gray-700">LST Supply</span>
                     </div>
                     <div className="text-2xl font-bold text-yellow-600">
-                      {formatWithCommas(JSON.parse(poolStateStringify(poolData)).minters_data.supply)} LST
+                      {formatWithCommas(parsedPoolData.minters_data.supply)} LST
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
                       Jetton Minter
@@ -929,7 +949,7 @@ function App() {
                       <span className="text-sm font-medium text-gray-700">Fund Utilization</span>
                     </div>
                     <div className="text-2xl font-bold text-indigo-600">
-                      {(parseFloat(JSON.parse(poolStateStringify(poolData)).round_data.current_round_borrowers.borrowed) / parseFloat(JSON.parse(poolStateStringify(poolData)).total_balance) * 100).toFixed(1)}%
+                      {(parseFloat(parsedPoolData.round_data.current_round_borrowers.borrowed) / parseFloat(parsedPoolData.total_balance) * 100).toFixed(1)}%
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
                       Borrowed/Total Balance
@@ -943,8 +963,8 @@ function App() {
                       <span className="text-sm font-medium text-gray-700">Previous Round Yield</span>
                     </div>
                     <div className="text-2xl font-bold text-rose-600">
-                      {parseFloat(JSON.parse(poolStateStringify(poolData)).round_data.prev_round_borrowers.borrowed) > 0 ? 
-                        (parseFloat(JSON.parse(poolStateStringify(poolData)).round_data.prev_round_borrowers.profit) / parseFloat(JSON.parse(poolStateStringify(poolData)).round_data.prev_round_borrowers.borrowed) * 100).toFixed(2) : '0.00'}%
+                      {parseFloat(parsedPoolData.round_data.prev_round_borrowers.borrowed) > 0 ?
+                        (parseFloat(parsedPoolData.round_data.prev_round_borrowers.profit) / parseFloat(parsedPoolData.round_data.prev_round_borrowers.borrowed) * 100).toFixed(2) : '0.00'}%
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
                       Actual Profit/Borrowed Amount
@@ -958,10 +978,10 @@ function App() {
                       <span className="text-sm font-medium text-gray-700">Governance Fees</span>
                     </div>
                     <div className="text-2xl font-bold text-emerald-600">
-                      {formatWithCommas(JSON.parse(poolStateStringify(poolData)).accrued_governance_fee)} TON
+                      {formatWithCommas(parsedPoolData.accrued_governance_fee)} TON
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
-                      Accumulated Fees ({(JSON.parse(poolStateStringify(poolData)).governance_fee_share / 1000000 * 100).toFixed(2)}%)
+                      Accumulated Fees ({(parsedPoolData.governance_fee_share / 1000000 * 100).toFixed(2)}%)
                     </div>
                   </div>
                 </>
@@ -971,7 +991,7 @@ function App() {
             {/* System Status Indicators - Optimized */}
             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Pool Status */}
-              {poolData && Object.keys(poolData).length > 0 && !poolData.error && (
+              {parsedPoolData && (
                 <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-100">
                   <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
                     <Users className="text-green-600" size={16} />
@@ -980,23 +1000,23 @@ function App() {
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Pool Status</span>
-                      <StatusBadge 
-                        status={JSON.parse(poolStateStringify(poolData)).state} 
-                        type={JSON.parse(poolStateStringify(poolData)).state === "NORMAL" ? "success" : "warning"}
+                      <StatusBadge
+                        status={parsedPoolData.state}
+                        type={parsedPoolData.state === "NORMAL" ? "success" : "warning"}
                       />
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Deposit Status</span>
-                      <StatusBadge 
-                        status={JSON.parse(poolStateStringify(poolData)).deposit_withdrawal_parameters.deposits_open ? "Open" : "Closed"} 
-                        type={JSON.parse(poolStateStringify(poolData)).deposit_withdrawal_parameters.deposits_open ? "success" : "error"}
+                      <StatusBadge
+                        status={parsedPoolData.deposit_withdrawal_parameters.deposits_open ? "Open" : "Closed"}
+                        type={parsedPoolData.deposit_withdrawal_parameters.deposits_open ? "success" : "error"}
                       />
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Is Pool Halted</span>
-                      <StatusBadge 
-                        status={JSON.parse(poolStateStringify(poolData)).halted ? "Halted" : "Normal"} 
-                        type={JSON.parse(poolStateStringify(poolData)).halted ? "error" : "success"}
+                      <StatusBadge
+                        status={parsedPoolData.halted ? "Halted" : "Normal"}
+                        type={parsedPoolData.halted ? "error" : "success"}
                       />
                     </div>
                   </div>
@@ -1004,7 +1024,7 @@ function App() {
               )}
               
               {/* Controller Status */}
-              {controllerData && Object.keys(controllerData).length > 0 && !controllerData.error && (
+              {parsedControllerData && (
                 <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100">
                   <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
                     <Shield className="text-blue-600" size={16} />
@@ -1013,23 +1033,20 @@ function App() {
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Controller Status</span>
-                      <StatusBadge 
-                        status={JSON.parse(controllerStateStringify(controllerData)).state} 
-                        type="info"
-                      />
+                      <StatusBadge status={parsedControllerData.state} type="info" />
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Is Approved</span>
-                      <StatusBadge 
-                        status={JSON.parse(controllerStateStringify(controllerData)).approved ? "Approved" : "Not Approved"} 
-                        type={JSON.parse(controllerStateStringify(controllerData)).approved ? "success" : "warning"}
+                      <StatusBadge
+                        status={parsedControllerData.approved ? "Approved" : "Not Approved"}
+                        type={parsedControllerData.approved ? "success" : "warning"}
                       />
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Is Halted</span>
-                      <StatusBadge 
-                        status={JSON.parse(controllerStateStringify(controllerData)).halted ? "Halted" : "Normal"} 
-                        type={JSON.parse(controllerStateStringify(controllerData)).halted ? "error" : "success"}
+                      <StatusBadge
+                        status={parsedControllerData.halted ? "Halted" : "Normal"}
+                        type={parsedControllerData.halted ? "error" : "success"}
                       />
                     </div>
                   </div>
