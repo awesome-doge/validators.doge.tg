@@ -1378,6 +1378,14 @@
 
     initializeApp();
 
+    function debounce(fn, delay) {
+        let timeout;
+        return (...args) => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => fn.apply(this, args), delay);
+        };
+    }
+
     /**
      * @param input {HTMLElement}
      * @param handler   {() => void}
@@ -1397,10 +1405,10 @@
     const savedFilter = document.getElementById('savedFilter');
     const networkSwitch = document.getElementById('networkSwitch');
 
-    onInput(searchInput, () => {
+    onInput(searchInput, debounce(() => {
         searchText = searchInput.value;
         renderTable();
-    });
+    }, 300));
 
     cycleSelector.addEventListener('change', async () => {
         const selectedCycleId = cycleSelector.value || null;
