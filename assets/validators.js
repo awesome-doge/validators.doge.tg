@@ -118,6 +118,11 @@ const hideLoading = () => {};
 const urlParams = new URLSearchParams(document.location.search);
 const cycleIdFromUrl = urlParams.get('cycle_id');
 
+const apiStatusEl = document.getElementById('apiStatus');
+const apiNameEl = document.getElementById('apiName');
+const apiPerformanceEl = document.getElementById('apiPerformance');
+const statsContainer = document.getElementById('statsContainer');
+
 let cycleData;
 let qosData;
 let qosDataByCycleId;
@@ -283,9 +288,6 @@ function selectBestApiEndpoint() {
 
 // 更新 API 狀態顯示
 function updateApiStatus(endpointName, responseTime = null, progressText = null, keepVisible = false) {
-  const apiStatus = document.getElementById('apiStatus');
-  const apiName = document.getElementById('apiName');
-  const apiPerformance = document.getElementById('apiPerformance');
 
   // Display API name
   const displayNames = {
@@ -295,7 +297,7 @@ function updateApiStatus(endpointName, responseTime = null, progressText = null,
     'Loading Failed': 'Loading Failed'
   };
 
-  apiName.textContent = displayNames[endpointName] || endpointName;
+  apiNameEl.textContent = displayNames[endpointName] || endpointName;
 
   // Display performance information or progress text
   let performanceText = '';
@@ -305,10 +307,10 @@ function updateApiStatus(endpointName, responseTime = null, progressText = null,
     performanceText = `${responseTime.toFixed(0)}ms`;
   }
 
-  apiPerformance.textContent = performanceText;
+  apiPerformanceEl.textContent = performanceText;
 
   // Show status indicator
-  apiStatus.classList.add('show');
+  apiStatusEl.classList.add('show');
 
   // Clear previous timer
   if (window.apiStatusTimeout) {
@@ -318,18 +320,17 @@ function updateApiStatus(endpointName, responseTime = null, progressText = null,
   // Hide after 3 seconds if not keeping visible
   if (!keepVisible && !progressText) {
     window.apiStatusTimeout = setTimeout(() => {
-      apiStatus.classList.remove('show');
+      apiStatusEl.classList.remove('show');
     }, 3000);
   }
 }
 
 // Hide API status
 function hideApiStatus() {
-  const apiStatus = document.getElementById('apiStatus');
   if (window.apiStatusTimeout) {
     clearTimeout(window.apiStatusTimeout);
   }
-  apiStatus.classList.remove('show');
+  apiStatusEl.classList.remove('show');
 }
 
 // Update progress using API status panel
@@ -727,7 +728,7 @@ const renderStats = () => {
     }
   }
 
-  document.getElementById('statsContainer').innerHTML = `
+  statsContainer.innerHTML = `
             <div class="stat-card">
                 <h3>Validation Cycle</h3>
                 <p class="value long-number">#${cycleData.cycle_id}</p>

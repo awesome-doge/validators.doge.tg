@@ -233,6 +233,11 @@
         saved: ''
     };
 
+    const apiStatus = document.getElementById('apiStatus');
+    const apiName = document.getElementById('apiName');
+    const apiPerformance = document.getElementById('apiPerformance');
+    const statsContainer = document.getElementById('statsContainer');
+
     // Network configuration
     let currentNetwork = localStorage.getItem('selectedNetwork') || 'mainnet';
     
@@ -315,9 +320,6 @@
 
     // API status management
     function updateApiStatus(endpointName, responseTime = null, progressText = null, keepVisible = false) {
-        const apiStatus = document.getElementById('apiStatus');
-        const apiName = document.getElementById('apiName');
-        const apiPerformance = document.getElementById('apiPerformance');
 
         // Display API name
         const displayNames = {
@@ -357,7 +359,6 @@
 
     // Hide API status
     function hideApiStatus() {
-        const apiStatus = document.getElementById('apiStatus');
         if (window.apiStatusTimeout) {
             clearTimeout(window.apiStatusTimeout);
         }
@@ -946,7 +947,7 @@
             }
         }
 
-        document.getElementById('statsContainer').innerHTML = `
+        statsContainer.innerHTML = `
             <div class="stat-card">
                 <h3>Validation Cycle</h3>
                 <p class="value long-number">#${withCommas(cycleData.cycle_id)}</p>
