@@ -652,7 +652,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="mx-auto space-y-6">
         {/* Unified Query Panel */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {/* Controller Query */}
