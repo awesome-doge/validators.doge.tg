@@ -327,59 +327,69 @@
         }
     }
 
-    // Resolve ADNL to IP:Port with caching
-    async function resolveAdnl(adnl) {
+    // Resolve ADNL to IP:Port with caching and retry mechanism
+    async function resolveAdnl(adnl, maxRetries = 3) {
         // Check cache first
         if (dnsCache[adnl]) {
             const cached = dnsCache[adnl];
             const now = Date.now();
-            if (cached.timestamp && (now - cached.timestamp) < DNS_CACHE_EXPIRY) {
+            if (cached.timestamp && (now - cached.timestamp) < DNS_CACHE_EXPIRY && cached.result !== 'Error') {
                 return cached.result;
             }
         }
 
-        try {
-            const response = await fetch(`${DNS_API_URL}?adnl=${adnl}`);
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-            
-            const data = await response.json();
-            let result = 'Not found';
-            
-            // Handle array response format
-            if (Array.isArray(data) && data.length > 0) {
-                // Find the first entry with valid IP and port
-                const validEntry = data.find(entry => entry.ip && entry.port);
-                if (validEntry) {
-                    result = `${validEntry.ip}:${validEntry.port}`;
+        let lastError = null;
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                const response = await fetch(`${DNS_API_URL}?adnl=${adnl}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                let result = 'Not found';
+                
+                // Handle array response format
+                if (Array.isArray(data) && data.length > 0) {
+                    // Find the first entry with valid IP and port
+                    const validEntry = data.find(entry => entry.ip && entry.port);
+                    if (validEntry) {
+                        result = `${validEntry.ip}:${validEntry.port}`;
+                    }
+                }
+                // Handle object response format (fallback)
+                else if (data.success && data.result && data.result.ip && data.result.port) {
+                    result = `${data.result.ip}:${data.result.port}`;
+                }
+                
+                // Cache the result
+                dnsCache[adnl] = {
+                    result: result,
+                    timestamp: Date.now()
+                };
+                saveDnsCache();
+                
+                return result;
+            } catch (error) {
+                lastError = error;
+                console.warn(`Failed to resolve ADNL ${adnl} (attempt ${attempt}/${maxRetries}):`, error);
+                
+                // Wait before retry (exponential backoff)
+                if (attempt < maxRetries) {
+                    await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt - 1) * 1000));
                 }
             }
-            // Handle object response format (fallback)
-            else if (data.success && data.result && data.result.ip && data.result.port) {
-                result = `${data.result.ip}:${data.result.port}`;
-            }
-            
-            // Cache the result
-            dnsCache[adnl] = {
-                result: result,
-                timestamp: Date.now()
-            };
-            saveDnsCache();
-            
-            return result;
-        } catch (error) {
-            console.warn(`Failed to resolve ADNL ${adnl}:`, error);
-            
-            // Cache failed result to avoid repeated requests
-            dnsCache[adnl] = {
-                result: 'Error',
-                timestamp: Date.now()
-            };
-            saveDnsCache();
-            
-            return 'Error';
         }
+        
+        // All retries failed, cache error result temporarily
+        console.error(`All ${maxRetries} attempts failed for ADNL ${adnl}:`, lastError);
+        dnsCache[adnl] = {
+            result: 'Error',
+            timestamp: Date.now()
+        };
+        saveDnsCache();
+        
+        return 'Error';
     }
 
     // Get DNS result from cache
@@ -409,7 +419,16 @@
         }, 3000);
     }
 
-    // Batch resolve ADNLs for all validators
+    // Function to update a single IP:Port cell in the table
+    function updateIpPortCell(adnl, ipPort) {
+        const cells = document.querySelectorAll(`[data-adnl="${adnl}"]`);
+        cells.forEach(cell => {
+            cell.textContent = ipPort;
+            cell.classList.add('dns-resolved');
+        });
+    }
+
+    // Batch resolve ADNLs for all validators with real-time table updates
     async function batchResolveAdnls(validators) {
         const unresolved = [];
         const resolved = {};
@@ -420,7 +439,7 @@
             if (dnsCache[adnl]) {
                 const cached = dnsCache[adnl];
                 const now = Date.now();
-                if (cached.timestamp && (now - cached.timestamp) < DNS_CACHE_EXPIRY) {
+                if (cached.timestamp && (now - cached.timestamp) < DNS_CACHE_EXPIRY && cached.result !== 'Error') {
                     resolved[adnl] = cached.result;
                     continue;
                 }
@@ -430,29 +449,48 @@
         
         console.log(`DNS resolution: ${Object.keys(resolved).length} cached, ${unresolved.length} need resolution`);
         
-        // Resolve unresolved ADNLs with rate limiting
+        // Resolve unresolved ADNLs with rate limiting and real-time updates
         if (unresolved.length > 0) {
             updateApiStatus('DNS API', null, `Resolving ${unresolved.length} ADNL addresses...`, true);
             
             let resolvedCount = 0;
-            for (const adnl of unresolved) {
-                try {
-                    const result = await resolveAdnl(adnl);
-                    resolved[adnl] = result;
-                    resolvedCount++;
-                    
-                    // Update progress
-                    if (resolvedCount % 5 === 0 || resolvedCount === unresolved.length) {
+            
+            // Use Promise.allSettled with concurrency limit for better performance
+            const concurrencyLimit = 5;
+            const chunks = [];
+            for (let i = 0; i < unresolved.length; i += concurrencyLimit) {
+                chunks.push(unresolved.slice(i, i + concurrencyLimit));
+            }
+            
+            for (const chunk of chunks) {
+                const promises = chunk.map(async (adnl) => {
+                    try {
+                        const result = await resolveAdnl(adnl);
+                        resolved[adnl] = result;
+                        
+                        // Update the specific cell immediately
+                        updateIpPortCell(adnl, result);
+                        
+                        resolvedCount++;
+                        
+                        // Update progress
                         updateApiStatus('DNS API', null, `Resolved ${resolvedCount}/${unresolved.length} ADNL addresses`, true);
+                        
+                        return { adnl, result, success: true };
+                    } catch (error) {
+                        console.warn(`Failed to resolve ${adnl}:`, error);
+                        resolved[adnl] = 'Error';
+                        updateIpPortCell(adnl, 'Error');
+                        resolvedCount++;
+                        return { adnl, result: 'Error', success: false };
                     }
-                    
-                    // Rate limiting: wait 100ms between requests to avoid overwhelming the API
-                    if (resolvedCount < unresolved.length) {
-                        await new Promise(resolve => setTimeout(resolve, 100));
-                    }
-                } catch (error) {
-                    console.warn(`Failed to resolve ${adnl}:`, error);
-                    resolved[adnl] = 'Error';
+                });
+                
+                await Promise.allSettled(promises);
+                
+                // Rate limiting between chunks
+                if (chunks.indexOf(chunk) < chunks.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 200));
                 }
             }
             
@@ -1270,10 +1308,8 @@
             currentCycleDnsResolved = cycleKey;
             batchResolveAdnls(validators).then(() => {
                 window.dnsResolutionInProgress = false;
-                // Only re-render if we're still on the same cycle data to prevent infinite loops
-                if (cycleData && currentCycleDnsResolved === cycleKey) {
-                    renderTable();
-                }
+                console.log('DNS resolution completed for all validators');
+                // No need to re-render table since updates are done in real-time
             }).catch((error) => {
                 console.error('DNS resolution failed:', error);
                 window.dnsResolutionInProgress = false;
@@ -1371,7 +1407,9 @@
             s += `<td><span class="badge badge-info">${formatType(walletVersion)}</span></td>`;
             s += `<td>${complaintsDisplay}</td>`;
             s += `<td class="mono">${v.adnl_addr}</td>`;
-            s += `<td class="mono" style="font-size: 12px;">${getDnsResult(v.adnl_addr)}</td>`;
+            const dnsResult = getDnsResult(v.adnl_addr);
+            const dnsClass = (dnsResult !== 'Loading...' && dnsResult !== 'Error') ? 'dns-resolved' : '';
+            s += `<td class="mono ${dnsClass}" style="font-size: 12px;" data-adnl="${v.adnl_addr}">${dnsResult}</td>`;
             s += `<td class="mono">${makeAddressUrl(v.wallet_address)}</td>`;
             s += `<td><button class="detail-btn" onclick="showValidatorDetail('${v.adnl_addr}')">View Details</button></td>`;
             s += '</tr>';
@@ -1423,7 +1461,11 @@
                         </div>
                         <div class="mobile-card-row">
                             <span class="mobile-card-label">IP:Port:</span>
-                            <span class="mobile-card-value mono" style="font-size: 12px;">${getDnsResult(v.adnl_addr)}</span>
+                            ${(() => {
+                                const dnsResult = getDnsResult(v.adnl_addr);
+                                const dnsClass = (dnsResult !== 'Loading...' && dnsResult !== 'Error') ? 'dns-resolved' : '';
+                                return `<span class="mobile-card-value mono ${dnsClass}" style="font-size: 12px;" data-adnl="${v.adnl_addr}">${dnsResult}</span>`;
+                            })()}
                         </div>
                     </div>
                 </div>

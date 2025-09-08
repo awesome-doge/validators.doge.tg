@@ -40,6 +40,26 @@ body {
     background: rgba(0, 0, 0, 0.3);
 }
 
+/* DNS resolution animation */
+[data-adnl] {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+[data-adnl].dns-resolved {
+    background-color: rgba(52, 199, 89, 0.1);
+    color: #34C759;
+    animation: dns-resolved-flash 0.5s ease;
+}
+
+@keyframes dns-resolved-flash {
+    0% {
+        background-color: rgba(52, 199, 89, 0.3);
+    }
+    100% {
+        background-color: rgba(52, 199, 89, 0.1);
+    }
+}
+
 .container {
     margin: 0 auto;
     background: rgba(255, 255, 255, 0.8);
