@@ -494,6 +494,37 @@ body {
     box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
     background: rgba(255, 255, 255, 0.95);
 }
+
+.clear-dns-cache-btn {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.2);
+    text-transform: none;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    min-width: auto;
+}
+
+.clear-dns-cache-btn:hover {
+    background: linear-gradient(135deg, #ff5252 0%, #e53e3e 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+.clear-dns-cache-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 4px rgba(255, 107, 107, 0.4);
+}
         
 /* iPhone mobile optimization - validation cycle and filter areas */
 @media (max-width: 768px) {

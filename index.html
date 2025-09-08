@@ -86,6 +86,13 @@
                     <option value="saved">Favorites Only</option>
                 </select>
             </div>
+            
+            <div class="filter-group">
+                <label>DNS Cache</label>
+                <button onclick="clearDnsCache()" class="clear-dns-cache-btn" title="Clear DNS cache and refresh IP:Port data">
+                    🗑️ Clear Cache
+                </button>
+            </div>
         </div>
     </div>
 
@@ -283,6 +290,178 @@
     }
 
     let labels = {};
+
+    // DNS resolution cache
+    let dnsCache = {};
+    const DNS_CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    const DNS_API_URL = 'https://dns-api.doge.tg/resolve';
+
+    // Load DNS cache from localStorage
+    function loadDnsCache() {
+        try {
+            const cached = localStorage.getItem('adnlDnsCache');
+            if (cached) {
+                const parsedCache = JSON.parse(cached);
+                // Clean expired entries
+                const now = Date.now();
+                for (const [adnl, data] of Object.entries(parsedCache)) {
+                    if (data.timestamp && (now - data.timestamp) < DNS_CACHE_EXPIRY) {
+                        dnsCache[adnl] = data;
+                    }
+                }
+                console.log(`Loaded ${Object.keys(dnsCache).length} cached DNS entries`);
+            }
+        } catch (e) {
+            console.warn('Failed to load DNS cache:', e);
+            dnsCache = {};
+        }
+    }
+
+    // Save DNS cache to localStorage
+    function saveDnsCache() {
+        try {
+            localStorage.setItem('adnlDnsCache', JSON.stringify(dnsCache));
+        } catch (e) {
+            console.warn('Failed to save DNS cache:', e);
+        }
+    }
+
+    // Resolve ADNL to IP:Port with caching
+    async function resolveAdnl(adnl) {
+        // Check cache first
+        if (dnsCache[adnl]) {
+            const cached = dnsCache[adnl];
+            const now = Date.now();
+            if (cached.timestamp && (now - cached.timestamp) < DNS_CACHE_EXPIRY) {
+                return cached.result;
+            }
+        }
+
+        try {
+            const response = await fetch(`${DNS_API_URL}?adnl=${adnl}`);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const data = await response.json();
+            let result = 'Not found';
+            
+            // Handle array response format
+            if (Array.isArray(data) && data.length > 0) {
+                // Find the first entry with valid IP and port
+                const validEntry = data.find(entry => entry.ip && entry.port);
+                if (validEntry) {
+                    result = `${validEntry.ip}:${validEntry.port}`;
+                }
+            }
+            // Handle object response format (fallback)
+            else if (data.success && data.result && data.result.ip && data.result.port) {
+                result = `${data.result.ip}:${data.result.port}`;
+            }
+            
+            // Cache the result
+            dnsCache[adnl] = {
+                result: result,
+                timestamp: Date.now()
+            };
+            saveDnsCache();
+            
+            return result;
+        } catch (error) {
+            console.warn(`Failed to resolve ADNL ${adnl}:`, error);
+            
+            // Cache failed result to avoid repeated requests
+            dnsCache[adnl] = {
+                result: 'Error',
+                timestamp: Date.now()
+            };
+            saveDnsCache();
+            
+            return 'Error';
+        }
+    }
+
+    // Get DNS result from cache
+    function getDnsResult(adnl) {
+        const cached = dnsCache[adnl];
+        if (cached && cached.timestamp && (Date.now() - cached.timestamp) < DNS_CACHE_EXPIRY) {
+            return cached.result;
+        }
+        return 'Loading...';
+    }
+
+    // Clear DNS cache function
+    function clearDnsCache() {
+        const cacheSize = Object.keys(dnsCache).length;
+        localStorage.removeItem('adnlDnsCache');
+        dnsCache = {};
+        window.dnsResolutionInProgress = false;
+        
+        updateApiStatus('Cache Cleared', null, `Cleared ${cacheSize} DNS cache entries`, false);
+        
+        // Re-render table to show "Loading..." and trigger fresh DNS resolution
+        renderTable();
+        
+        setTimeout(() => {
+            hideApiStatus();
+        }, 3000);
+    }
+
+    // Batch resolve ADNLs for all validators
+    async function batchResolveAdnls(validators) {
+        const unresolved = [];
+        const resolved = {};
+        
+        // Check which ADNLs need resolution
+        for (const validator of validators) {
+            const adnl = validator.adnl_addr;
+            if (dnsCache[adnl]) {
+                const cached = dnsCache[adnl];
+                const now = Date.now();
+                if (cached.timestamp && (now - cached.timestamp) < DNS_CACHE_EXPIRY) {
+                    resolved[adnl] = cached.result;
+                    continue;
+                }
+            }
+            unresolved.push(adnl);
+        }
+        
+        console.log(`DNS resolution: ${Object.keys(resolved).length} cached, ${unresolved.length} need resolution`);
+        
+        // Resolve unresolved ADNLs with rate limiting
+        if (unresolved.length > 0) {
+            updateApiStatus('DNS API', null, `Resolving ${unresolved.length} ADNL addresses...`, true);
+            
+            let resolvedCount = 0;
+            for (const adnl of unresolved) {
+                try {
+                    const result = await resolveAdnl(adnl);
+                    resolved[adnl] = result;
+                    resolvedCount++;
+                    
+                    // Update progress
+                    if (resolvedCount % 5 === 0 || resolvedCount === unresolved.length) {
+                        updateApiStatus('DNS API', null, `Resolved ${resolvedCount}/${unresolved.length} ADNL addresses`, true);
+                    }
+                    
+                    // Rate limiting: wait 100ms between requests to avoid overwhelming the API
+                    if (resolvedCount < unresolved.length) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                } catch (error) {
+                    console.warn(`Failed to resolve ${adnl}:`, error);
+                    resolved[adnl] = 'Error';
+                }
+            }
+            
+            // Hide progress after completion
+            setTimeout(() => {
+                hideApiStatus();
+            }, 2000);
+        }
+        
+        return resolved;
+    }
 
     async function fetchCsv() {
         try {
@@ -1010,6 +1189,7 @@
             '<th>Type</th>' +
             '<th>Complaints</th>' +
             '<th>ADNL Address</th>' +
+            '<th>IP:Port</th>' +
             '<th>Wallet Address</th>' +
             '<th>Details</th>' +
             '</tr>' +
@@ -1072,6 +1252,15 @@
 
         // Update filter options
         updateFilterOptions(types, geos);
+
+        // Start background DNS resolution for all validators (uses cache internally)
+        if (!window.dnsResolutionInProgress) {
+            window.dnsResolutionInProgress = true;
+            batchResolveAdnls(validators).then(() => {
+                window.dnsResolutionInProgress = false;
+                renderTable(); // Re-render once with DNS results
+            });
+        }
 
         for (const v of validators) {
             const label = labels[v.adnl_addr] || labels[v.wallet_address] || '';
@@ -1163,6 +1352,7 @@
             s += `<td><span class="badge badge-info">${formatType(walletVersion)}</span></td>`;
             s += `<td>${complaintsDisplay}</td>`;
             s += `<td class="mono">${v.adnl_addr}</td>`;
+            s += `<td class="mono" style="font-size: 12px;">${getDnsResult(v.adnl_addr)}</td>`;
             s += `<td class="mono">${makeAddressUrl(v.wallet_address)}</td>`;
             s += `<td><button class="detail-btn" onclick="showValidatorDetail('${v.adnl_addr}')">View Details</button></td>`;
             s += '</tr>';
@@ -1211,6 +1401,10 @@
                         <div class="mobile-card-row">
                             <span class="mobile-card-label">ADNL:</span>
                             <span class="mobile-card-value mono">${v.adnl_addr}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">IP:Port:</span>
+                            <span class="mobile-card-value mono" style="font-size: 12px;">${getDnsResult(v.adnl_addr)}</span>
                         </div>
                     </div>
                 </div>
@@ -1371,6 +1565,7 @@
     // Initialize application
     async function initializeApp() {
         updateNetworkDisplay();
+        loadDnsCache(); // Load DNS cache synchronously
         await loadAvailableCycles();
         await getCycleData();
         await fetchCsv();
