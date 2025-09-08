@@ -119,8 +119,8 @@
     // Global variables
     let vestingData = [];
     let filteredData = [];
-    let sortColumn = 'unvested'; // Default sort by unvested amount
-    let sortDirection = 'desc'; // Default descending
+    let sortColumn = 'created'; // Default sort by created time
+    let sortDirection = 'desc'; // Default descending (newest first)
     let labels = {}; // address -> label
     let blacklist = new Set(); // Blacklist address collection
     
@@ -756,7 +756,7 @@
         } else {
             // If clicking different column, set new column and use default sort direction
             sortColumn = column;
-            sortDirection = ['balance', 'unvested', 'totalVesting', 'liquid'].includes(column) ? 'desc' : 'asc';
+            sortDirection = ['balance', 'unvested', 'totalVesting', 'liquid', 'created', 'lastTx'].includes(column) ? 'desc' : 'asc';
         }
         
         filterData();
