@@ -295,6 +295,7 @@
     let dnsCache = {};
     const DNS_CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
     const DNS_API_URL = 'https://dns-api.doge.tg/resolve';
+    let currentCycleDnsResolved = null; // Track which cycle has been DNS resolved
 
     // Load DNS cache from localStorage
     function loadDnsCache() {
@@ -396,6 +397,7 @@
         localStorage.removeItem('adnlDnsCache');
         dnsCache = {};
         window.dnsResolutionInProgress = false;
+        currentCycleDnsResolved = null; // Reset cycle DNS tracking
         
         updateApiStatus('Cache Cleared', null, `Cleared ${cacheSize} DNS cache entries`, false);
         
@@ -781,6 +783,10 @@
 
     async function getCycleData(selectedCycleId = null) {
         showLoading();
+        // Reset DNS resolution tracking when loading new cycle data
+        currentCycleDnsResolved = null;
+        window.dnsResolutionInProgress = false;
+        
         try {
             updateProgress(0, 'Starting to load cycle data...');
             
@@ -1162,7 +1168,10 @@
     }
 
     const renderTable = () => {
-        if (!cycleData) return;
+        if (!cycleData || !cycleData.cycle_info || !cycleData.cycle_info.validators) {
+            console.log('renderTable called but cycleData not ready');
+            return;
+        }
 
         const data = cycleData;
         const cycleInfo = data.cycle_info;
@@ -1254,11 +1263,21 @@
         updateFilterOptions(types, geos);
 
         // Start background DNS resolution for all validators (uses cache internally)
-        if (!window.dnsResolutionInProgress) {
+        // Only resolve DNS if we haven't done it for this cycle yet
+        const cycleKey = cycleData ? cycleData.cycle_id || 'current' : 'current';
+        if (!window.dnsResolutionInProgress && currentCycleDnsResolved !== cycleKey) {
             window.dnsResolutionInProgress = true;
+            currentCycleDnsResolved = cycleKey;
             batchResolveAdnls(validators).then(() => {
                 window.dnsResolutionInProgress = false;
-                renderTable(); // Re-render once with DNS results
+                // Only re-render if we're still on the same cycle data to prevent infinite loops
+                if (cycleData && currentCycleDnsResolved === cycleKey) {
+                    renderTable();
+                }
+            }).catch((error) => {
+                console.error('DNS resolution failed:', error);
+                window.dnsResolutionInProgress = false;
+                currentCycleDnsResolved = null; // Reset on error so it can retry
             });
         }
 
